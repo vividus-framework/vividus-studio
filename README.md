@@ -1,0 +1,1 @@
+# [WIP] Vividus extension for Visual Studio Code
