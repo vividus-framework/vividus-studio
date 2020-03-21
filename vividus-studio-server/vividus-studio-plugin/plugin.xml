@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+    <extension id="application" name="application" point="org.eclipse.core.runtime.applications">
+        <application visible="true" cardinality="singleton-global" thread="main">
+            <run class="org.vividus.studio.plugin.VividusStudioActivator"/>
+        </application>
+    </extension>
+    <extension id="product" point="org.eclipse.core.runtime.products">
+        <product application="org.vividus.studio.plugin.application" name="Vividus Studio">
+            <property name="appName" value="Vividus Studio" />
+        </product>
+    </extension>
+</plugin>
