@@ -19,22 +19,13 @@
 
 package org.vividus.studio.plugin.service;
 
-import com.google.inject.Singleton;
+import java.util.List;
 
-import org.eclipse.lsp4j.DidChangeConfigurationParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.services.WorkspaceService;
+import org.eclipse.lsp4j.CompletionItem;
 
-@Singleton
-public class VividusStudioWorkspaceService implements WorkspaceService
+public interface ICompletionItemService extends IStepDefinitionsAware
 {
-    @Override
-    public void didChangeConfiguration(DidChangeConfigurationParams params)
-    {
-    }
+    CompletionItem findOne(CompletionItem unresolved);
 
-    @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
-    {
-    }
+    List<CompletionItem> findAll(String trigger);
 }

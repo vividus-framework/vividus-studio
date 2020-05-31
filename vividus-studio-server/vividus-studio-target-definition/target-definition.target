@@ -5,6 +5,7 @@
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
             <unit id="org.eclipse.equinox.core.feature.feature.group" version="0.0.0"/>
             <unit id="org.eclipse.equinox.core.sdk.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.xtend.sdk.feature.group" version="0.0.0"/>
             <repository location="https://download.eclipse.org/releases/latest/"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
@@ -15,6 +16,7 @@
             <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/S20200427151422/repository"/>
             <unit id="com.google.inject" version="0.0.0"/>
             <unit id="org.apache.commons.lang3" version="0.0.0"/>
+            <unit id="org.apache.commons.io" version="0.0.0"/>
         </location>
     </locations>
 </target>

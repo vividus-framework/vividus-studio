@@ -17,24 +17,33 @@
  * *
  */
 
-package org.vividus.studio.plugin.service;
+package org.vividus.studio.plugin.model;
 
-import com.google.inject.Singleton;
-
-import org.eclipse.lsp4j.DidChangeConfigurationParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.services.WorkspaceService;
-
-@Singleton
-public class VividusStudioWorkspaceService implements WorkspaceService
+public class Parameter
 {
-    @Override
-    public void didChangeConfiguration(DidChangeConfigurationParams params)
+    private final int index;
+    private final String name;
+    private final int startAt;
+
+    public Parameter(int index, String name, int startAt)
     {
+        this.index = index;
+        this.name = name;
+        this.startAt = startAt;
     }
 
-    @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
+    public int getIndex()
     {
+        return index;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public int getStartAt()
+    {
+        return startAt;
     }
 }

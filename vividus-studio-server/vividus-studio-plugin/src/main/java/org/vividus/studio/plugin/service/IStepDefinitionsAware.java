@@ -19,22 +19,11 @@
 
 package org.vividus.studio.plugin.service;
 
-import com.google.inject.Singleton;
+import java.util.Collection;
 
-import org.eclipse.lsp4j.DidChangeConfigurationParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.services.WorkspaceService;
+import org.vividus.studio.plugin.model.StepDefinition;
 
-@Singleton
-public class VividusStudioWorkspaceService implements WorkspaceService
+public interface IStepDefinitionsAware
 {
-    @Override
-    public void didChangeConfiguration(DidChangeConfigurationParams params)
-    {
-    }
-
-    @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
-    {
-    }
+    void setStepDefinitions(Collection<StepDefinition> stepDefinitions);
 }

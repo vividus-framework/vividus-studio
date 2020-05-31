@@ -19,14 +19,57 @@
 
 package org.vividus.studio.plugin.service;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import org.eclipse.lsp4j.CompletionContext;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.CompletionTriggerKind;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+@Singleton
 public class VividusStudioTextDocumentService implements TextDocumentService
 {
+    private final ICompletionItemService completionItemService;
+
+    @Inject
+    public VividusStudioTextDocumentService(ICompletionItemService completionItemService)
+    {
+        this.completionItemService = completionItemService;
+    }
+
+    @Override
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position)
+    {
+        return CompletableFuture.supplyAsync(() ->
+        {
+            List<CompletionItem> completionItems = List.of();
+            CompletionContext context = position.getContext();
+            if (context.getTriggerKind() == CompletionTriggerKind.TriggerCharacter)
+            {
+                String triggerCharacter = context.getTriggerCharacter();
+                completionItems = completionItemService.findAll(triggerCharacter);
+            }
+            return Either.forLeft(completionItems);
+        });
+    }
+
+    @Override
+    public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved)
+    {
+        return CompletableFuture.supplyAsync(() -> completionItemService.findOne(unresolved));
+    }
+
     @Override
     public void didOpen(DidOpenTextDocumentParams params)
     {

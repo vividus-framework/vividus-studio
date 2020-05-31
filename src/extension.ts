@@ -1,10 +1,29 @@
 import { ExtensionContext } from 'vscode';
 import { AddressInfo, createServer } from 'net';
 import { launch, Application } from './lib/equinox';
-import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, StreamInfo, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
 
 export function activate(context: ExtensionContext) {
-    const clientOptions: LanguageClientOptions = {};
+
+    const completionClientCapabilites: CompletionClientCapabilities = {
+        completionItem: {
+            snippetSupport: true
+        },
+        completionItemKind: {
+            valueSet: [
+                CompletionItemKind.Method
+            ]
+        },
+        contextSupport: true
+    }
+
+    const clientOptions: LanguageClientOptions = {
+        documentSelector: ['plaintext'],
+        initializationOptions: [
+            completionClientCapabilites
+        ]
+    }
+
     const client = new LanguageClient("Client", () => createServerOptions(context.extensionPath), clientOptions);
     context.subscriptions.push(client.start());
 }

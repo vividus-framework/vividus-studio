@@ -19,12 +19,27 @@
 
 package org.vividus.studio.plugin.configuration;
 
-import com.google.inject.AbstractModule;
+import java.util.function.Function;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
+import org.vividus.studio.plugin.finder.StepDefinitionFinder;
+import org.vividus.studio.plugin.loader.IJavaProjectLoader;
+import org.vividus.studio.plugin.loader.LocalJavaProjectLoader;
 import org.vividus.studio.plugin.server.SocketListener;
 import org.vividus.studio.plugin.server.VividusStudioLanguageServer;
+import org.vividus.studio.plugin.service.CompletionItemService;
+import org.vividus.studio.plugin.service.ICompletionItemService;
 import org.vividus.studio.plugin.service.VividusStudioTextDocumentService;
 import org.vividus.studio.plugin.service.VividusStudioWorkspaceService;
 
@@ -34,7 +49,13 @@ public class VividusStudioModule extends AbstractModule
     protected void configure()
     {
         bind(TextDocumentService.class).to(VividusStudioTextDocumentService.class);
+        bind(ICompletionItemService.class).to(CompletionItemService.class);
         bind(SocketListener.class).to(VividusStudioLanguageServer.class);
         bind(WorkspaceService.class).to(VividusStudioWorkspaceService.class);
+        bind(IJavaProjectLoader.class).to(LocalJavaProjectLoader.class);
+        bind(IWorkspace.class).toProvider(() -> ResourcesPlugin.getWorkspace());
+        bind(IStepDefinitionFinder.class).to(StepDefinitionFinder.class);
+        bind(Key.get(new TypeLiteral<Function<IProject, IJavaProject>>() { }))
+            .toProvider(() -> p -> JavaCore.create(p));
     }
 }
