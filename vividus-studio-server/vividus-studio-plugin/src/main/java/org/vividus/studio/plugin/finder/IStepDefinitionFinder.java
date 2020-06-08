@@ -17,24 +17,14 @@
  * *
  */
 
-package org.vividus.studio.plugin.service;
+package org.vividus.studio.plugin.finder;
 
-import com.google.inject.Singleton;
+import java.util.Collection;
 
-import org.eclipse.lsp4j.DidChangeConfigurationParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.services.WorkspaceService;
+import org.eclipse.jdt.core.IJavaProject;
+import org.vividus.studio.plugin.model.StepDefinition;
 
-@Singleton
-public class VividusStudioWorkspaceService implements WorkspaceService
+public interface IStepDefinitionFinder
 {
-    @Override
-    public void didChangeConfiguration(DidChangeConfigurationParams params)
-    {
-    }
-
-    @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
-    {
-    }
+    Collection<StepDefinition> find(IJavaProject root);
 }

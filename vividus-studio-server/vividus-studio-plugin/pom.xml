@@ -14,7 +14,34 @@
     <properties>
         <maven.compiler.source>12</maven.compiler.source>
         <maven.compiler.target>12</maven.compiler.target>
+        <junit.jupiter.version>5.6.2</junit.jupiter.version>
+        <org.mockito.version>3.3.3</org.mockito.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <checkstyle.version>8.33</checkstyle.version>
+        <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
+        <sevntu.checkstyle.plugin.version>1.37.1</sevntu.checkstyle.plugin.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.10.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+            <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -54,6 +81,64 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>compiletests</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M4</version>
+                <executions>
+                    <execution>
+                        <id>test</id>
+                        <phase>test</phase>
+                        <configuration>
+                            <trimStackTrace>false</trimStackTrace>
+                            <printSummary>true</printSummary>
+                            <failIfNoTests>true</failIfNoTests>
+                        </configuration>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle.plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.github.sevntu-checkstyle</groupId>
+                        <artifactId>sevntu-checks</artifactId>
+                        <version>${sevntu.checkstyle.plugin.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>config_loc=${project.basedir}</propertyExpansion>
+                            <configLocation>https://raw.githubusercontent.com/vividus-framework/vividus-build-system/master/1.0/config/checkstyle/checkstyle.xml</configLocation>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
@@ -99,6 +184,36 @@
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-slf4j18-impl</artifactId>
                             <version>2.13.2</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.junit.jupiter</groupId>
+                            <artifactId>junit-jupiter-api</artifactId>
+                            <version>${junit.jupiter.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.junit.jupiter</groupId>
+                            <artifactId>junit-jupiter-params</artifactId>
+                            <version>${junit.jupiter.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.mockito</groupId>
+                            <artifactId>mockito-core</artifactId>
+                            <version>${org.mockito.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.mockito</groupId>
+                            <artifactId>mockito-junit-jupiter</artifactId>
+                            <version>${org.mockito.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.hamcrest</groupId>
+                            <artifactId>hamcrest</artifactId>
+                            <version>2.2</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.opentest4j</groupId>
+                            <artifactId>opentest4j</artifactId>
+                            <version>1.2.0</version>
                         </artifactItem>
                     </artifactItems>
                     <stripVersion>true</stripVersion>

@@ -33,6 +33,9 @@ export function launch(address: AddressInfo, application: Application) {
     serverArgs.push(`${application.applicationDir}/${bundle}`);
 
     const serverProcess = spawn('java', serverArgs, { detached: true });
+    serverProcess.stdout.on('data', function(data) {
+        console.log(data.toString()); 
+    });
     serverProcess.stderr.on('data', function(data) {
         console.log(data.toString()); 
     });

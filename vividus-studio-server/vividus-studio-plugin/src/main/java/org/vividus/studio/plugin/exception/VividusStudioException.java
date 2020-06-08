@@ -17,24 +17,19 @@
  * *
  */
 
-package org.vividus.studio.plugin.service;
+package org.vividus.studio.plugin.exception;
 
-import com.google.inject.Singleton;
-
-import org.eclipse.lsp4j.DidChangeConfigurationParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.services.WorkspaceService;
-
-@Singleton
-public class VividusStudioWorkspaceService implements WorkspaceService
+public class VividusStudioException extends RuntimeException
 {
-    @Override
-    public void didChangeConfiguration(DidChangeConfigurationParams params)
+    private static final long serialVersionUID = -1336940331669945107L;
+
+    public VividusStudioException(Throwable cause)
     {
+        super(cause);
     }
 
-    @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
+    public VividusStudioException(String message, Throwable cause)
     {
+        super(message, cause);
     }
 }

@@ -17,24 +17,20 @@
  * *
  */
 
-package org.vividus.studio.plugin.service;
+package org.vividus.studio.plugin.loader;
 
-import com.google.inject.Singleton;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-import org.eclipse.lsp4j.DidChangeConfigurationParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.services.WorkspaceService;
+import org.eclipse.jdt.core.IJavaProject;
 
-@Singleton
-public class VividusStudioWorkspaceService implements WorkspaceService
+public interface IJavaProjectLoader
 {
-    @Override
-    public void didChangeConfiguration(DidChangeConfigurationParams params)
-    {
-    }
+    Optional<IJavaProject> load(String uri, Map<Event, Consumer<String>> handlers);
 
-    @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
+    enum Event
     {
+        NOT_FOUND, LOADED, CORRUPTED
     }
 }
