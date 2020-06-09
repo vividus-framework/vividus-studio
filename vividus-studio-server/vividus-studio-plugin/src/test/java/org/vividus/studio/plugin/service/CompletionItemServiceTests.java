@@ -64,6 +64,9 @@ class CompletionItemServiceTests
     private static final String TRIGGER = "trigger";
     private static final String SEP = ",";
 
+    private static final String TRUE = "true";
+    private static final String FALSE = "false";
+
     @InjectMocks private CompletionItemService completionItemService;
 
     @BeforeEach
@@ -77,16 +80,17 @@ class CompletionItemServiceTests
                 new Parameter(1, "$value", 5),
                 new Parameter(2, "$expected", 24)
         ));
+        thenStepDefinition.setDeprecated(true);
         completionItemService.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
     }
 
     @CsvSource({
-        GIVEN_TRIGGER + SEP + GIVEN_STEP + SEP + GIVEN_STEP_SNIPPET + SEP + GIVEN_STEP_HASH,
-        WHEN_TRIGGER + SEP + WHEN_STEP + SEP + WHEN_STEP_SNIPPET + SEP + WHEN_STEP_HASH,
-        THEN_TRIGGER + SEP + THEN_STEP + SEP + THEN_STEP_SNIPPET + SEP + THEN_STEP_HASH
+        GIVEN_TRIGGER + SEP + GIVEN_STEP + SEP + GIVEN_STEP_SNIPPET + SEP + GIVEN_STEP_HASH + SEP + FALSE,
+        WHEN_TRIGGER + SEP + WHEN_STEP + SEP + WHEN_STEP_SNIPPET + SEP + WHEN_STEP_HASH + SEP + FALSE,
+        THEN_TRIGGER + SEP + THEN_STEP + SEP + THEN_STEP_SNIPPET + SEP + THEN_STEP_HASH + SEP + TRUE
     })
     @ParameterizedTest
-    void testFindAll(String trigger, String label, String snippet, int hash)
+    void testFindAll(String trigger, String label, String snippet, int hash, boolean deprecated)
     {
         List<CompletionItem> completions = completionItemService.findAll(trigger);
         assertThat(completions, hasSize(1));
@@ -100,7 +104,8 @@ class CompletionItemServiceTests
             () -> assertEquals(MODULE, item.getDetail()),
             () -> assertEquals(DOCS, item.getDocumentation().getLeft()),
             () -> assertEquals(trigger, data.get(TRIGGER).getAsString()),
-            () -> assertEquals(hash, data.get(HASH).getAsInt())
+            () -> assertEquals(hash, data.get(HASH).getAsInt()),
+            () -> assertEquals(deprecated, item.getDeprecated())
         );
     }
 

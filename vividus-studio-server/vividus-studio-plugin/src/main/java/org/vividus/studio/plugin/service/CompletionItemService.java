@@ -89,6 +89,7 @@ public class CompletionItemService implements ICompletionItemService
     {
         item.setDetail(stepDefinition.getModule());
         item.setDocumentation(stepDefinition.getDocumentation());
+        item.setDeprecated(stepDefinition.isDeprecated());
     }
 
     private void setData(CompletionItem item, StepDefinition stepDefinition)
