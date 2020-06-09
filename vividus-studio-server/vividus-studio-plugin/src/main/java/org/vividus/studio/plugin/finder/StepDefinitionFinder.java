@@ -39,6 +39,7 @@ import com.google.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJarEntryResource;
@@ -163,35 +164,53 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
 
     private Optional<StepDefinition> getStepDefinition(IMethod method, IBuffer buffer, String module)
     {
-        return getStepAsString(method)
+        List<IAnnotation> annotations = RuntimeWrapper
+                .wrapStream(method::getAnnotations, error("annotations", method.getElementName()))
+                .collect(Collectors.toList());
+        return getStepAsString(annotations)
             .map(stepAsString ->
             {
                 ISourceRange range = RuntimeWrapper.wrapMono(method::getJavadocRange,
                         error("javadoc range", method.getElementName()));
                 String documentation = range != null ? buffer.getText(range.getOffset(), range.getLength())
                         : "No documentation available";
-                return createStepDefinition(module, stepAsString, documentation);
+                StepDefinition definition = createStepDefinition(module, stepAsString, documentation);
+                definition.setDeprecated(isDeprecated(annotations));
+                return definition;
             });
     }
 
-    private static Optional<String> getStepAsString(IMethod method)
+    private boolean isDeprecated(List<IAnnotation> annotations)
     {
-        return RuntimeWrapper.wrapStream(method::getAnnotations, error("annotations", method.getElementName()))
-                             .filter(a -> STEP_ANNOTATION_PATTERN.matcher(a.getElementName()).matches())
-                             .map(a ->
-                             {
-                                 String elementName = a.getElementName();
-                                 String key = elementName.substring(elementName.lastIndexOf('.') + 1);
-                                 String value = RuntimeWrapper.wrapStream(a::getMemberValuePairs,
-                                                                  error("pairs", "annotation"))
-                                                              .filter(m -> m.getMemberName().equals("value"))
-                                                              .map(IMemberValuePair::getValue)
-                                                              .findFirst()
-                                                              .map(String.class::cast)
-                                                              .get();
-                                 return key + " " + value;
-                             })
-                             .findFirst();
+        String deprecated = Deprecated.class.getCanonicalName();
+        return annotations.stream()
+                          .map(IAnnotation::getElementName)
+                          .anyMatch(deprecated::equals);
+    }
+
+    private static List<IMemberValuePair> getAnnotationPairs(IAnnotation annotation)
+    {
+        return RuntimeWrapper.wrapStream(annotation::getMemberValuePairs, error("pairs", "annotation"))
+                .collect(Collectors.toList());
+    }
+
+    private static Optional<String> getStepAsString(List<IAnnotation> annotations)
+    {
+        return annotations.stream()
+                         .filter(a -> STEP_ANNOTATION_PATTERN.matcher(a.getElementName()).matches())
+                         .map(a ->
+                         {
+                             String elementName = a.getElementName();
+                             String key = elementName.substring(elementName.lastIndexOf('.') + 1);
+                             String value = getAnnotationPairs(a).stream()
+                                                                 .filter(m -> m.getMemberName().equals("value"))
+                                                                 .map(IMemberValuePair::getValue)
+                                                                 .findFirst()
+                                                                 .map(String.class::cast)
+                                                                 .get();
+                             return key + " " + value;
+                         })
+                         .findFirst();
     }
 
     private static boolean isStepDefinitionScanCandidate(JarPackageFragmentRoot jar)

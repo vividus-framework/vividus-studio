@@ -91,10 +91,11 @@ class StepDefinitionFinderTests
         // Mock java steps
         ClassFileMock stepsClass = createStepsClass();
         IMember classMember = mock(IMember.class);
-        IJavaElement given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2);
-        IJavaElement when = createStep("When", "I param $param1 and $param2", stepsClass.getClassFileBuffer(), 2, 3);
+        IJavaElement given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true);
+        IJavaElement when = createStep("When", "I param $param1 and $param2", stepsClass.getClassFileBuffer(), 2, 3,
+                false);
         IJavaElement then = createStep("Then", "I param $param1 and $param2 and $param3",
-                stepsClass.getClassFileBuffer(), 3, 4);
+                stepsClass.getClassFileBuffer(), 3, 4, false);
 
         when(root.getChildren()).thenReturn(new IJavaElement[] { module });
         when(module.getChildren()).thenReturn(new IJavaElement[] { packageFragment });
@@ -118,14 +119,15 @@ class StepDefinitionFinderTests
         assertThat(definitions, hasSize(6));
 
         // assert java steps
-        asserStepDefinition(definitions.get(0), StepType.GIVEN, GIVEN_FULL_NAME,
-                "Javadoc for Given I param $param1", List.of(new Parameter(1, "$param1", 14)));
-        asserStepDefinition(definitions.get(1), StepType.WHEN, WHEN_FULL_NAME,
+        asserJavaStepDefinition(definitions.get(0), StepType.GIVEN, GIVEN_FULL_NAME,
+                "Javadoc for Given I param $param1", List.of(new Parameter(1, "$param1", 14)), true);
+        asserJavaStepDefinition(definitions.get(1), StepType.WHEN, WHEN_FULL_NAME,
                 "Javadoc for When I param $param1 and $param2",
-                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)));
-        asserStepDefinition(definitions.get(2), StepType.THEN, THEN_FULL_NAME,
-                "Javadoc for Then I param $param1 and $param2 and $param3",
-                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)));
+                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)), false);
+        asserJavaStepDefinition(definitions.get(2), StepType.THEN, THEN_FULL_NAME,
+                "Javadoc for Then I param $param1 and $param2 and $param3", List.of(new Parameter(1, "$param1", 13),
+                        new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
+                false);
 
         // assert composire steps
         asserStepDefinition(definitions.get(3), StepType.GIVEN, GIVEN_FULL_NAME, COMPOSITE_JAVADOC,
@@ -134,6 +136,13 @@ class StepDefinitionFinderTests
                 List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)));
         asserStepDefinition(definitions.get(5), StepType.THEN, THEN_FULL_NAME, COMPOSITE_JAVADOC, List
                 .of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)));
+    }
+
+    private void asserJavaStepDefinition(StepDefinition definition, StepType type, String fullName, String javadoc,
+            List<Parameter> parameters, boolean deprecated)
+    {
+        assertEquals(deprecated, definition.isDeprecated());
+        asserStepDefinition(definition, type, fullName, javadoc, parameters);
     }
 
     private void asserStepDefinition(StepDefinition definition, StepType type, String fullName, String javadoc,
@@ -193,18 +202,20 @@ class StepDefinitionFinderTests
         when(moduleElement.getElementName()).thenReturn("module-name");
     }
 
-    private IJavaElement createStep(String type, String naming, IBuffer classBufer, int from, int to)
-            throws JavaModelException
+    private IJavaElement createStep(String type, String naming, IBuffer classBufer, int from, int to,
+            boolean deprecated) throws JavaModelException
     {
         IJavaElement javaElement = mock(IJavaElement.class, withSettings().extraInterfaces(IMethod.class));
         IMethod method = (IMethod) javaElement;
-        IAnnotation annotation = mock(IAnnotation.class);
+        IAnnotation annotation = createAnnotation("org.jbehave.core.annotations." + type);
+        IAnnotation[] annotations = deprecated
+                ? new IAnnotation[] { annotation, createAnnotation(Deprecated.class.getCanonicalName()) }
+                : new IAnnotation[] { annotation };
         IMemberValuePair pair = mock(IMemberValuePair.class);
         ISourceRange sourceRange = mock(ISourceRange.class);
 
         when(javaElement.getElementType()).thenReturn(IJavaElement.METHOD);
-        when(method.getAnnotations()).thenReturn(new IAnnotation[] { annotation });
-        when(annotation.getElementName()).thenReturn("org.jbehave.core.annotations." + type);
+        when(method.getAnnotations()).thenReturn(annotations);
         when(annotation.getMemberValuePairs()).thenReturn(new IMemberValuePair[] { pair });
         when(pair.getMemberName()).thenReturn("value");
         when(pair.getValue()).thenReturn(naming);
@@ -214,6 +225,13 @@ class StepDefinitionFinderTests
         when(classBufer.getText(from, to)).thenReturn(String.format("Javadoc for %s %s", type, naming));
 
         return javaElement;
+    }
+
+    private IAnnotation createAnnotation(String name)
+    {
+        IAnnotation annotation = mock(IAnnotation.class);
+        when(annotation.getElementName()).thenReturn(name);
+        return annotation;
     }
 
     private static class ClassFileMock

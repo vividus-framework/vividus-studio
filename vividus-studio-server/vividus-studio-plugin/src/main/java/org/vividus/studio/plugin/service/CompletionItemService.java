@@ -34,6 +34,7 @@ import com.google.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.InsertTextFormat;
 import org.vividus.studio.plugin.model.Parameter;
 import org.vividus.studio.plugin.model.StepDefinition;
@@ -89,6 +90,10 @@ public class CompletionItemService implements ICompletionItemService
     {
         item.setDetail(stepDefinition.getModule());
         item.setDocumentation(stepDefinition.getDocumentation());
+        if (stepDefinition.isDeprecated())
+        {
+            item.setTags(List.of(CompletionItemTag.Deprecated));
+        }
     }
 
     private void setData(CompletionItem item, StepDefinition stepDefinition)
