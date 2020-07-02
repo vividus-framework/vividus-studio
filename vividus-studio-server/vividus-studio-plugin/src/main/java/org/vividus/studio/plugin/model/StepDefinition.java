@@ -30,6 +30,8 @@ public class StepDefinition
     private final List<Parameter> parameters;
     private final StepType stepType;
 
+    private boolean deprecated;
+
     public StepDefinition(String module, String stepAsString, String documentation, List<Parameter> parameters)
     {
         this.module = module;
@@ -62,6 +64,16 @@ public class StepDefinition
     public StepType getStepType()
     {
         return stepType;
+    }
+
+    public boolean isDeprecated()
+    {
+        return deprecated;
+    }
+
+    public void setDeprecated(boolean deprecated)
+    {
+        this.deprecated = deprecated;
     }
 
     @Override

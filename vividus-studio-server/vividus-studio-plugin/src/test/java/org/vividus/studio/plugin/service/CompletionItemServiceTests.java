@@ -23,18 +23,23 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.gson.JsonObject;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.InsertTextFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.model.Parameter;
@@ -63,6 +68,7 @@ class CompletionItemServiceTests
     private static final String HASH = "hash";
     private static final String TRIGGER = "trigger";
     private static final String SEP = ",";
+    private static final String EMPTY = "";
 
     @InjectMocks private CompletionItemService completionItemService;
 
@@ -77,16 +83,22 @@ class CompletionItemServiceTests
                 new Parameter(1, "$value", 5),
                 new Parameter(2, "$expected", 24)
         ));
+        thenStepDefinition.setDeprecated(true);
         completionItemService.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
     }
 
-    @CsvSource({
-        GIVEN_TRIGGER + SEP + GIVEN_STEP + SEP + GIVEN_STEP_SNIPPET + SEP + GIVEN_STEP_HASH,
-        WHEN_TRIGGER + SEP + WHEN_STEP + SEP + WHEN_STEP_SNIPPET + SEP + WHEN_STEP_HASH,
-        THEN_TRIGGER + SEP + THEN_STEP + SEP + THEN_STEP_SNIPPET + SEP + THEN_STEP_HASH
-    })
+    static Stream<Arguments> findAllDataset()
+    {
+        return Stream.of(
+            arguments(GIVEN_TRIGGER, GIVEN_STEP, GIVEN_STEP_SNIPPET, GIVEN_STEP_HASH, null),
+            arguments(WHEN_TRIGGER, WHEN_STEP, WHEN_STEP_SNIPPET, WHEN_STEP_HASH, null),
+            arguments(THEN_TRIGGER, THEN_STEP, THEN_STEP_SNIPPET, THEN_STEP_HASH, List.of(CompletionItemTag.Deprecated))
+        );
+    }
+
+    @MethodSource("findAllDataset")
     @ParameterizedTest
-    void testFindAll(String trigger, String label, String snippet, int hash)
+    void testFindAll(String trigger, String label, String snippet, int hash, List<CompletionItemTag> tags)
     {
         List<CompletionItem> completions = completionItemService.findAll(trigger);
         assertThat(completions, hasSize(1));
@@ -100,7 +112,8 @@ class CompletionItemServiceTests
             () -> assertEquals(MODULE, item.getDetail()),
             () -> assertEquals(DOCS, item.getDocumentation().getLeft()),
             () -> assertEquals(trigger, data.get(TRIGGER).getAsString()),
-            () -> assertEquals(hash, data.get(HASH).getAsInt())
+            () -> assertEquals(hash, data.get(HASH).getAsInt()),
+            () -> assertEquals(tags, item.getTags())
         );
     }
 
