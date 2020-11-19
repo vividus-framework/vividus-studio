@@ -21,9 +21,6 @@ export function launch(address: AddressInfo, application: Application) {
         case 'darwin':
             platform = 'macos';
             break;
-        case 'win32':
-            platform = 'windows';
-            break;
         default:
             throw new Error(`Unsupported platform ${platform}`);
     }
