@@ -20,6 +20,9 @@
         <checkstyle.version>8.33</checkstyle.version>
         <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.37.1</sevntu.checkstyle.plugin.version>
+        <slf4j.api.version>2.0.0-alpha1</slf4j.api.version>
+        <hamcrest.version>2.2</hamcrest.version>
+        <log4j.version>2.13.2</log4j.version>
     </properties>
 
     <dependencies>
@@ -39,6 +42,30 @@
             <groupId>org.objenesis</groupId>
             <artifactId>objenesis</artifactId>
             <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${org.mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${org.mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.api.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -168,22 +195,22 @@
                         <artifactItem>
                             <groupId>org.slf4j</groupId>
                             <artifactId>slf4j-api</artifactId>
-                            <version>2.0.0-alpha1</version>
+                            <version>${slf4j.api.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-api</artifactId>
-                            <version>2.13.2</version>
+                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-core</artifactId>
-                            <version>2.13.2</version>
+                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-slf4j18-impl</artifactId>
-                            <version>2.13.2</version>
+                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.junit.jupiter</groupId>
@@ -208,7 +235,7 @@
                         <artifactItem>
                             <groupId>org.hamcrest</groupId>
                             <artifactId>hamcrest</artifactId>
-                            <version>2.2</version>
+                            <version>${hamcrest.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.opentest4j</groupId>
