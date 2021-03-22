@@ -13,9 +13,11 @@
     <plugins>
         <plugin id="org.eclipse.core.runtime"/>
         <plugin id="org.vividus.studio.plugin"/>
+        <plugin id="org.apache.felix.scr"/>
     </plugins>
     <configurations>
         <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
         <plugin id="org.vividus.studio.plugin" autoStart="true" startLevel="0" />
+        <plugin id="org.apache.felix.scr" autoStart="true" startLevel="0" />
     </configurations>
 </product>
