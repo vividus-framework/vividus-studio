@@ -227,14 +227,32 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
         List<Parameter> parameters = new ArrayList<>();
         Matcher parameterMatcher = PARAMETER_NAME_PATTERN.matcher(stepAsString);
 
+        List<Integer> tokenIndices = new ArrayList<>();
+        tokenIndices.add(0);
+
         int matchIndex = 1;
         while (parameterMatcher.find())
         {
-            Parameter parameter = new Parameter(matchIndex++, parameterMatcher.group(), parameterMatcher.start());
+            int start = parameterMatcher.start();
+            String group = parameterMatcher.group();
+
+            Parameter parameter = new Parameter(matchIndex++, group, start);
             parameters.add(parameter);
+
+            tokenIndices.add(start);
+            tokenIndices.add(start + group.length());
         }
 
-        return new StepDefinition(module, stepAsString, documentation, parameters);
+        tokenIndices.add(stepAsString.length());
+
+        List<String> matchTokens = new ArrayList<>(tokenIndices.size() / 2);
+        for (int index = 0; index < tokenIndices.size(); index += 2)
+        {
+            String token = stepAsString.substring(tokenIndices.get(index), tokenIndices.get(index + 1));
+            matchTokens.add(token);
+        }
+
+        return new StepDefinition(module, stepAsString, documentation, parameters, matchTokens);
     }
 
     @SuppressWarnings("PreferMethodReference")

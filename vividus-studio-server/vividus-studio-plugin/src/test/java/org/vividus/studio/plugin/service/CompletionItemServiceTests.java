@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,13 +35,17 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.document.TextDocumentProvider;
 import org.vividus.studio.plugin.model.Parameter;
 import org.vividus.studio.plugin.model.StepDefinition;
 
@@ -67,19 +72,22 @@ class CompletionItemServiceTests
     private static final String HASH = "hash";
     private static final String TRIGGER = "trigger";
 
+    private static final String DOCUMENT_ID = "document-id";
+
+    @Mock TextDocumentProvider textDocumentProvider;
     @InjectMocks private CompletionItemService completionItemService;
 
     @BeforeEach
     void init()
     {
-        StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of());
+        StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(), List.of(GIVEN_STEP));
         StepDefinition whenStepDefinition = new StepDefinition(MODULE, WHEN_STEP, DOCS, List.of(
                 new Parameter(1, "$value", 15)
-        ));
+        ), List.of("When I convert ", " into custom type"));
         StepDefinition thenStepDefinition = new StepDefinition(MODULE, THEN_STEP, DOCS, List.of(
                 new Parameter(1, "$value", 5),
                 new Parameter(2, "$expected", 24)
-        ));
+        ), List.of("Then ", " is equal to ", " after conversion"));
         thenStepDefinition.setDeprecated(true);
         completionItemService.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
     }
@@ -112,5 +120,43 @@ class CompletionItemServiceTests
             () -> assertEquals(hash, data.get(HASH).getAsInt()),
             () -> assertEquals(tags, item.getTags())
         );
+    }
+
+    static Stream<Arguments> findAllAtPositionDataset()
+    {
+        return Stream.of(
+            arguments("Given rand", "om value"),
+            arguments("Then McDonald's is equal t", "o ${2:expected} after conversion"),
+            arguments("Then McDonald's is equal to Fat ass after conversion", "")
+        );
+    }
+
+    @MethodSource("findAllAtPositionDataset")
+    @ParameterizedTest
+    void testFindAllAtPosition(String line, String textEdit)
+    {
+        Position position = new Position(0, line.length());
+
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(line));
+
+        List<CompletionItem> items = completionItemService.findAllAtPosition(DOCUMENT_ID, position);
+        assertThat(items, hasSize(1));
+        CompletionItem item = items.get(0);
+
+        assertEquals(textEdit, item.getTextEdit().getNewText());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "Nutty Putty Cave",
+        "When I procrastinate"
+    })
+    void testFindAllAtPositionNoMatch(String line)
+    {
+        Position position = new Position(0, line.length());
+
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(line));
+
+        assertThat(completionItemService.findAllAtPosition(DOCUMENT_ID, position), hasSize(0));
     }
 }

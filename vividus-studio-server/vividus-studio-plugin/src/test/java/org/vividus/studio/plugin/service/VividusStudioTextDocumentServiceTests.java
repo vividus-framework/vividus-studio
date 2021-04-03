@@ -37,6 +37,8 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,7 +54,7 @@ class VividusStudioTextDocumentServiceTests
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
 
     @Test
-    void testCompletion() throws InterruptedException, ExecutionException
+    void testCompletionTriggerCharacter() throws InterruptedException, ExecutionException
     {
         CompletionParams params = mock(CompletionParams.class);
         CompletionContext context = mock(CompletionContext.class);
@@ -63,6 +65,29 @@ class VividusStudioTextDocumentServiceTests
         when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.TriggerCharacter);
         when(context.getTriggerCharacter()).thenReturn(triggerCharacter);
         when(completionItemService.findAll(triggerCharacter)).thenReturn(List.of(item));
+
+        List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
+
+        assertEquals(List.of(item), items);
+        verifyNoMoreInteractions(completionItemService, context, params, item);
+    }
+
+    @Test
+    void testCompletionInvoked() throws InterruptedException, ExecutionException
+    {
+        CompletionParams params = mock(CompletionParams.class);
+        CompletionContext context = mock(CompletionContext.class);
+        CompletionItem item = mock(CompletionItem.class);
+        TextDocumentIdentifier identifier = mock(TextDocumentIdentifier.class);
+        Position position = mock(Position.class);
+
+        when(params.getContext()).thenReturn(context);
+        when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.Invoked);
+        when(params.getTextDocument()).thenReturn(identifier);
+        String uri = "uri";
+        when(identifier.getUri()).thenReturn(uri);
+        when(params.getPosition()).thenReturn(position);
+        when(completionItemService.findAllAtPosition(uri, position)).thenReturn(List.of(item));
 
         List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
 

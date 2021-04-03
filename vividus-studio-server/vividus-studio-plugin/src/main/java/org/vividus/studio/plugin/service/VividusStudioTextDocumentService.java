@@ -53,16 +53,22 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     }
 
     @Override
-    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position)
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams completionParams)
     {
         return CompletableFuture.supplyAsync(() ->
         {
             List<CompletionItem> completionItems = List.of();
-            CompletionContext context = position.getContext();
-            if (context.getTriggerKind() == CompletionTriggerKind.TriggerCharacter)
+            CompletionContext context = completionParams.getContext();
+            CompletionTriggerKind triggerKind = context.getTriggerKind();
+            if (triggerKind == CompletionTriggerKind.TriggerCharacter)
             {
                 String triggerCharacter = context.getTriggerCharacter();
                 completionItems = completionItemService.findAll(triggerCharacter);
+            }
+            else if (triggerKind == CompletionTriggerKind.Invoked)
+            {
+                String identifier = completionParams.getTextDocument().getUri();
+                completionItems = completionItemService.findAllAtPosition(identifier, completionParams.getPosition());
             }
             return Either.forLeft(completionItems);
         });
