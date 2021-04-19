@@ -53,9 +53,9 @@ public class VividusStudioModule extends AbstractModule
         bind(SocketListener.class).to(VividusStudioLanguageServer.class);
         bind(WorkspaceService.class).to(VividusStudioWorkspaceService.class);
         bind(IJavaProjectLoader.class).to(LocalJavaProjectLoader.class);
-        bind(IWorkspace.class).toProvider(() -> ResourcesPlugin.getWorkspace());
+        bind(IWorkspace.class).toProvider(ResourcesPlugin::getWorkspace);
         bind(IStepDefinitionFinder.class).to(StepDefinitionFinder.class);
         bind(Key.get(new TypeLiteral<Function<IProject, IJavaProject>>() { }))
-            .toProvider(() -> p -> JavaCore.create(p));
+            .toProvider(() -> JavaCore::create);
     }
 }

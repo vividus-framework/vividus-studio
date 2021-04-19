@@ -102,7 +102,7 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
     private List<StepDefinition> findCompositeSteps(List<IPackageFragment> fragments)
     {
         return fragments.parallelStream()
-                        .map(pf -> RuntimeWrapper.wrapMono(() -> pf.getNonJavaResources(),
+                        .map(pf -> RuntimeWrapper.wrapMono(pf::getNonJavaResources,
                                 error("non java resources", pf.getElementName())))
                         .flatMap(Arrays::stream)
                         .filter(IJarEntryResource.class::isInstance)
@@ -112,7 +112,7 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
                         {
                             IPackageFragment parent = (IPackageFragment) r.getParent();
                             String module = parent.getParent().getElementName();
-                            try (InputStream inputStream = RuntimeWrapper.wrapMono(() -> r.getContents(),
+                            try (InputStream inputStream = RuntimeWrapper.wrapMono(r::getContents,
                                     error("content", "resource")))
                             {
                                 String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
@@ -237,6 +237,7 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
         return new StepDefinition(module, stepAsString, documentation, parameters);
     }
 
+    @SuppressWarnings("PreferMethodReference")
     private static <T extends IJavaElement & IParent> Stream<? extends IJavaElement> children(T element)
     {
         return RuntimeWrapper.wrapStream(() -> element.getChildren(), error("children", element.getElementName()));
