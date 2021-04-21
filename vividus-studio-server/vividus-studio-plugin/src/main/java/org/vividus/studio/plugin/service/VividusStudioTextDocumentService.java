@@ -36,16 +36,20 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
+import org.vividus.studio.plugin.document.TextDocumentEventListener;
 
 @Singleton
 public class VividusStudioTextDocumentService implements TextDocumentService
 {
     private final ICompletionItemService completionItemService;
+    private final TextDocumentEventListener textDocumentEventListener;
 
     @Inject
-    public VividusStudioTextDocumentService(ICompletionItemService completionItemService)
+    public VividusStudioTextDocumentService(ICompletionItemService completionItemService,
+            TextDocumentEventListener textDocumentEventListener)
     {
         this.completionItemService = completionItemService;
+        this.textDocumentEventListener = textDocumentEventListener;
     }
 
     @Override
@@ -73,16 +77,19 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     @Override
     public void didOpen(DidOpenTextDocumentParams params)
     {
+        textDocumentEventListener.onOpen(params);
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params)
     {
+        textDocumentEventListener.onChange(params);
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params)
     {
+        textDocumentEventListener.onClose(params);
     }
 
     @Override
