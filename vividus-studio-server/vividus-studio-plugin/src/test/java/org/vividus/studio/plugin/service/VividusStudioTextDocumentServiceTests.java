@@ -21,6 +21,7 @@ package org.vividus.studio.plugin.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -41,11 +42,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.document.TextDocumentEventListener;
 
 @ExtendWith(MockitoExtension.class)
 class VividusStudioTextDocumentServiceTests
 {
     @Mock private ICompletionItemService completionItemService;
+    @Mock private TextDocumentEventListener textDocumentEventListener;
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
 
     @Test
@@ -83,6 +86,8 @@ class VividusStudioTextDocumentServiceTests
     {
         DidOpenTextDocumentParams docParams = mock(DidOpenTextDocumentParams.class);
         textDocumentService.didOpen(docParams);
+        verify(textDocumentEventListener).onOpen(docParams);
+        verifyNoMoreInteractions(textDocumentEventListener);
         verifyNoInteractions(docParams, completionItemService);
     }
 
@@ -91,6 +96,8 @@ class VividusStudioTextDocumentServiceTests
     {
         DidChangeTextDocumentParams docParams = mock(DidChangeTextDocumentParams.class);
         textDocumentService.didChange(docParams);
+        verify(textDocumentEventListener).onChange(docParams);
+        verifyNoMoreInteractions(textDocumentEventListener);
         verifyNoInteractions(docParams, completionItemService);
     }
 
@@ -99,6 +106,8 @@ class VividusStudioTextDocumentServiceTests
     {
         DidCloseTextDocumentParams docParams = mock(DidCloseTextDocumentParams.class);
         textDocumentService.didClose(docParams);
+        verify(textDocumentEventListener).onClose(docParams);
+        verifyNoMoreInteractions(textDocumentEventListener);
         verifyNoInteractions(docParams, completionItemService);
     }
 

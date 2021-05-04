@@ -1,0 +1,11 @@
+Meta:
+    @epic vividus-plugin-websocket
+    @requirementId 1402
+
+Scenario: Vividus is a continuously growing collection of testing actions and
+utilities combined into a one-box application to enable human-readable
+tests.socket
+When I wait with `PT30S` timeout until count of text messages received over `echo` websocket is greater than `0`
+When I drain text messages received over `echo` websocket to scenario variable `messages`
+Then `${messages[0]}` is equal to `${message}`
+When I disconnect from `echo` websocket
