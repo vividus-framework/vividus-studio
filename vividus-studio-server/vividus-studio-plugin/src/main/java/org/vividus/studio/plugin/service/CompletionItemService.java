@@ -105,15 +105,6 @@ public class CompletionItemService implements ICompletionItemService
     }
 
     @Override
-    public CompletionItem findOne(CompletionItem unresolved)
-    {
-        JsonObject data = (JsonObject) unresolved.getData();
-        String key = data.get(TRIGGER).getAsString();
-        int hash = data.get(HASH).getAsInt();
-        return completionItem.get().get(key).get(hash);
-    }
-
-    @Override
     public List<CompletionItem> findAll(String trigger)
     {
         return completionItem.get().get(trigger).values().stream().collect(Collectors.toList());

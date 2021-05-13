@@ -73,12 +73,10 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testResolveCompletionItem() throws InterruptedException, ExecutionException
     {
-        CompletionItem unresolvedItem = mock(CompletionItem.class);
-        CompletionItem resolvedItem = mock(CompletionItem.class);
-        when(completionItemService.findOne(unresolvedItem)).thenReturn(resolvedItem);
-        CompletionItem outputItem = textDocumentService.resolveCompletionItem(unresolvedItem).get();
-        assertEquals(resolvedItem, outputItem);
-        verifyNoMoreInteractions(completionItemService, resolvedItem, unresolvedItem);
+        CompletionItem item = mock(CompletionItem.class);
+        CompletionItem outputItem = textDocumentService.resolveCompletionItem(item).get();
+        assertEquals(item, outputItem);
+        verifyNoInteractions(completionItemService, item);
     }
 
     @Test

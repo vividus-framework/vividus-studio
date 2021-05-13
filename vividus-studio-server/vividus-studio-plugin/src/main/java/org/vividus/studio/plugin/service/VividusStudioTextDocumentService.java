@@ -71,7 +71,7 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     @Override
     public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved)
     {
-        return CompletableFuture.supplyAsync(() -> completionItemService.findOne(unresolved));
+        return CompletableFuture.completedFuture(unresolved);
     }
 
     @Override
