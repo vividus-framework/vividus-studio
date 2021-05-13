@@ -38,7 +38,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -67,8 +66,6 @@ class CompletionItemServiceTests
     private static final String MODULE = "module";
     private static final String HASH = "hash";
     private static final String TRIGGER = "trigger";
-    private static final String SEP = ",";
-    private static final String EMPTY = "";
 
     @InjectMocks private CompletionItemService completionItemService;
 
@@ -114,28 +111,6 @@ class CompletionItemServiceTests
             () -> assertEquals(trigger, data.get(TRIGGER).getAsString()),
             () -> assertEquals(hash, data.get(HASH).getAsInt()),
             () -> assertEquals(tags, item.getTags())
-        );
-    }
-
-    @CsvSource({
-        GIVEN_TRIGGER + SEP + GIVEN_STEP + SEP + GIVEN_STEP_SNIPPET + SEP + GIVEN_STEP_HASH,
-        WHEN_TRIGGER + SEP + WHEN_STEP + SEP + WHEN_STEP_SNIPPET + SEP + WHEN_STEP_HASH,
-        THEN_TRIGGER + SEP + THEN_STEP + SEP + THEN_STEP_SNIPPET + SEP + THEN_STEP_HASH
-    })
-    @ParameterizedTest
-    void testFindOne(String trigger, String label, String snippet, int hash)
-    {
-        JsonObject data = new JsonObject();
-        data.addProperty(TRIGGER, trigger);
-        data.addProperty(HASH, hash);
-        CompletionItem unresolved = new CompletionItem();
-        unresolved.setData(data);
-        CompletionItem resolved = completionItemService.findOne(unresolved);
-        JsonObject resolvedData = (JsonObject) resolved.getData();
-        assertAll(
-            () -> assertEquals(label, resolved.getLabel()),
-            () -> assertEquals(trigger, resolvedData.get(TRIGGER).getAsString()),
-            () -> assertEquals(hash, resolvedData.get(HASH).getAsInt())
         );
     }
 }

@@ -25,7 +25,5 @@ import org.eclipse.lsp4j.CompletionItem;
 
 public interface ICompletionItemService extends IStepDefinitionsAware
 {
-    CompletionItem findOne(CompletionItem unresolved);
-
     List<CompletionItem> findAll(String trigger);
 }
