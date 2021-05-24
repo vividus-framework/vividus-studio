@@ -28,16 +28,19 @@ public class StepDefinition
     private final String stepAsString;
     private final String documentation;
     private final List<Parameter> parameters;
+    private final List<String> matchTokens;
     private final StepType stepType;
 
     private boolean deprecated;
 
-    public StepDefinition(String module, String stepAsString, String documentation, List<Parameter> parameters)
+    public StepDefinition(String module, String stepAsString, String documentation, List<Parameter> parameters,
+            List<String> matchTokens)
     {
         this.module = module;
         this.stepAsString = stepAsString;
         this.documentation = documentation;
         this.parameters = parameters;
+        this.matchTokens = matchTokens;
         this.stepType = StepType.detect(stepAsString);
     }
 
@@ -59,6 +62,11 @@ public class StepDefinition
     public List<Parameter> getParameters()
     {
         return parameters;
+    }
+
+    public List<String> getMatchTokens()
+    {
+        return matchTokens;
     }
 
     public StepType getStepType()

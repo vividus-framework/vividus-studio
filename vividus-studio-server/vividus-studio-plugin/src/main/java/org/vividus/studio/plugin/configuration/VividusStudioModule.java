@@ -34,6 +34,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.vividus.studio.plugin.document.TextDocumentEditor;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
+import org.vividus.studio.plugin.document.TextDocumentProvider;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.finder.StepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
@@ -57,6 +58,7 @@ public class VividusStudioModule extends AbstractModule
         bind(IJavaProjectLoader.class).to(LocalJavaProjectLoader.class);
         bind(IWorkspace.class).toProvider(ResourcesPlugin::getWorkspace);
         bind(IStepDefinitionFinder.class).to(StepDefinitionFinder.class);
+        bind(TextDocumentProvider.class).to(TextDocumentEditor.class);
         bind(TextDocumentEventListener.class).to(TextDocumentEditor.class);
         bind(Key.get(new TypeLiteral<Function<IProject, IJavaProject>>() { }))
             .toProvider(() -> JavaCore::create);

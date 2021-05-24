@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 the original author or authors.
+ * Copyright (C) 2020 - 2021 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,11 @@
  * *
  */
 
-package org.vividus.studio.plugin.service;
+package org.vividus.studio.plugin.document;
 
 import java.util.List;
 
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.Position;
-
-public interface ICompletionItemService extends IStepDefinitionsAware
+public interface TextDocumentProvider
 {
-    List<CompletionItem> findAll(String trigger);
-
-    List<CompletionItem> findAllAtPosition(String documentIdentifier, Position position);
+    List<String> getTextDocument(String identifier);
 }

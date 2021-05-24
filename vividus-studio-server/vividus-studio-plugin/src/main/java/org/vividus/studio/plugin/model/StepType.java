@@ -19,6 +19,7 @@
 
 package org.vividus.studio.plugin.model;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,11 +51,15 @@ public enum StepType
 
     public static StepType detect(String stepAsString)
     {
+        return detectSafely(stepAsString).orElseThrow(
+            () -> new IllegalArgumentException(String.format("Unable to detect type for step '%s'", stepAsString)));
+    }
+
+    public static Optional<StepType> detectSafely(String stepAsString)
+    {
         String prefix = StringUtils.substringBefore(stepAsString, " ");
         return Stream.of(StepType.values())
                      .filter(st -> st.getType().equals(prefix))
-                     .findFirst()
-                     .orElseThrow(() -> new IllegalArgumentException(String.format(
-                             "Unable to detect type for step '%s'", stepAsString)));
+                     .findFirst();
     }
 }

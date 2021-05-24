@@ -19,16 +19,20 @@
 
 package org.vividus.studio.plugin.service;
 
+import static java.util.Map.entry;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +40,15 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextEdit;
+import org.vividus.studio.plugin.document.TextDocumentProvider;
+import org.vividus.studio.plugin.match.TokenMatcher;
+import org.vividus.studio.plugin.match.TokenMatcher.MatchOutcome;
 import org.vividus.studio.plugin.model.Parameter;
 import org.vividus.studio.plugin.model.StepDefinition;
+import org.vividus.studio.plugin.model.StepType;
 
 @Singleton
 public class CompletionItemService implements ICompletionItemService
@@ -47,10 +58,21 @@ public class CompletionItemService implements ICompletionItemService
     private static final String SNIPPER_FORMAT = "${%d:%s}";
 
     private final List<StepDefinition> stepDefinitions = new ArrayList<>();
+    private final Supplier<Map<StepType, List<StepDefinition>>> groupedStepDefinitions = Suppliers.memoize(
+        () -> stepDefinitions.stream()
+                             .collect(Collectors.groupingBy(StepDefinition::getStepType, Collectors.toList())));
     private final Supplier<Map<String, Map<Integer, CompletionItem>>> completionItem = Suppliers.memoize(
         () -> stepDefinitions.stream()
                              .collect(Collectors.groupingBy(s -> s.getStepType().getId(),
                                     Collectors.toMap(StepDefinition::hashCode, this::asCompletionItem))));
+
+    private final TextDocumentProvider textDocumentProvider;
+
+    @Inject
+    public CompletionItemService(TextDocumentProvider textDocumentProvider)
+    {
+        this.textDocumentProvider = textDocumentProvider;
+    }
 
     private CompletionItem asCompletionItem(StepDefinition stepDefinition)
     {
@@ -76,14 +98,19 @@ public class CompletionItemService implements ICompletionItemService
         IntStream.range(0, size).forEach(i ->
         {
             Parameter parameter = parameters.get(i);
-            String name = parameter.getName();
-            String nameNoAnchor = name.substring(1);
-            search[i] = name;
-            replacement[i] = String.format(SNIPPER_FORMAT, parameter.getIndex(), nameNoAnchor);
+            search[i] = parameter.getName();
+            replacement[i] = createSnippet(parameter);
         });
 
         String snipperText = StringUtils.replaceEach(stepDefinition.getStepAsString(), search, replacement);
         item.setInsertText(snipperText);
+    }
+
+    private static String createSnippet(Parameter parameter)
+    {
+        String name = parameter.getName();
+        String nameNoAnchor = name.substring(1);
+        return String.format(SNIPPER_FORMAT, parameter.getIndex(), nameNoAnchor);
     }
 
     private void setInfo(CompletionItem item, StepDefinition stepDefinition)
@@ -114,5 +141,58 @@ public class CompletionItemService implements ICompletionItemService
     public void setStepDefinitions(Collection<StepDefinition> stepDefinitions)
     {
         this.stepDefinitions.addAll(stepDefinitions);
+    }
+
+    @SuppressWarnings("MagicNumber")
+    @Override
+    public List<CompletionItem> findAllAtPosition(String documentIdentifier, Position position)
+    {
+        int lineIndex = position.getLine();
+        int charPosition = position.getCharacter();
+        String currentLine = textDocumentProvider.getTextDocument(documentIdentifier).get(lineIndex);
+        String token = currentLine.substring(0, charPosition);
+        Optional<StepType> stepType = StepType.detectSafely(token);
+        if (stepType.isEmpty())
+        {
+            return List.of();
+        }
+
+        return groupedStepDefinitions.get().get(stepType.get())
+                                           .stream()
+                                           .map(def -> entry(def, TokenMatcher.match(token, def.getMatchTokens())))
+                                           .filter(e -> e.getValue().isMatch())
+                                           .map(e ->
+                                           {
+                                               StepDefinition def = e.getKey();
+                                               CompletionItem item = asCompletionItem(def);
+
+                                               MatchOutcome outcome = e.getValue();
+                                               int matchTokenIndex = outcome.getTokenIndex();
+                                               String subToken = outcome.getSubToken();
+
+                                               String insertText = "";
+                                               if (!subToken.isEmpty())
+                                               {
+                                                   if (matchTokenIndex == 0)
+                                                   {
+                                                       insertText = item.getInsertText().substring(charPosition);
+                                                   }
+                                                   else
+                                                   {
+                                                       Parameter parameter = def.getParameters()
+                                                               .get(matchTokenIndex - 1);
+                                                       insertText = StringUtils.substringAfter(item.getInsertText(),
+                                                               createSnippet(parameter) + subToken);
+                                                   }
+                                               }
+
+                                               Position snippetPosition = new Position(lineIndex, charPosition);
+                                               TextEdit textEdit = new TextEdit(new Range(snippetPosition,
+                                                       snippetPosition), insertText);
+                                               item.setTextEdit(textEdit);
+
+                                               return item;
+                                           })
+                                           .collect(Collectors.toList());
     }
 }

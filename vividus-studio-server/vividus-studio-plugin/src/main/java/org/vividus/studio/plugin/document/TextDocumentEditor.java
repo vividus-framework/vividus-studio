@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class TextDocumentEditor implements TextDocumentEventListener
+public class TextDocumentEditor implements TextDocumentEventListener, TextDocumentProvider
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(TextDocumentEditor.class);
     private final Map<String, List<String>> textDocuments = new HashMap<>();
@@ -84,6 +84,7 @@ public class TextDocumentEditor implements TextDocumentEventListener
         textDocuments.remove(uri);
     }
 
+    @Override
     public List<String> getTextDocument(String identifier)
     {
         List<String> text = textDocuments.get(identifier);
