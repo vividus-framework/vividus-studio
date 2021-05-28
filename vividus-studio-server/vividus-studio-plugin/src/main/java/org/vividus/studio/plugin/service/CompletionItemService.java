@@ -43,6 +43,7 @@ import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.vividus.studio.plugin.document.TextDocumentProvider;
 import org.vividus.studio.plugin.match.TokenMatcher;
 import org.vividus.studio.plugin.match.TokenMatcher.MatchOutcome;
@@ -189,7 +190,7 @@ public class CompletionItemService implements ICompletionItemService
                                                Position snippetPosition = new Position(lineIndex, charPosition);
                                                TextEdit textEdit = new TextEdit(new Range(snippetPosition,
                                                        snippetPosition), insertText);
-                                               item.setTextEdit(textEdit);
+                                               item.setTextEdit(Either.forLeft(textEdit));
 
                                                return item;
                                            })

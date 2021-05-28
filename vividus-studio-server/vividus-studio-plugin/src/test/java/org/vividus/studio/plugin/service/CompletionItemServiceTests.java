@@ -143,7 +143,7 @@ class CompletionItemServiceTests
         assertThat(items, hasSize(1));
         CompletionItem item = items.get(0);
 
-        assertEquals(textEdit, item.getTextEdit().getNewText());
+        assertEquals(textEdit, item.getTextEdit().getLeft().getNewText());
     }
 
     @ParameterizedTest
