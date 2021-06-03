@@ -15,7 +15,7 @@
         <maven.compiler.source>12</maven.compiler.source>
         <maven.compiler.target>12</maven.compiler.target>
         <junit.jupiter.version>5.6.2</junit.jupiter.version>
-        <org.mockito.version>3.3.3</org.mockito.version>
+        <org.mockito.version>3.10.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <checkstyle.version>8.33</checkstyle.version>
         <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
