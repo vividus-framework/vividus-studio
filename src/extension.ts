@@ -1,7 +1,8 @@
 import { ExtensionContext } from 'vscode';
 import { AddressInfo, createServer } from 'net';
 import { launch, Application } from './lib/equinox';
-import { LanguageClient, LanguageClientOptions, StreamInfo, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
+import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
+import { LanguageClientOptions, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
 
 export function activate(context: ExtensionContext) {
 
