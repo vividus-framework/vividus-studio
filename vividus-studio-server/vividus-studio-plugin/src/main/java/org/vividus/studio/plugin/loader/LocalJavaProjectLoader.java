@@ -32,13 +32,19 @@ import java.util.function.Function;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.eclipse.buildship.core.BuildConfiguration;
+import org.eclipse.buildship.core.GradleBuild;
+import org.eclipse.buildship.core.GradleCore;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.ProgressListener;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
@@ -60,15 +66,12 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     {
         return RuntimeWrapper.wrapMono(() ->
         {
-            URI projectUri = new URI(uri);
-            File resolvedFile = Paths.get(projectUri.getPath(), ".project").toFile();
-            if (!resolvedFile.exists())
-            {
-                ofNullable(handlers.get(Event.NOT_FOUND)).ifPresent(c -> c.accept(resolvedFile.getAbsolutePath()));
-                return Optional.empty();
-            }
+            File projectFolder = Paths.get(new URI(uri).getPath()).toFile();
 
-            Path projectPath = new Path(resolvedFile.getAbsolutePath());
+            build(projectFolder, ofNullable(handlers.get(Event.INFO)));
+
+            String absProjectPath = projectFolder.toPath().resolve(".project").toString();
+            Path projectPath = new Path(absProjectPath);
             IProjectDescription description = workspace.loadProjectDescription(projectPath);
             IProject project = workspace.getRoot().getProject(description.getName());
 
@@ -80,12 +83,32 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
 
             if (!project.hasNature(JavaCore.NATURE_ID))
             {
-                ofNullable(handlers.get(Event.CORRUPTED)).ifPresent(c -> c.accept(resolvedFile.getAbsolutePath()));
+                ofNullable(handlers.get(Event.CORRUPTED)).ifPresent(c -> c.accept(absProjectPath));
                 return Optional.empty();
             }
 
             ofNullable(handlers.get(Event.LOADED)).ifPresent(c -> c.accept(description.getName()));
             return Optional.of(projectTransformer.apply(project));
         }, VividusStudioException::new);
+    }
+
+    private static void build(File projectFolder, Optional<Consumer<String>> messageConsumer) throws Exception
+    {
+        BuildConfiguration config = BuildConfiguration.forRootProjectDirectory(projectFolder)
+                                                      .build();
+
+        GradleBuild build = GradleCore.getWorkspace().createBuild(config);
+
+        build.withConnection(connection ->
+        {
+            BuildLauncher launcher = connection.newBuild().forTasks("eclipse");
+            messageConsumer.ifPresent(msgConsumer ->
+            {
+                ProgressListener listener = event -> msgConsumer.accept(event.getDescription());
+                launcher.addProgressListener(listener);
+            });
+            launcher.run();
+            return null;
+        }, new NullProgressMonitor());
     }
 }

@@ -41,9 +41,14 @@ import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.ProgressParams;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
+import org.eclipse.lsp4j.WorkDoneProgressBegin;
+import org.eclipse.lsp4j.WorkDoneProgressEnd;
+import org.eclipse.lsp4j.WorkDoneProgressReport;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -99,6 +104,10 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     {
         return CompletableFuture.supplyAsync(() ->
         {
+            Either<String, Integer> token = params.getWorkDoneToken();
+
+            startProgress(token, "Initialization", "Initialize project");
+
             InitializeResult initResult = new InitializeResult();
             ServerCapabilities capabilities = new ServerCapabilities();
             capabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
@@ -112,13 +121,38 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
                     Event.LOADED, n -> showInfo(format("Project with the name '%s' is loaded", n)),
                     Event.CORRUPTED, p -> showError(format("Project file by path '%s' is corrupted", p)),
-                    Event.NOT_FOUND, p -> showError(
-                            format("Unable to detect project by path '%s', please choose existing one", p))));
+                    Event.INFO, msg -> progress(token, msg)));
 
             javaProject.map(stepDefinitionFinder::find).ifPresent(completionItemService::setStepDefinitions);
 
+            endProgress(token, "Completed");
+
             return initResult;
         });
+    }
+
+    private void startProgress(Either<String, Integer> token, String title, String message)
+    {
+        WorkDoneProgressBegin progress = new WorkDoneProgressBegin();
+        progress.setTitle(title);
+        progress.setMessage(message);
+        progress.setCancellable(false);
+        this.languageClient.notifyProgress(new ProgressParams(token, Either.forLeft(progress)));
+    }
+
+    private void progress(Either<String, Integer> token, String message)
+    {
+        WorkDoneProgressReport progress = new WorkDoneProgressReport();
+        progress.setCancellable(false);
+        progress.setMessage(message);
+        this.languageClient.notifyProgress(new ProgressParams(token, Either.forLeft(progress)));
+    }
+
+    private void endProgress(Either<String, Integer> token, String message)
+    {
+        WorkDoneProgressEnd progress = new WorkDoneProgressEnd();
+        progress.setMessage(message);
+        this.languageClient.notifyProgress(new ProgressParams(token, Either.forLeft(progress)));
     }
 
     @Override
