@@ -22,7 +22,8 @@ export function activate(context: ExtensionContext) {
         documentSelector: ['plaintext'],
         initializationOptions: [
             completionClientCapabilites
-        ]
+        ],
+        progressOnInitialization: true
     }
 
     const client = new LanguageClient("Client", () => createServerOptions(context.extensionPath), clientOptions);
