@@ -14,6 +14,35 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "languages": [
+            {
+                "id": "vividus-dsl",
+                "aliases": [
+                    "bdd",
+                    "jbehave",
+                    "dsl"
+                ],
+                "extensions": [
+                    ".story",
+                    ".steps"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "vividus-dsl",
+                "scopeName": "source.vividus",
+                "path": "./syntaxes/vividus.tmLanguage.json"
+            }
+        ],
+        "themes": [
+            {
+                "label": "vividus-dark-theme",
+                "uiTheme": "vs-dark",
+                "path": "./themes/vividus.tmTheme.json"
+            }
+        ],
         "commands": []
     },
     "scripts": {

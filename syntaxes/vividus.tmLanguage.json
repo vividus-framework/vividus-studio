@@ -1,0 +1,197 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Vividus DSL",
+    "patterns": [
+        {
+            "include": "#scenario"
+        },
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#meta"
+        },
+        {
+            "include": "#step"
+        },
+        {
+            "include": "#lifecycle"
+        },
+        {
+            "include": "#givenStories"
+        },
+        {
+            "include": "#examples"
+        }
+    ],
+    "scopeName": "source.vividus",
+    "repository": {
+        "scenario": {
+            "match": "^(Scenario:)(.*)$",
+            "captures": {
+                "1": {
+                    "name": "vividus.scenario.keyword"
+                },
+                "2": {
+                    "name": "vividus.scenario.title"
+                }
+            }
+        },
+        "comment": {
+            "match": "^\\s*(!--.*)",
+            "captures": {
+                "1": {
+                    "name": "vividus.comment"
+                }
+            }
+        },
+        "meta": {
+            "begin": "^\\s*(Meta:)(\\s*@[^\\s]+\\s.*)?",
+            "beginCaptures": {
+                "1": {
+                    "name": "vividus.meta"
+                },
+                "2": {
+                    "patterns": [
+                        {
+                            "include": "#metaKeyValue"
+                        }
+                    ]
+                }
+            },
+            "while": "\\s*(@[^\\s]+\\s.*)",
+            "whileCaptures": {
+                "1": {
+                    "patterns": [
+                        {
+                            "include": "#metaKeyValue"
+                        }
+                    ]
+                }
+            }
+        },
+        "metaKeyValue": {
+            "name": "vividus.meta.key-value",
+            "match": "\\s*(@[^\\s]+)\\s(.*)",
+            "captures": {
+                "1": {
+                    "name": "vividus.meta.key"
+                },
+                "2": {
+                    "name": "vividus.meta.value"
+                }
+            }
+        },
+        "step": {
+            "match": "^(Given(?!Stories)|When|Then|And)(.+)",
+            "captures": {
+                "1": {
+                    "name": "vividus.step.type"
+                },
+                "2": {
+                    "name": "vividus.step.wording"
+                }
+            }
+        },
+        "lifecycle": {
+            "begin": "(Lifecycle:)",
+            "beginCaptures": {
+                "1": {
+                    "name": "vividus.keyword"
+                }
+            },
+            "while": "^(Before:|After:)|(Scope:.*)|(Outcome:.*)|((?:Given|When|Then) .+)$",
+            "whileCaptures": {
+                "1": {
+                    "name": "vividus.keyword"
+                },
+                "2": {
+                    "patterns": [
+                        {
+                            "include": "#scope"
+                        }
+                    ]
+                },
+                "3": {
+                    "patterns": [
+                        {
+                            "include": "#outcome"
+                        }
+                    ]
+                },
+                "4": {
+                    "patterns": [
+                        {
+                            "include": "#step"
+                        }
+                    ]
+                }
+            }
+        },
+        "scope": {
+            "match": "(Scope:)\\s*(?i)(story|step|scenario)?\\s*",
+            "captures": {
+                "1": {
+                    "name": "vividus.keyword"
+                },
+                "2": {
+                    "name": "vividus.keyword.attribute"
+                }
+            }
+        },
+        "outcome": {
+            "match": "(Outcome:)\\s*(?i)(any|success|failed)?\\s*",
+            "captures": {
+                "1": {
+                    "name": "vividus.keyword"
+                },
+                "2": {
+                    "name": "vividus.keyword.attribute"
+                }
+            }
+        },
+        "givenStories": {
+            "begin": "(GivenStories:)(\\s*\\/?[^\\s]*\\.story.*)?",
+            "beginCaptures": {
+                "1": {
+                    "name": "vividus.keyword"
+                },
+                "2": {
+                    "patterns": [
+                        {
+                            "include": "#givenStoriesPath"
+                        }
+                    ]
+                }
+            },
+            "while": "(\\s*\\/?[^\\s]*\\.story.*)",
+            "whileCaptures": {
+                "1": {
+                    "patterns": [
+                        {
+                            "include": "#givenStoriesPath"
+                        }
+                    ]
+                }
+            }
+        },
+        "givenStoriesPath": {
+            "match": "(\\s*\\/?[^\\s]*\\.story(?:\\#\\{\\d+\\})?(?:\\,)?)",
+            "name": "vividus.keyword.attribute"
+        },
+        "examples": {
+            "begin": "(Examples:)",
+            "beginCaptures": {
+                "1": {
+                    "name": "vividus.keyword"
+                }
+            },
+            "while": "(\\{.*\\}|\\|.*\\|)",
+            "whileCaptures": {
+                "1": {
+                    "name": "vividus.keyword.attribute"
+                }
+            }
+        }
+    }
+}
