@@ -41,7 +41,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -125,19 +124,20 @@ class CompletionItemServiceTests
     static Stream<Arguments> findAllAtPositionDataset()
     {
         return Stream.of(
-            arguments("Given rand", "om value"),
-            arguments("Then McDonald's is equal t", "o ${2:expected} after conversion"),
-            arguments("Then McDonald's is equal to Fat ass after conversion", "")
+            arguments(List.of("Given rand"), "om value", 0, 10),
+            arguments(List.of("Then McDonald's is equal t"), "o ${2:expected} after conversion", 0, 26),
+            arguments(List.of("Then ", "line1", "line2", " is equa"), "l to ${2:expected} after conversion", 3, 8),
+            arguments(List.of("Then McDonald's is equal to Fat ass after conversion"), "", 0, 52)
         );
     }
 
     @MethodSource("findAllAtPositionDataset")
     @ParameterizedTest
-    void testFindAllAtPosition(String line, String textEdit)
+    void testFindAllAtPosition(List<String> lines, String textEdit, int line, int charPos)
     {
-        Position position = new Position(0, line.length());
+        Position position = new Position(line, charPos);
 
-        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(line));
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(lines);
 
         List<CompletionItem> items = completionItemService.findAllAtPosition(DOCUMENT_ID, position);
         assertThat(items, hasSize(1));
@@ -146,16 +146,24 @@ class CompletionItemServiceTests
         assertEquals(textEdit, item.getTextEdit().getLeft().getNewText());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "Nutty Putty Cave",
-        "When I procrastinate"
-    })
-    void testFindAllAtPositionNoMatch(String line)
+    static Stream<Arguments> noMatchDataSet()
     {
-        Position position = new Position(0, line.length());
+        return Stream.of(
+            arguments(List.of("Nutty Putty Cave"), 0, 15),
+            arguments(List.of("Nutty", "Putty", "Cave"), 2, 3),
+            arguments(List.of("When I procrastinate"), 0, 20),
+            arguments(List.of("Scenario: Salute to the Sun"), 0, 35),
+            arguments(List.of("Scenario: Salute", "to", "the", "Sun"), 3, 2)
+        );
+    }
 
-        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(line));
+    @ParameterizedTest
+    @MethodSource("noMatchDataSet")
+    void testFindAllAtPositionNoMatch(List<String> lines, int line, int charPos)
+    {
+        Position position = new Position(line, charPos);
+
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(lines);
 
         assertThat(completionItemService.findAllAtPosition(DOCUMENT_ID, position), hasSize(0));
     }
