@@ -1,0 +1,96 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "type": "dark",
+  "colors": {
+    "activityBarBadge.background": "#007acc",
+    "editor.background": "#1e1e1e",
+    "editor.foreground": "#d4d4d4",
+    "editor.inactiveSelectionBackground": "#3a3d41",
+    "editor.selectionHighlightBackground": "#add6ff26",
+    "editorIndentGuide.activeBackground": "#707070",
+    "editorIndentGuide.background": "#404040",
+    "input.placeholderForeground": "#a6a6a6",
+    "list.dropBackground": "#383b3d",
+    "menu.background": "#252526",
+    "menu.foreground": "#cccccc",
+    "settings.numberInputBackground": "#292929",
+    "settings.textInputBackground": "#292929",
+    "sideBarTitle.foreground": "#bbbbbb",
+    "statusBarItem.remoteBackground": "#16825d",
+    "statusBarItem.remoteForeground": "#ffffff"
+  },
+  "tokenColors": [
+    {
+      "scope": "vividus.scenario.keyword",
+      "settings": {
+        "fontStyle": "bold",
+        "foreground": "#00f3ef"
+      }
+    },
+    {
+      "scope": "vividus.scenario.title",
+      "settings": {
+        "foreground": "#94d6fc"
+      }
+    },
+    {
+      "scope": "vividus.comment",
+      "settings": {
+        "foreground": "#1eff008e",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "vividus.meta",
+      "settings": {
+        "foreground": "#ffe600",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "vividus.meta.key",
+      "settings": {
+        "foreground": "#d6c316",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "vividus.meta.value",
+      "settings": {
+        "foreground": "#ff0095",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "vividus.step.type",
+      "settings": {
+        "foreground": "#12b6b3",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "vividus.step.wording",
+      "settings": {
+        "foreground": "#c47332f6"
+      }
+    },
+    {
+      "scope": [
+        "vividus.keyword"
+      ],
+      "settings": {
+        "fontStyle": "bold",
+        "foreground": "#a37be1"
+      }
+    },
+    {
+      "scope": [
+        "vividus.keyword.attribute"
+      ],
+      "settings": {
+        "fontStyle": "italic",
+        "foreground": "#a8b9fb"
+      }
+    },
+  ]
+}

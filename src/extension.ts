@@ -16,15 +16,20 @@ export function activate(context: ExtensionContext) {
             ]
         },
         contextSupport: true
-    }
+    };
 
     const clientOptions: LanguageClientOptions = {
-        documentSelector: ['plaintext'],
+        documentSelector: [
+            {
+                language: 'vividus-dsl',
+                scheme: 'file'
+            }
+        ],
         initializationOptions: [
             completionClientCapabilites
         ],
         progressOnInitialization: true
-    }
+    };
 
     const client = new LanguageClient("Client", () => createServerOptions(context.extensionPath), clientOptions);
     context.subscriptions.push(client.start());
