@@ -39,6 +39,6 @@ jobs:
         run: npm run lint
 
       - name: Extension Tests
-        uses: GabrielBB/xvfb-action@v1.4
+        uses: GabrielBB/xvfb-action@v1.5
         with:
           run: npm test
