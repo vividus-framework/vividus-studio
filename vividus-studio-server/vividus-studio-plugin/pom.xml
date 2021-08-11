@@ -209,7 +209,7 @@
                         <phase>validate</phase>
                         <configuration>
                             <propertyExpansion>config_loc=${project.basedir}</propertyExpansion>
-                            <configLocation>https://raw.githubusercontent.com/vividus-framework/vividus-build-system/master/1.0/config/checkstyle/checkstyle.xml</configLocation>
+                            <configLocation>https://raw.githubusercontent.com/vividus-framework/vividus-build-system/266411664d873ade1ff89b36f1e07c5403ddece2/1.0/config/checkstyle/checkstyle.xml</configLocation>
                         </configuration>
                         <goals>
                             <goal>check</goal>
