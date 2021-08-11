@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/vividus-studio-server/"
+    schedule:
+      interval: weekly
