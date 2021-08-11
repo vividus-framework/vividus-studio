@@ -22,7 +22,7 @@ jobs:
           java-version: 12
 
       - name: Cache maven dependencies
-        uses: pat-s/always-upload-cache@v2.1.3
+        uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ~/.m2/repository
           key: maven-build-${{ hashFiles('**/pom.xml') }}
