@@ -20,7 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <checkstyle.version>8.45.1</checkstyle.version>
         <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
-        <sevntu.checkstyle.plugin.version>1.39.0</sevntu.checkstyle.plugin.version>
+        <sevntu.checkstyle.plugin.version>1.40.0</sevntu.checkstyle.plugin.version>
         <slf4j.api.version>2.0.0-alpha3</slf4j.api.version>
         <hamcrest.version>2.2</hamcrest.version>
         <log4j.version>2.13.2</log4j.version>
