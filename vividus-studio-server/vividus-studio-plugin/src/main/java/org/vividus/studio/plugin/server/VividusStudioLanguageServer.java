@@ -57,6 +57,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vividus.studio.plugin.VividusStudioActivator;
+import org.vividus.studio.plugin.configuration.JVMConfigurator;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
@@ -78,6 +79,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private final IJavaProjectLoader projectLoader;
     private final IWorkspace workspace;
     private final IStepDefinitionFinder stepDefinitionFinder;
+    private final JVMConfigurator jvmConfigurator;
 
     private LanguageClient languageClient;
     private boolean exit;
@@ -89,7 +91,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             WorkspaceService workspaceService,
             IJavaProjectLoader projectLoader,
             IWorkspace workspace,
-            IStepDefinitionFinder stepDefinitionFinder)
+            IStepDefinitionFinder stepDefinitionFinder,
+            JVMConfigurator jvmConfigurator)
     {
         this.textDocumentService = textDocumentService;
         this.completionItemService = completionItemService;
@@ -97,6 +100,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         this.projectLoader = projectLoader;
         this.workspace = workspace;
         this.stepDefinitionFinder = stepDefinitionFinder;
+        this.jvmConfigurator = jvmConfigurator;
     }
 
     @Override
@@ -124,6 +128,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                     Event.INFO, msg -> progress(token, msg)));
 
             javaProject.map(stepDefinitionFinder::find).ifPresent(completionItemService::setStepDefinitions);
+
+            RuntimeWrapper.wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 
             endProgress(token, "Completed");
 
