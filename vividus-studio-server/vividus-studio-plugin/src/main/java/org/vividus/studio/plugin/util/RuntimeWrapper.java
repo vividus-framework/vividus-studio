@@ -28,6 +28,16 @@ public final class RuntimeWrapper
     {
     }
 
+    public static <T, E extends Exception> void wrap(ExceptionRunnable<E> runnable,
+            Function<Exception, ? extends RuntimeException> factory)
+    {
+        wrapMono(() ->
+        {
+            runnable.run();
+            return null;
+        }, factory);
+    }
+
     @SuppressWarnings("IllegalCatchExtended")
     public static <T, E extends Exception> T wrapMono(ExceptionSupplier<E, T> supplier,
             Function<Exception, ? extends RuntimeException> factory)

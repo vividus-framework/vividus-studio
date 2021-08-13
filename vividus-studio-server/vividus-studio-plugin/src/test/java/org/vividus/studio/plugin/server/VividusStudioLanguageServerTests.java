@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
@@ -51,6 +52,7 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.configuration.JVMConfigurator;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
@@ -64,6 +66,7 @@ class VividusStudioLanguageServerTests
     @Mock private IStepDefinitionFinder stepDefinitionFinder;
     @Mock private IJavaProjectLoader projectLoader;
     @Mock private LanguageClient languageClient;
+    @Mock private JVMConfigurator jvmConfigurator;
     @InjectMocks private VividusStudioLanguageServer languageServer;
 
     @BeforeEach
@@ -76,7 +79,7 @@ class VividusStudioLanguageServerTests
     }
 
     @Test
-    void testInitialize() throws InterruptedException, ExecutionException
+    void testInitialize() throws InterruptedException, ExecutionException, CoreException
     {
         InitializeParams params = mock(InitializeParams.class);
         String rootUri = "root uri";
@@ -101,6 +104,7 @@ class VividusStudioLanguageServerTests
         List<String> triggers = result.getCapabilities().getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of("G", "W", "T"), triggers);
         verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
+        verify(jvmConfigurator).configureDefaultJvm();
 
         languageClientOrder.verify(languageClient).notifyProgress(argThat(progress ->
         {
