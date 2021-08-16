@@ -65,6 +65,7 @@
         "vscode-test": "^1.6.1"
     },
     "dependencies": {
-        "vscode-languageclient": "^7.0.0"
+        "vscode-languageclient": "^7.0.0",
+        "glob": "^7.1.7"
     }
 }
