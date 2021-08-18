@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -37,17 +36,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.WorkDoneProgressBegin;
-import org.eclipse.lsp4j.WorkDoneProgressEnd;
-import org.eclipse.lsp4j.WorkDoneProgressNotification;
-import org.eclipse.lsp4j.WorkDoneProgressReport;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.commons.util.ReflectionUtils;
-import org.junit.platform.commons.util.ReflectionUtils.HierarchyTraversalMode;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -57,6 +48,7 @@ import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.model.StepDefinition;
+import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.ICompletionItemService;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,18 +57,9 @@ class VividusStudioLanguageServerTests
     @Mock private ICompletionItemService completionItemService;
     @Mock private IStepDefinitionFinder stepDefinitionFinder;
     @Mock private IJavaProjectLoader projectLoader;
-    @Mock private LanguageClient languageClient;
     @Mock private JVMConfigurator jvmConfigurator;
+    @Mock private ClientNotificationService clientNotificationService;
     @InjectMocks private VividusStudioLanguageServer languageServer;
-
-    @BeforeEach
-    void beforeEach() throws IllegalArgumentException, IllegalAccessException
-    {
-        Field languageClientField = ReflectionUtils.findFields(VividusStudioLanguageServer.class,
-            f -> "languageClient".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-        ReflectionUtils.makeAccessible(languageClientField);
-        languageClientField.set(languageServer, languageClient);
-    }
 
     @Test
     void testInitialize() throws InterruptedException, ExecutionException, CoreException
@@ -97,7 +80,7 @@ class VividusStudioLanguageServerTests
         }))).thenReturn(Optional.of(javaProject));
         when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of(stepDefinition));
 
-        InOrder languageClientOrder = inOrder(languageClient);
+        InOrder notificationServiceOrder = inOrder(clientNotificationService);
 
         InitializeResult result = languageServer.initialize(params).get();
 
@@ -106,38 +89,9 @@ class VividusStudioLanguageServerTests
         verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
 
-        languageClientOrder.verify(languageClient).notifyProgress(argThat(progress ->
-        {
-            WorkDoneProgressNotification notification = progress.getValue().getLeft();
-            if (!(notification instanceof WorkDoneProgressBegin))
-            {
-                return false;
-            }
-            WorkDoneProgressBegin begin = (WorkDoneProgressBegin) notification;
-            return token.equals(progress.getToken()) && "Initialization".equals(begin.getTitle())
-                    && "Initialize project".equals(begin.getMessage()) && !begin.getCancellable();
-        }));
-
-        languageClientOrder.verify(languageClient).notifyProgress(argThat(progress ->
-        {
-            WorkDoneProgressNotification notification = progress.getValue().getLeft();
-            if (!(notification instanceof WorkDoneProgressReport))
-            {
-                return false;
-            }
-            WorkDoneProgressReport report = (WorkDoneProgressReport) notification;
-            return token.equals(progress.getToken()) && info.equals(report.getMessage()) && !report.getCancellable();
-        }));
-
-        languageClientOrder.verify(languageClient).notifyProgress(argThat(progress ->
-        {
-            WorkDoneProgressNotification notification = progress.getValue().getLeft();
-            if (!(notification instanceof WorkDoneProgressEnd))
-            {
-                return false;
-            }
-            WorkDoneProgressEnd end = (WorkDoneProgressEnd) notification;
-            return token.equals(progress.getToken()) && "Completed".equals(end.getMessage());
-        }));
+        notificationServiceOrder.verify(clientNotificationService).startProgress(token, "Initialization",
+                "Initialize project");
+        notificationServiceOrder.verify(clientNotificationService).progress(token, info);
+        notificationServiceOrder.verify(clientNotificationService).endProgress(token, "Completed");
     }
 }

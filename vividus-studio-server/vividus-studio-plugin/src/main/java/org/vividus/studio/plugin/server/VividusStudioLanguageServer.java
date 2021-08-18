@@ -39,14 +39,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.MessageParams;
-import org.eclipse.lsp4j.MessageType;
-import org.eclipse.lsp4j.ProgressParams;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
-import org.eclipse.lsp4j.WorkDoneProgressBegin;
-import org.eclipse.lsp4j.WorkDoneProgressEnd;
-import org.eclipse.lsp4j.WorkDoneProgressReport;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -63,6 +57,7 @@ import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.model.StepType;
+import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.ICompletionItemService;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
@@ -80,8 +75,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private final IWorkspace workspace;
     private final IStepDefinitionFinder stepDefinitionFinder;
     private final JVMConfigurator jvmConfigurator;
+    private final ClientNotificationService clientNotificationService;
 
-    private LanguageClient languageClient;
     private boolean exit;
 
     @Inject
@@ -92,7 +87,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             IJavaProjectLoader projectLoader,
             IWorkspace workspace,
             IStepDefinitionFinder stepDefinitionFinder,
-            JVMConfigurator jvmConfigurator)
+            JVMConfigurator jvmConfigurator,
+            ClientNotificationService clientNotificationService)
     {
         this.textDocumentService = textDocumentService;
         this.completionItemService = completionItemService;
@@ -101,6 +97,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         this.workspace = workspace;
         this.stepDefinitionFinder = stepDefinitionFinder;
         this.jvmConfigurator = jvmConfigurator;
+        this.clientNotificationService = clientNotificationService;
     }
 
     @Override
@@ -110,7 +107,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         {
             Either<String, Integer> token = params.getWorkDoneToken();
 
-            startProgress(token, "Initialization", "Initialize project");
+            clientNotificationService.startProgress(token, "Initialization", "Initialize project");
 
             InitializeResult initResult = new InitializeResult();
             ServerCapabilities capabilities = new ServerCapabilities();
@@ -123,42 +120,20 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             initResult.setCapabilities(capabilities);
 
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
-                    Event.LOADED, n -> showInfo(format("Project with the name '%s' is loaded", n)),
-                    Event.CORRUPTED, p -> showError(format("Project file by path '%s' is corrupted", p)),
-                    Event.INFO, msg -> progress(token, msg)));
+                    Event.LOADED, n -> clientNotificationService.showInfo(
+                            format("Project with the name '%s' is loaded", n)),
+                    Event.CORRUPTED, p -> clientNotificationService.showError(
+                            format("Project file by path '%s' is corrupted", p)),
+                    Event.INFO, msg -> clientNotificationService.progress(token, msg)));
 
             javaProject.map(stepDefinitionFinder::find).ifPresent(completionItemService::setStepDefinitions);
 
             RuntimeWrapper.wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 
-            endProgress(token, "Completed");
+            clientNotificationService.endProgress(token, "Completed");
 
             return initResult;
         });
-    }
-
-    private void startProgress(Either<String, Integer> token, String title, String message)
-    {
-        WorkDoneProgressBegin progress = new WorkDoneProgressBegin();
-        progress.setTitle(title);
-        progress.setMessage(message);
-        progress.setCancellable(false);
-        this.languageClient.notifyProgress(new ProgressParams(token, Either.forLeft(progress)));
-    }
-
-    private void progress(Either<String, Integer> token, String message)
-    {
-        WorkDoneProgressReport progress = new WorkDoneProgressReport();
-        progress.setCancellable(false);
-        progress.setMessage(message);
-        this.languageClient.notifyProgress(new ProgressParams(token, Either.forLeft(progress)));
-    }
-
-    private void endProgress(Either<String, Integer> token, String message)
-    {
-        WorkDoneProgressEnd progress = new WorkDoneProgressEnd();
-        progress.setMessage(message);
-        this.languageClient.notifyProgress(new ProgressParams(token, Either.forLeft(progress)));
     }
 
     @Override
@@ -198,10 +173,10 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         {
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, socket.getInputStream(),
                     socket.getOutputStream());
-            this.languageClient = launcher.getRemoteProxy();
+            clientNotificationService.setLanguageClient(launcher.getRemoteProxy());
             launcher.startListening();
             LOGGER.info("Socket is listening on {}:{}", socket.getInetAddress(), socket.getPort());
-            showInfo("Welcome to the Vividus Studio");
+            clientNotificationService.showInfo("Welcome to the Vividus Studio");
             while (!exit)
             {
                 TimeUnit.SECONDS.sleep(TIME_TO_WAIT_EXIT);
@@ -211,21 +186,5 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         {
             exit = true;
         }
-    }
-
-    private void showInfo(String message)
-    {
-        showMessage(message, MessageType.Info);
-    }
-
-    private void showError(String message)
-    {
-        showMessage(message, MessageType.Error);
-    }
-
-    private void showMessage(String message, MessageType messageType)
-    {
-        MessageParams messageParams = new MessageParams(messageType, message);
-        this.languageClient.showMessage(messageParams);
     }
 }
