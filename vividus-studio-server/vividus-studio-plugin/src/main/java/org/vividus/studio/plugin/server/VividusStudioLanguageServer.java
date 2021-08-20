@@ -20,12 +20,15 @@
 package org.vividus.studio.plugin.server;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -34,9 +37,11 @@ import java.util.stream.Stream;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.ServerCapabilities;
@@ -51,7 +56,9 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vividus.studio.plugin.VividusStudioActivator;
+import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
+import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
@@ -61,6 +68,7 @@ import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.ICompletionItemService;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
+@SuppressWarnings("paramNum")
 @Singleton
 public class VividusStudioLanguageServer implements LanguageServer, SocketListener
 {
@@ -76,6 +84,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private final IStepDefinitionFinder stepDefinitionFinder;
     private final JVMConfigurator jvmConfigurator;
     private final ClientNotificationService clientNotificationService;
+    private final VividusStudioConfiguration vividusStudioConfiguration;
+    private final Set<ICommand> commands;
 
     private boolean exit;
 
@@ -88,7 +98,9 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             IWorkspace workspace,
             IStepDefinitionFinder stepDefinitionFinder,
             JVMConfigurator jvmConfigurator,
-            ClientNotificationService clientNotificationService)
+            ClientNotificationService clientNotificationService,
+            VividusStudioConfiguration vividusStudioConfiguration,
+            Set<ICommand> commands)
     {
         this.textDocumentService = textDocumentService;
         this.completionItemService = completionItemService;
@@ -98,6 +110,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         this.stepDefinitionFinder = stepDefinitionFinder;
         this.jvmConfigurator = jvmConfigurator;
         this.clientNotificationService = clientNotificationService;
+        this.vividusStudioConfiguration = vividusStudioConfiguration;
+        this.commands = commands;
     }
 
     @Override
@@ -117,6 +131,11 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                                           .collect(Collectors.toList());
             capabilities.setCompletionProvider(new CompletionOptions(true, triggers));
 
+            ExecuteCommandOptions commandOptions = commands.stream()
+                    .map(ICommand::getName)
+                    .collect(collectingAndThen(toList(), ExecuteCommandOptions::new));
+            capabilities.setExecuteCommandProvider(commandOptions);
+
             initResult.setCapabilities(capabilities);
 
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
@@ -126,7 +145,12 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                             format("Project file by path '%s' is corrupted", p)),
                     Event.INFO, msg -> clientNotificationService.progress(token, msg)));
 
-            javaProject.map(stepDefinitionFinder::find).ifPresent(completionItemService::setStepDefinitions);
+            javaProject.map(stepDefinitionFinder::find)
+                       .ifPresent(completionItemService::setStepDefinitions);
+
+            javaProject.map(IJavaProject::getProject)
+                       .map(IProject::getName)
+                       .ifPresent(vividusStudioConfiguration::setProjectName);
 
             RuntimeWrapper.wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 
@@ -166,6 +190,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         return workspaceService;
     }
 
+    @SuppressWarnings("AvoidEscapedUnicodeCharacters")
     @Override
     public void listen(InetAddress address, int port) throws Exception
     {
