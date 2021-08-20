@@ -19,12 +19,16 @@
 
 package org.vividus.studio.plugin.service;
 
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
 import com.google.inject.Singleton;
 
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.ProgressParams;
 import org.eclipse.lsp4j.WorkDoneProgressBegin;
+import org.eclipse.lsp4j.WorkDoneProgressCreateParams;
 import org.eclipse.lsp4j.WorkDoneProgressEnd;
 import org.eclipse.lsp4j.WorkDoneProgressNotification;
 import org.eclipse.lsp4j.WorkDoneProgressReport;
@@ -68,6 +72,19 @@ public class ClientNotificationService
     public void showError(String message)
     {
         showMessage(message, MessageType.Error);
+    }
+
+    public CompletableFuture<Either<String, Integer>> createProgress()
+    {
+        Either<String, Integer> token = Either.forLeft(UUID.randomUUID().toString());
+        WorkDoneProgressCreateParams params = new WorkDoneProgressCreateParams(token);
+        return this.languageClient.createProgress(params).thenApplyAsync(empty -> token);
+    }
+
+    public void logMessage(String message)
+    {
+        MessageParams messageParams = new MessageParams(MessageType.Log, message);
+        this.languageClient.logMessage(messageParams);
     }
 
     private void showMessage(String message, MessageType messageType)

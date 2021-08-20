@@ -23,7 +23,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
@@ -119,5 +125,24 @@ public class ClientNotificationServiceTests
         MessageParams params = messageParamsCaptor.getValue();
         assertEquals(MessageType.Error, params.getType());
         assertEquals(MESSAGE, params.getMessage());
+    }
+
+    @Test
+    void shouldLog()
+    {
+        service.logMessage(MESSAGE);
+
+        verify(languageClient).logMessage(messageParamsCaptor.capture());
+        MessageParams params = messageParamsCaptor.getValue();
+        assertEquals(MessageType.Log, params.getType());
+        assertEquals(MESSAGE, params.getMessage());
+    }
+
+    @Test
+    void shouldCreateProgress() throws InterruptedException, ExecutionException
+    {
+        when(languageClient.createProgress(any())).thenReturn(CompletableFuture.allOf());
+
+        assertNotNull(service.createProgress().get());
     }
 }

@@ -23,27 +23,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.WorkspaceService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
+import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
@@ -54,19 +73,36 @@ import org.vividus.studio.plugin.service.ICompletionItemService;
 @ExtendWith(MockitoExtension.class)
 class VividusStudioLanguageServerTests
 {
+    private static final String COMMAND = "test-command";
+    private static final String PROJECT_NAME = "project-name";
+
     @Mock private ICompletionItemService completionItemService;
     @Mock private IStepDefinitionFinder stepDefinitionFinder;
     @Mock private IJavaProjectLoader projectLoader;
     @Mock private JVMConfigurator jvmConfigurator;
     @Mock private ClientNotificationService clientNotificationService;
-    @InjectMocks private VividusStudioLanguageServer languageServer;
+    @Mock private WorkspaceService workspaceService;
+    @Mock private VividusStudioConfiguration vividusStudioConfiguration;
+
+    private VividusStudioLanguageServer languageServer;
+
+    @BeforeEach
+    void beforeEach() throws IllegalArgumentException, IllegalAccessException
+    {
+        ICommand command = mock(ICommand.class);
+        lenient().when(command.getName()).thenReturn(COMMAND);
+
+        languageServer = new VividusStudioLanguageServer(null, completionItemService, workspaceService, projectLoader,
+                null, stepDefinitionFinder, jvmConfigurator, clientNotificationService, vividusStudioConfiguration,
+                Set.of(command));
+    }
 
     @Test
     void testInitialize() throws InterruptedException, ExecutionException, CoreException
     {
         InitializeParams params = mock(InitializeParams.class);
         String rootUri = "root uri";
-        IJavaProject javaProject = mock(IJavaProject.class);
+        IJavaProject javaProject = mockJavaProject();
         StepDefinition stepDefinition = mock(StepDefinition.class);
         Either<String, Integer> token = Either.forLeft("token");
 
@@ -84,14 +120,54 @@ class VividusStudioLanguageServerTests
 
         InitializeResult result = languageServer.initialize(params).get();
 
-        List<String> triggers = result.getCapabilities().getCompletionProvider().getTriggerCharacters();
+        ServerCapabilities serverCapabilities = result.getCapabilities();
+        List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of("G", "W", "T"), triggers);
         verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
+        verify(vividusStudioConfiguration).setProjectName(PROJECT_NAME);
+        assertEquals(List.of(COMMAND), serverCapabilities.getExecuteCommandProvider().getCommands());
 
         notificationServiceOrder.verify(clientNotificationService).startProgress(token, "Initialization",
                 "Initialize project");
         notificationServiceOrder.verify(clientNotificationService).progress(token, info);
         notificationServiceOrder.verify(clientNotificationService).endProgress(token, "Completed");
+    }
+
+    @Test
+    void shouldListen() throws Exception
+    {
+        InputStream is = mock(InputStream.class);
+        OutputStream os = mock(OutputStream.class);
+
+        try(MockedConstruction<Socket> socketConstruction = mockConstruction(Socket.class, (mock, ctx) -> {
+            when(mock.getInputStream()).thenReturn(is);
+            when(mock.getOutputStream()).thenReturn(os);
+        });
+            MockedStatic<LSPLauncher> lspLauncher = mockStatic(LSPLauncher.class))
+        {
+            Launcher<LanguageClient> launcher = mock(Launcher.class);
+            lspLauncher.when(() -> LSPLauncher.createServerLauncher(languageServer, is,
+                    os)).thenReturn(launcher);
+            LanguageClient client = mock(LanguageClient.class);
+            when(launcher.getRemoteProxy()).thenReturn(client);
+
+            CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> languageServer.exit());
+
+            languageServer.listen(null, 0);
+
+            verify(clientNotificationService).setLanguageClient(client);
+            verify(launcher).startListening();
+            verify(clientNotificationService).showInfo("Welcome to the Vividus Studio");
+        }
+    }
+
+    private IJavaProject mockJavaProject()
+    {
+        IJavaProject javaProject = mock(IJavaProject.class);
+        IProject project = mock(IProject.class);
+        when(javaProject.getProject()).thenReturn(project);
+        when(project.getName()).thenReturn(PROJECT_NAME);
+        return javaProject;
     }
 }

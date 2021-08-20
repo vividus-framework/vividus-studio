@@ -92,5 +92,61 @@
         "foreground": "#a8b9fb"
       }
     },
+    {
+      "scope": [
+        "vividus.log.time"
+      ],
+      "settings": {
+        "foreground": "#666f76"
+      }
+    },
+    {
+      "scope": [
+        "vividus.log.thread"
+      ],
+      "settings": {
+        "foreground": "#3a86c3"
+      }
+    },
+    {
+      "scope": [
+        "vividus.log.level.info"
+      ],
+      "settings": {
+        "foreground": "#30a815"
+      }
+    },
+    {
+      "scope": [
+        "vividus.log.level.error"
+      ],
+      "settings": {
+        "foreground": "#c50f09"
+      }
+    },
+    {
+      "scope": [
+        "vividus.log.level.debug"
+      ],
+      "settings": {
+        "foreground": "#1ab288"
+      }
+    },
+    {
+      "scope": [
+        "vividus.log.class"
+      ],
+      "settings": {
+        "foreground": "#ddc728"
+      }
+    },
+    {
+      "scope": [
+        "vividus.log.message"
+      ],
+      "settings": {
+        "foreground": "#d4dbdd"
+      }
+    }
   ]
 }

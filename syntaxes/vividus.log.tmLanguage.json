@@ -1,0 +1,45 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Vividus Log",
+    "patterns": [
+        {
+            "include": "#log"
+        }
+    ],
+    "scopeName": "source.vividus.log",
+    "repository": {
+        "log": {
+            "match": "^(\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\,\\d+)\\s(\\[.+?\\])\\s([A-Z]+)\\s+([^\\s]+)\\s-\\s(.*)$",
+            "captures": {
+                "1": {
+                    "name": "vividus.log.time"
+                },
+                "2": {
+                    "name": "vividus.log.thread"
+                },
+                "3": {
+                    "patterns": [
+                        {
+                            "match": "INFO",
+                            "name": "vividus.log.level.info"
+                        },
+                        {
+                            "match": "DEBUG",
+                            "name": "vividus.log.level.debug"
+                        },
+                        {
+                            "match": "ERROR",
+                            "name": "vividus.log.level.error"
+                        }
+                    ]
+                },
+                "4": {
+                    "name": "vividus.log.class"
+                },
+                "5": {
+                    "name": "vividus.log.message"
+                }
+            }
+        }
+    }
+}

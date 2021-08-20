@@ -19,15 +19,29 @@
 
 package org.vividus.studio.plugin.service;
 
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import org.vividus.studio.plugin.command.ICommand;
 
 @Singleton
 public class VividusStudioWorkspaceService implements WorkspaceService
 {
+    private final Set<ICommand> commands;
+
+    @Inject
+    public VividusStudioWorkspaceService(Set<ICommand> commands)
+    {
+        this.commands = commands;
+    }
+
     @Override
     public void didChangeConfiguration(DidChangeConfigurationParams params)
     {
@@ -36,5 +50,15 @@ public class VividusStudioWorkspaceService implements WorkspaceService
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params)
     {
+    }
+
+    @Override
+    public CompletableFuture<Object> executeCommand(ExecuteCommandParams params)
+    {
+        String commandName = params.getCommand();
+        return commands.stream().filter(cmd -> cmd.getName().equals(commandName))
+                                .findFirst()
+                                .get()
+                                .execute();
     }
 }
