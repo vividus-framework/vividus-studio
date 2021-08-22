@@ -51,7 +51,7 @@ public class JavaLaunchConfigurationFactory implements LaunchConfigurationFactor
     private final LoadingCache<LaunchConfigurationKey, LaunchConfiguration> configurations;
     private final DocumentBuilder documentBuilder;
 
-    public JavaLaunchConfigurationFactory(DocumentBuilder documentBuilder) throws ParserConfigurationException
+    public JavaLaunchConfigurationFactory() throws ParserConfigurationException
     {
         this.configurations = CacheBuilder.newBuilder().build(new CacheLoader<>()
         {
