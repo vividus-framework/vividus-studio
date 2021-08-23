@@ -43,3 +43,8 @@ jobs:
         uses: GabrielBB/xvfb-action@v1.5
         with:
           run: npm test
+      
+      - name: Extension packaging
+        run: |
+          sudo npm install -g vsce
+          vsce package
