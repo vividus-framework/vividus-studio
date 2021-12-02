@@ -17,7 +17,7 @@
             <repository location="https://download.eclipse.org/buildship/updates/latest/"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/S20210427185022/repository"/>
+            <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/I20211122170238/repository"/>
             <unit id="com.google.inject" version="0.0.0"/>
             <unit id="org.apache.commons.lang3" version="0.0.0"/>
             <unit id="org.apache.commons.io" version="0.0.0"/>
