@@ -18,7 +18,7 @@
         <junit.platform.version>1.8.2</junit.platform.version>
         <org.mockito.version>4.1.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <checkstyle.version>9.0.1</checkstyle.version>
+        <checkstyle.version>10.2</checkstyle.version>
         <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.40.0</sevntu.checkstyle.plugin.version>
         <slf4j.api.version>2.0.0-alpha5</slf4j.api.version>
