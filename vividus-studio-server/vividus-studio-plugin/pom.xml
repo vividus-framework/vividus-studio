@@ -21,9 +21,9 @@
         <checkstyle.version>9.0.1</checkstyle.version>
         <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.40.0</sevntu.checkstyle.plugin.version>
-        <slf4j.api.version>2.0.0-alpha5</slf4j.api.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <log4j.version>2.13.2</log4j.version>
+        <slf4j.api.version>2.0.3</slf4j.api.version>
+        <log4j.version>2.19.0</log4j.version>
     </properties>
 
     <dependencies>
@@ -75,6 +75,18 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+    	<dependencies>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-bom</artifactId>
+                <version>${log4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>  
 
     <build>
         <plugins>
@@ -250,17 +262,14 @@
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-api</artifactId>
-                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-core</artifactId>
-                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
-                            <artifactId>log4j-slf4j18-impl</artifactId>
-                            <version>${log4j.version}</version>
+                            <artifactId>log4j-slf4j2-impl</artifactId>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.junit.jupiter</groupId>
