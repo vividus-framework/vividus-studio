@@ -1,4 +1,4 @@
-import { ExtensionContext } from 'vscode';
+import { ExtensionContext, Uri } from 'vscode';
 import { AddressInfo, createServer } from 'net';
 import { launch, Application } from './lib/equinox';
 import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
@@ -31,11 +31,11 @@ export function activate(context: ExtensionContext) {
         progressOnInitialization: true
     };
 
-    const client = new LanguageClient("Client", () => createServerOptions(context.extensionPath), clientOptions);
+    const client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
     context.subscriptions.push(client.start());
 }
 
-function createServerOptions(serverPath: string): Promise<StreamInfo> {
+function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
     return new Promise((res, rej) => {
         const server = createServer(connection => res({ writer: connection, reader: connection }));
         server.on('error', rej);
@@ -45,7 +45,8 @@ function createServerOptions(serverPath: string): Promise<StreamInfo> {
             const application: Application = {
                 application: 'org.vividus.studio.plugin.application',
                 product: 'org.vividus.studio.plugin.product',
-                applicationDir: serverPath
+                applicationDir: context.extensionPath,
+                storageDir: context.storageUri as Uri
             };
             launch(address, application);
         });
