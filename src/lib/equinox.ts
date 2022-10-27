@@ -1,6 +1,9 @@
 import { AddressInfo } from 'net';
 import { sync } from 'glob';
 import { spawn } from 'child_process';
+import { Uri } from 'vscode';
+import { resolve } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
 export function launch(address: AddressInfo, application: Application) {
 
@@ -32,6 +35,15 @@ export function launch(address: AddressInfo, application: Application) {
     serverArgs.push('-configuration');
     serverArgs.push(`${application.applicationDir}/${bundle}`);
 
+    const workspace = resolve(application.storageDir.path, 'workspace');
+    if(!existsSync(workspace)) {
+        mkdirSync(workspace, {
+            recursive: true
+        });
+    }
+    serverArgs.push('-data');
+    serverArgs.push(workspace)
+
     const serverProcess = spawn('java', serverArgs, { detached: true });
     serverProcess.stdout.on('data', function(data) {
         console.log(data.toString()); 
@@ -45,11 +57,13 @@ export class Application {
     readonly application: string;
     readonly product: string;
     readonly applicationDir: string;
+    readonly storageDir: Uri
 
-    constructor(application: string, product: string, applicationDir: string) {
+    constructor(application: string, product: string, applicationDir: string, storageDir: Uri) {
         this.application = application;
         this.product = product;
         this.applicationDir = applicationDir;
+        this.storageDir = storageDir;
     }
 }
 
