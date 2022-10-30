@@ -35,6 +35,7 @@ import com.google.inject.Singleton;
 import org.eclipse.buildship.core.BuildConfiguration;
 import org.eclipse.buildship.core.GradleBuild;
 import org.eclipse.buildship.core.GradleCore;
+import org.eclipse.buildship.core.GradleDistribution;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -95,6 +96,7 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     private static void build(File projectFolder, Optional<Consumer<String>> messageConsumer) throws Exception
     {
         BuildConfiguration config = BuildConfiguration.forRootProjectDirectory(projectFolder)
+                                                      .gradleDistribution(GradleDistribution.forVersion("6.7"))
                                                       .build();
 
         GradleBuild build = GradleCore.getWorkspace().createBuild(config);
