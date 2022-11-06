@@ -19,13 +19,21 @@
 
 package org.vividus.studio.plugin.loader;
 
+import static java.net.URI.create;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.eclipse.buildship.core.GradleDistribution.forRemoteDistribution;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -40,7 +48,6 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.gradle.tooling.BuildLauncher;
@@ -68,10 +75,10 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
         {
             File projectFolder = Paths.get(new URI(uri).getPath()).toFile();
 
-            build(projectFolder, ofNullable(handlers.get(Event.INFO)));
+            build(projectFolder, ofNullable(handlers.get(Event.INFO)), ofNullable(handlers.get(Event.ERROR)));
 
             String absProjectPath = projectFolder.toPath().resolve(".project").toString();
-            Path projectPath = new Path(absProjectPath);
+            org.eclipse.core.runtime.Path projectPath = new org.eclipse.core.runtime.Path(absProjectPath);
             IProjectDescription description = workspace.loadProjectDescription(projectPath);
             IProject project = workspace.getRoot().getProject(description.getName());
 
@@ -92,9 +99,37 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
         }, VividusStudioException::new);
     }
 
-    private static void build(File projectFolder, Optional<Consumer<String>> messageConsumer) throws Exception
+    private static void build(File projectFolder, Optional<Consumer<String>> buildMessageConsumer,
+            Optional<Consumer<String>> errorMessageConsumer) throws Exception
     {
+        Path propertiesFile = projectFolder.toPath().resolve("gradle.properties");
+        String buildSystemVersion = findProperty(propertiesFile, "buildSystemVersion", true, errorMessageConsumer);
+
+        String buildSystemHome = System.getenv("VIVIDUS_BUILD_SYSTEM_HOME");
+        if (buildSystemHome == null)
+        {
+            String buildSystemRootDir = findProperty(propertiesFile, "buildSystemRootDir", false, errorMessageConsumer);
+            buildSystemHome = projectFolder.toPath().resolve(buildSystemRootDir != null ? buildSystemRootDir : EMPTY)
+                    .toString();
+        }
+
+        Path buildSystem = Paths.get(buildSystemHome, buildSystemVersion);
+        if (!Files.exists(buildSystem))
+        {
+            String message = "Neither environment variable \"VIVIDUS_BUILD_SYSTEM_HOME\" is set nor"
+                    + " embedded build system is synced. Please check the build system guide at "
+                    + "https://github.com/vividus-framework/vividus-build-system or clone this repo "
+                    + "recursively: git clone --recursive <git-repository-url>";
+            errorMessageConsumer.ifPresent(c -> c.accept(message));
+            throw new BuildException(message);
+        }
+
+        Path wrapper = buildSystem.resolve("gradle").resolve("wrapper").resolve("gradle-wrapper.properties");
+        String distribution = findProperty(wrapper, "distributionUrl", true, errorMessageConsumer);
+
         BuildConfiguration config = BuildConfiguration.forRootProjectDirectory(projectFolder)
+                                                      .overrideWorkspaceConfiguration(true)
+                                                      .gradleDistribution(forRemoteDistribution(create(distribution)))
                                                       .build();
 
         GradleBuild build = GradleCore.getWorkspace().createBuild(config);
@@ -102,7 +137,7 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
         build.withConnection(connection ->
         {
             BuildLauncher launcher = connection.newBuild().forTasks("eclipse");
-            messageConsumer.ifPresent(msgConsumer ->
+            buildMessageConsumer.ifPresent(msgConsumer ->
             {
                 ProgressListener listener = event -> msgConsumer.accept(event.getDescription());
                 launcher.addProgressListener(listener);
@@ -110,5 +145,42 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
             launcher.run();
             return null;
         }, new NullProgressMonitor());
+    }
+
+    private static String findProperty(Path propertiesPath, String propertyKey, boolean failOnMissingProperty,
+            Optional<Consumer<String>> errorMessageConsumer) throws IOException
+    {
+        if (!Files.exists(propertiesPath))
+        {
+            String message = String.format("Unable to find %s file in the project folder",
+                    propertiesPath.getFileName());
+            errorMessageConsumer.ifPresent(c -> c.accept(message));
+            throw new BuildException(message);
+        }
+
+        try (InputStream is = Files.newInputStream(propertiesPath))
+        {
+            Properties properties = new Properties();
+            properties.load(is);
+            String propertyValue = properties.getProperty(propertyKey);
+            if (propertyValue == null && failOnMissingProperty)
+            {
+                String message = String.format("The %s property is missing in the project properties",
+                        propertyKey);
+                errorMessageConsumer.ifPresent(c -> c.accept(message));
+                throw new BuildException(message);
+            }
+            return propertyValue;
+        }
+    }
+
+    private static final class BuildException extends RuntimeException
+    {
+        private static final long serialVersionUID = -671515108781706516L;
+
+        BuildException(String message)
+        {
+            super(message);
+        }
     }
 }

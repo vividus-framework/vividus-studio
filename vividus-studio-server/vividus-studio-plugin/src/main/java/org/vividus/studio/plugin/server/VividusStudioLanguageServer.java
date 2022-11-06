@@ -143,7 +143,8 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                             format("Project with the name '%s' is loaded", n)),
                     Event.CORRUPTED, p -> clientNotificationService.showError(
                             format("Project file by path '%s' is corrupted", p)),
-                    Event.INFO, msg -> clientNotificationService.progress(token, msg)));
+                    Event.INFO, msg -> clientNotificationService.progress(token, msg),
+                    Event.ERROR, clientNotificationService::showError));
 
             javaProject.map(stepDefinitionFinder::find)
                        .ifPresent(completionItemService::setStepDefinitions);

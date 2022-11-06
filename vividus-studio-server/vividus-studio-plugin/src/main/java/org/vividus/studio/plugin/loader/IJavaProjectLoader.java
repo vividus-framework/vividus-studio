@@ -31,6 +31,6 @@ public interface IJavaProjectLoader
 
     enum Event
     {
-        LOADED, CORRUPTED, INFO
+        LOADED, CORRUPTED, INFO, ERROR
     }
 }
