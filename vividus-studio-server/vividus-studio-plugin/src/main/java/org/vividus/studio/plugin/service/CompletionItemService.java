@@ -71,11 +71,6 @@ public class CompletionItemService implements ICompletionItemService
     private final Supplier<Map<StepType, List<StepDefinition>>> groupedStepDefinitions = Suppliers.memoize(
         () -> stepDefinitions.stream()
                              .collect(Collectors.groupingBy(StepDefinition::getStepType, Collectors.toList())));
-    private final Supplier<Map<String, Map<Integer, CompletionItem>>> completionItem = Suppliers.memoize(
-        () -> stepDefinitions.stream()
-                             .collect(Collectors.groupingBy(s -> s.getStepType().getId(),
-                                    Collectors.toMap(StepDefinition::hashCode,
-                                            CompletionItemService::asCompletionItem))));
 
     private final TextDocumentProvider textDocumentProvider;
 
@@ -140,12 +135,6 @@ public class CompletionItemService implements ICompletionItemService
         state.addProperty(TRIGGER, stepDefinition.getStepType().getId());
         state.addProperty(HASH, stepDefinition.hashCode());
         item.setData(state);
-    }
-
-    @Override
-    public List<CompletionItem> findAll(String trigger)
-    {
-        return completionItem.get().get(trigger).values().stream().collect(Collectors.toList());
     }
 
     @Override

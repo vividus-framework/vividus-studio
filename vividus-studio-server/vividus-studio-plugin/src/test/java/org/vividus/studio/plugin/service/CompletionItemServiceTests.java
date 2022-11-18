@@ -21,7 +21,6 @@ package org.vividus.studio.plugin.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.when;
@@ -29,12 +28,8 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.gson.JsonObject;
-
 import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemTag;
-import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,8 +63,6 @@ class CompletionItemServiceTests
 
     private static final String DOCS = "documentation";
     private static final String MODULE = "module";
-    private static final String HASH = "hash";
-    private static final String TRIGGER = "trigger";
 
     private static final String DOCUMENT_ID = "document-id";
 
@@ -97,27 +90,6 @@ class CompletionItemServiceTests
             arguments(GIVEN_TRIGGER, GIVEN_STEP, GIVEN_STEP_SNIPPET, GIVEN_STEP_HASH, null),
             arguments(WHEN_TRIGGER, WHEN_STEP, WHEN_STEP_SNIPPET, WHEN_STEP_HASH, null),
             arguments(THEN_TRIGGER, THEN_STEP, THEN_STEP_SNIPPET, THEN_STEP_HASH, List.of(CompletionItemTag.Deprecated))
-        );
-    }
-
-    @MethodSource("findAllDataset")
-    @ParameterizedTest
-    void testFindAll(String trigger, String label, String snippet, int hash, List<CompletionItemTag> tags)
-    {
-        List<CompletionItem> completions = completionItemService.findAll(trigger);
-        assertThat(completions, hasSize(1));
-        CompletionItem item = completions.get(0);
-        JsonObject data = (JsonObject) item.getData();
-        assertAll(
-            () -> assertEquals(CompletionItemKind.Method, item.getKind()),
-            () -> assertEquals(label, item.getLabel()),
-            () -> assertEquals(InsertTextFormat.Snippet, item.getInsertTextFormat()),
-            () -> assertEquals(snippet, item.getInsertText()),
-            () -> assertEquals(MODULE, item.getDetail()),
-            () -> assertEquals(DOCS, item.getDocumentation().getLeft()),
-            () -> assertEquals(trigger, data.get(TRIGGER).getAsString()),
-            () -> assertEquals(hash, data.get(HASH).getAsInt()),
-            () -> assertEquals(tags, item.getTags())
         );
     }
 

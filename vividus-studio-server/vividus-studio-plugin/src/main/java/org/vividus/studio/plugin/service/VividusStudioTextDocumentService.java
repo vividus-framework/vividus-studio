@@ -25,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -58,14 +57,7 @@ public class VividusStudioTextDocumentService implements TextDocumentService
         return CompletableFuture.supplyAsync(() ->
         {
             List<CompletionItem> completionItems = List.of();
-            CompletionContext context = completionParams.getContext();
-            CompletionTriggerKind triggerKind = context.getTriggerKind();
-            if (triggerKind == CompletionTriggerKind.TriggerCharacter)
-            {
-                String triggerCharacter = context.getTriggerCharacter();
-                completionItems = completionItemService.findAll(triggerCharacter);
-            }
-            else if (triggerKind == CompletionTriggerKind.Invoked)
+            if (completionParams.getContext().getTriggerKind() == CompletionTriggerKind.Invoked)
             {
                 String identifier = completionParams.getTextDocument().getUri();
                 completionItems = completionItemService.findAllAtPosition(identifier, completionParams.getPosition());
