@@ -31,8 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -63,7 +61,6 @@ import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
-import org.vividus.studio.plugin.model.StepType;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.ICompletionItemService;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
@@ -126,10 +123,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             InitializeResult initResult = new InitializeResult();
             ServerCapabilities capabilities = new ServerCapabilities();
             capabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
-            List<String> triggers = Stream.of(StepType.values())
-                                          .map(StepType::getId)
-                                          .collect(Collectors.toList());
-            capabilities.setCompletionProvider(new CompletionOptions(true, triggers));
+            capabilities.setCompletionProvider(new CompletionOptions(true, List.of()));
 
             ExecuteCommandOptions commandOptions = commands.stream()
                     .map(ICommand::getName)

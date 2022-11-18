@@ -122,7 +122,7 @@ class VividusStudioLanguageServerTests
 
         ServerCapabilities serverCapabilities = result.getCapabilities();
         List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
-        assertEquals(List.of("G", "W", "T"), triggers);
+        assertEquals(List.of(), triggers);
         verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
         verify(vividusStudioConfiguration).setProjectName(PROJECT_NAME);
