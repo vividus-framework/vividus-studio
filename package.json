@@ -4,6 +4,7 @@
     "description": "Vividus extendsion for Visual Studio Code",
     "version": "0.0.1",
     "publisher": "vividus-framework",
+    "icon": "images/icon.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/vividus-framework/vividus-studio.git"
