@@ -30,6 +30,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
@@ -43,7 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.factory.LaunchConfigurationFactory;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 
@@ -52,14 +54,16 @@ class RunStoriesCommandTests
 {
     @Mock private ClientNotificationService clientNotificationService;
     @Mock private LaunchConfigurationFactory launchConfigurationFactory;
+    @Mock private IProject project;
     private RunStoriesCommand command;
 
     @Test
     void shouldRunStories() throws InterruptedException, ExecutionException, CoreException
     {
         String projectName = "project-name";
-        VividusStudioConfiguration configuration = new VividusStudioConfiguration();
-        configuration.setProjectName(projectName);
+        VividusStudioEnvronment configuration = new VividusStudioEnvronment();
+        configuration.setProject(project);
+        when(project.getName()).thenReturn(projectName);
 
         LaunchConfiguration launchConfiguration = mock(LaunchConfiguration.class);
         when(launchConfigurationFactory.create(projectName, "org.vividus.runner.StoriesRunner"))
@@ -96,6 +100,7 @@ class RunStoriesCommandTests
         command = new RunStoriesCommand(clientNotificationService, launchConfigurationFactory, configuration);
         command.execute().get();
 
+        verify(project).refreshLocal(IResource.DEPTH_INFINITE, null);
         verify(clientNotificationService).startProgress(token, "Run Stories", "Running...");
         verify(clientNotificationService).endProgress(token, "Completed");
         verify(clientNotificationService).logMessage(message);

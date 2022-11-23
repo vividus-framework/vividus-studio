@@ -21,18 +21,20 @@ package org.vividus.studio.plugin.configuration;
 
 import com.google.inject.Singleton;
 
-@Singleton
-public class VividusStudioConfiguration
-{
-    private String projectName;
+import org.eclipse.core.resources.IProject;
 
-    public String getProjectName()
+@Singleton
+public class VividusStudioEnvronment
+{
+    private IProject project;
+
+    public IProject getProject()
     {
-        return projectName;
+        return project;
     }
 
-    public void setProjectName(String projectName)
+    public void setProject(IProject project)
     {
-        this.projectName = projectName;
+        this.project = project;
     }
 }
