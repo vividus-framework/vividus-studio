@@ -62,7 +62,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
-import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
@@ -74,7 +74,6 @@ import org.vividus.studio.plugin.service.ICompletionItemService;
 class VividusStudioLanguageServerTests
 {
     private static final String COMMAND = "test-command";
-    private static final String PROJECT_NAME = "project-name";
 
     @Mock private ICompletionItemService completionItemService;
     @Mock private IStepDefinitionFinder stepDefinitionFinder;
@@ -82,7 +81,7 @@ class VividusStudioLanguageServerTests
     @Mock private JVMConfigurator jvmConfigurator;
     @Mock private ClientNotificationService clientNotificationService;
     @Mock private WorkspaceService workspaceService;
-    @Mock private VividusStudioConfiguration vividusStudioConfiguration;
+    @Mock private VividusStudioEnvronment vividusStudioConfiguration;
 
     private VividusStudioLanguageServer languageServer;
 
@@ -125,7 +124,7 @@ class VividusStudioLanguageServerTests
         assertEquals(List.of(), triggers);
         verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
-        verify(vividusStudioConfiguration).setProjectName(PROJECT_NAME);
+        verify(vividusStudioConfiguration).setProject(javaProject.getProject());
         assertEquals(List.of(COMMAND), serverCapabilities.getExecuteCommandProvider().getCommands());
 
         notificationServiceOrder.verify(clientNotificationService).startProgress(token, "Initialization",
@@ -167,7 +166,6 @@ class VividusStudioLanguageServerTests
         IJavaProject javaProject = mock(IJavaProject.class);
         IProject project = mock(IProject.class);
         when(javaProject.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn(PROJECT_NAME);
         return javaProject;
     }
 }

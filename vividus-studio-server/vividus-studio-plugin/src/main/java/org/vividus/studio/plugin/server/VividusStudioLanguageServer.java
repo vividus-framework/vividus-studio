@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CompletionOptions;
@@ -56,7 +55,7 @@ import org.slf4j.LoggerFactory;
 import org.vividus.studio.plugin.VividusStudioActivator;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
-import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
@@ -81,7 +80,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private final IStepDefinitionFinder stepDefinitionFinder;
     private final JVMConfigurator jvmConfigurator;
     private final ClientNotificationService clientNotificationService;
-    private final VividusStudioConfiguration vividusStudioConfiguration;
+    private final VividusStudioEnvronment vividusStudioConfiguration;
     private final Set<ICommand> commands;
 
     private boolean exit;
@@ -96,7 +95,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             IStepDefinitionFinder stepDefinitionFinder,
             JVMConfigurator jvmConfigurator,
             ClientNotificationService clientNotificationService,
-            VividusStudioConfiguration vividusStudioConfiguration,
+            VividusStudioEnvronment vividusStudioConfiguration,
             Set<ICommand> commands)
     {
         this.textDocumentService = textDocumentService;
@@ -143,8 +142,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                        .ifPresent(completionItemService::setStepDefinitions);
 
             javaProject.map(IJavaProject::getProject)
-                       .map(IProject::getName)
-                       .ifPresent(vividusStudioConfiguration::setProjectName);
+                       .ifPresent(vividusStudioConfiguration::setProject);
 
             RuntimeWrapper.wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 

@@ -30,12 +30,14 @@ import java.util.concurrent.TimeUnit;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.internal.core.LaunchConfiguration;
-import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.factory.LaunchConfigurationFactory;
 import org.vividus.studio.plugin.service.ClientNotificationService;
@@ -45,16 +47,16 @@ public class RunStoriesCommand implements ICommand
 {
     private final ClientNotificationService clientNotificationService;
     private final LaunchConfigurationFactory launchConfigurationFactory;
-    private final VividusStudioConfiguration vividusStudioConfiguration;
+    private final VividusStudioEnvronment vividusStudioEnvironment;
 
     @Inject
     public RunStoriesCommand(ClientNotificationService clientNotificationService,
             LaunchConfigurationFactory launchConfigurationFactory,
-            VividusStudioConfiguration vividusStudioConfiguration)
+            VividusStudioEnvronment vividusStudioEnvironment)
     {
         this.clientNotificationService = clientNotificationService;
         this.launchConfigurationFactory = launchConfigurationFactory;
-        this.vividusStudioConfiguration = vividusStudioConfiguration;
+        this.vividusStudioEnvironment = vividusStudioEnvironment;
     }
 
     @Override
@@ -63,8 +65,13 @@ public class RunStoriesCommand implements ICommand
         return supplyAsync(() -> clientNotificationService.createProgress().thenAccept(token -> wrap(() ->
         {
             clientNotificationService.startProgress(token, "Run Stories", "Running...");
-            LaunchConfiguration runner = launchConfigurationFactory.create(vividusStudioConfiguration.getProjectName(),
+
+            IProject project = vividusStudioEnvironment.getProject();
+            project.refreshLocal(IResource.DEPTH_INFINITE, null);
+
+            LaunchConfiguration runner = launchConfigurationFactory.create(project.getName(),
                     "org.vividus.runner.StoriesRunner");
+
             ILaunch launch = runner.launch(ILaunchManager.RUN_MODE, null, true);
             IProcess launchProcess = launch.getProcesses()[0];
 
