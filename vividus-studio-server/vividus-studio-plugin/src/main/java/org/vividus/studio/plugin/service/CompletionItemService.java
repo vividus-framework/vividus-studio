@@ -217,7 +217,7 @@ public class CompletionItemService implements ICompletionItemService
             return Optional.of(entry(type.get(), token));
         }
 
-        return findStepHeadIndex(document).map(e ->
+        return findStepHeadIndex(lineIndex, document).map(e ->
         {
             String multilineToken = document.subList(e.getValue(), lineIndex).stream()
                     .collect(Collectors.joining(System.lineSeparator(), "", token));
@@ -230,13 +230,13 @@ public class CompletionItemService implements ICompletionItemService
         return STEP_BREAKERS.stream().anyMatch(line::startsWith);
     }
 
-    private static Optional<Entry<StepType, Integer>> findStepHeadIndex(List<String> lines)
+    private static Optional<Entry<StepType, Integer>> findStepHeadIndex(int currentIndex, List<String> lines)
     {
         for (int index = lines.size() - 1; index >= 0; index--)
         {
             String line = lines.get(index);
             Optional<StepType> type = StepType.detectSafely(line);
-            if (type.isPresent())
+            if (type.isPresent() && currentIndex > index)
             {
                 return Optional.of(entry(type.get(), index));
             }

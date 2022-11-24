@@ -125,7 +125,14 @@ class CompletionItemServiceTests
             arguments(List.of("Nutty", "Putty", "Cave"), 2, 3),
             arguments(List.of("When I procrastinate"), 0, 20),
             arguments(List.of("Scenario: Salute to the Sun"), 0, 35),
-            arguments(List.of("Scenario: Salute", "to", "the", "Sun"), 3, 2)
+            arguments(List.of("Scenario: Salute", "to", "the", "Sun"), 3, 2),
+            arguments(List.of(
+                "Scenario: Have no idea how to name it :(",
+                "Given friday",
+                "When I try to work",
+                "O",
+                "Then work is not going"
+                ), 3, 1)
         );
     }
 
