@@ -33,6 +33,8 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
@@ -42,13 +44,15 @@ public class VividusStudioTextDocumentService implements TextDocumentService
 {
     private final ICompletionItemService completionItemService;
     private final TextDocumentEventListener textDocumentEventListener;
+    private final SemanticTokensService semanticTokensService;
 
     @Inject
     public VividusStudioTextDocumentService(ICompletionItemService completionItemService,
-            TextDocumentEventListener textDocumentEventListener)
+            TextDocumentEventListener textDocumentEventListener, SemanticTokensService semanticTokensService)
     {
         this.completionItemService = completionItemService;
         this.textDocumentEventListener = textDocumentEventListener;
+        this.semanticTokensService = semanticTokensService;
     }
 
     @Override
@@ -70,6 +74,17 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved)
     {
         return CompletableFuture.completedFuture(unresolved);
+    }
+
+    @Override
+    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params)
+    {
+        return CompletableFuture.supplyAsync(() ->
+        {
+            String documentIdentifier = params.getTextDocument().getUri();
+            List<Integer> semanticTokens = semanticTokensService.getSemanticTokens(documentIdentifier);
+            return new SemanticTokens(semanticTokens);
+        });
     }
 
     @Override

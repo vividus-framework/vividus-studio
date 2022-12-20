@@ -38,9 +38,12 @@ import com.google.inject.Singleton;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.DocumentFilter;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -61,7 +64,7 @@ import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.service.ClientNotificationService;
-import org.vividus.studio.plugin.service.ICompletionItemService;
+import org.vividus.studio.plugin.service.StepDefinitionResolver;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
 @SuppressWarnings("paramNum")
@@ -73,7 +76,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private static final int TIME_TO_WAIT_EXIT = 3;
 
     private final TextDocumentService textDocumentService;
-    private final ICompletionItemService completionItemService;
+    private final StepDefinitionResolver stepDefinitionResolver;
     private final WorkspaceService workspaceService;
     private final IJavaProjectLoader projectLoader;
     private final IWorkspace workspace;
@@ -88,7 +91,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     @Inject
     public VividusStudioLanguageServer(
             TextDocumentService textDocumentService,
-            ICompletionItemService completionItemService,
+            StepDefinitionResolver stepDefinitionResolver,
             WorkspaceService workspaceService,
             IJavaProjectLoader projectLoader,
             IWorkspace workspace,
@@ -99,7 +102,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             Set<ICommand> commands)
     {
         this.textDocumentService = textDocumentService;
-        this.completionItemService = completionItemService;
+        this.stepDefinitionResolver = stepDefinitionResolver;
         this.workspaceService = workspaceService;
         this.projectLoader = projectLoader;
         this.workspace = workspace;
@@ -119,7 +122,6 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
 
             clientNotificationService.startProgress(token, "Initialization", "Initialize project");
 
-            InitializeResult initResult = new InitializeResult();
             ServerCapabilities capabilities = new ServerCapabilities();
             capabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
             capabilities.setCompletionProvider(new CompletionOptions(true, List.of()));
@@ -129,7 +131,10 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                     .collect(collectingAndThen(toList(), ExecuteCommandOptions::new));
             capabilities.setExecuteCommandProvider(commandOptions);
 
-            initResult.setCapabilities(capabilities);
+            SemanticTokensLegend legend = new SemanticTokensLegend(List.of("vividus-step-argument"), List.of());
+            SemanticTokensWithRegistrationOptions options = new SemanticTokensWithRegistrationOptions(legend, true);
+            options.setDocumentSelector(List.of(new DocumentFilter("vividus-dsl", null, null)));
+            capabilities.setSemanticTokensProvider(options);
 
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
                     Event.LOADED, n -> clientNotificationService.showInfo(
@@ -139,7 +144,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                     Event.INFO, msg -> clientNotificationService.progress(token, msg)));
 
             javaProject.map(stepDefinitionFinder::find)
-                       .ifPresent(completionItemService::setStepDefinitions);
+                       .ifPresent(stepDefinitionResolver::setStepDefinitions);
 
             javaProject.map(IJavaProject::getProject)
                        .ifPresent(vividusStudioConfiguration::setProject);
@@ -148,7 +153,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
 
             clientNotificationService.endProgress(token, "Completed");
 
-            return initResult;
+            return new InitializeResult(capabilities);
         });
     }
 

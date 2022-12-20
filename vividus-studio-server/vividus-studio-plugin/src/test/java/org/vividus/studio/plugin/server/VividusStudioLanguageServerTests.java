@@ -68,14 +68,14 @@ import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.service.ClientNotificationService;
-import org.vividus.studio.plugin.service.ICompletionItemService;
+import org.vividus.studio.plugin.service.StepDefinitionResolver;
 
 @ExtendWith(MockitoExtension.class)
 class VividusStudioLanguageServerTests
 {
     private static final String COMMAND = "test-command";
 
-    @Mock private ICompletionItemService completionItemService;
+    @Mock private StepDefinitionResolver stepDefinitionResolver;
     @Mock private IStepDefinitionFinder stepDefinitionFinder;
     @Mock private IJavaProjectLoader projectLoader;
     @Mock private JVMConfigurator jvmConfigurator;
@@ -91,7 +91,7 @@ class VividusStudioLanguageServerTests
         ICommand command = mock(ICommand.class);
         lenient().when(command.getName()).thenReturn(COMMAND);
 
-        languageServer = new VividusStudioLanguageServer(null, completionItemService, workspaceService, projectLoader,
+        languageServer = new VividusStudioLanguageServer(null, stepDefinitionResolver, workspaceService, projectLoader,
                 null, stepDefinitionFinder, jvmConfigurator, clientNotificationService, vividusStudioConfiguration,
                 Set.of(command));
     }
@@ -122,7 +122,7 @@ class VividusStudioLanguageServerTests
         ServerCapabilities serverCapabilities = result.getCapabilities();
         List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of(), triggers);
-        verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
+        verify(stepDefinitionResolver).setStepDefinitions(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
         verify(vividusStudioConfiguration).setProject(javaProject.getProject());
         assertEquals(List.of(COMMAND), serverCapabilities.getExecuteCommandProvider().getCommands());

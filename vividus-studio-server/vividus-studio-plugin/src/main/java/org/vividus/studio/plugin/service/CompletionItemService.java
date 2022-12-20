@@ -19,20 +19,11 @@
 
 package org.vividus.studio.plugin.service;
 
-import static java.util.Map.entry;
-
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -46,38 +37,23 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.vividus.studio.plugin.document.TextDocumentProvider;
-import org.vividus.studio.plugin.match.TokenMatcher;
-import org.vividus.studio.plugin.match.TokenMatcher.MatchOutcome;
 import org.vividus.studio.plugin.model.Parameter;
+import org.vividus.studio.plugin.model.ResolvedStepDefinition;
 import org.vividus.studio.plugin.model.StepDefinition;
-import org.vividus.studio.plugin.model.StepType;
 
 @Singleton
 public class CompletionItemService implements ICompletionItemService
 {
-    private static final List<String> STEP_BREAKERS = List.of(
-        "!--",
-        "Scenario:",
-        "Meta:",
-        "GivenStories:",
-        "Examples:"
-    );
     private static final String HASH = "hash";
     private static final String TRIGGER = "trigger";
     private static final String SNIPPER_FORMAT = "${%d:%s}";
 
-    private final List<StepDefinition> stepDefinitions = new ArrayList<>();
-    private final Supplier<Map<StepType, List<StepDefinition>>> groupedStepDefinitions = Suppliers.memoize(
-        () -> stepDefinitions.stream()
-                             .collect(Collectors.groupingBy(StepDefinition::getStepType, Collectors.toList())));
-
-    private final TextDocumentProvider textDocumentProvider;
+    private final StepDefinitionResolver stepDefinitionResolver;
 
     @Inject
-    public CompletionItemService(TextDocumentProvider textDocumentProvider)
+    public CompletionItemService(StepDefinitionResolver stepDefinitionResolver)
     {
-        this.textDocumentProvider = textDocumentProvider;
+        this.stepDefinitionResolver = stepDefinitionResolver;
     }
 
     private static CompletionItem asCompletionItem(StepDefinition stepDefinition)
@@ -138,42 +114,21 @@ public class CompletionItemService implements ICompletionItemService
     }
 
     @Override
-    public void setStepDefinitions(Collection<StepDefinition> stepDefinitions)
-    {
-        this.stepDefinitions.addAll(stepDefinitions);
-    }
-
-    @SuppressWarnings("MagicNumber")
-    @Override
     public List<CompletionItem> findAllAtPosition(String documentIdentifier, Position position)
     {
-        Optional<Entry<StepType, String>> stepWrapper = findStep(
-                textDocumentProvider.getTextDocument(documentIdentifier), position);
-        if (stepWrapper.isEmpty())
-        {
-            return List.of();
-        }
-        Entry<StepType, String> step = stepWrapper.get();
-
-        return groupedStepDefinitions.get().get(step.getKey())
-                                           .stream()
-                                           .map(def -> entry(def, TokenMatcher.match(step.getValue(),
-                                                   def.getMatchTokens())))
-                                           .filter(e -> e.getValue().isMatch())
-                                           .map(match(position))
-                                           .collect(Collectors.toList());
+        return stepDefinitionResolver.resolveAtPosition(documentIdentifier, position)
+                .map(match(position))
+                .collect(Collectors.toList());
     }
 
-    private static Function<Entry<StepDefinition, MatchOutcome>, CompletionItem> match(Position position)
+    private Function<ResolvedStepDefinition, CompletionItem> match(Position position)
     {
-        return e ->
+        return def ->
         {
-            StepDefinition def = e.getKey();
             CompletionItem item = asCompletionItem(def);
 
-            MatchOutcome outcome = e.getValue();
-            int matchTokenIndex = outcome.getTokenIndex();
-            String subToken = outcome.getSubToken();
+            int matchTokenIndex = def.getTokenIndex();
+            String subToken = def.getSubToken();
             int charPosition = position.getCharacter();
 
             String insertText = "";
@@ -199,54 +154,5 @@ public class CompletionItemService implements ICompletionItemService
 
             return item;
         };
-    }
-
-    private static Optional<Entry<StepType, String>> findStep(List<String> document, Position position)
-    {
-        int lineIndex = position.getLine();
-        String line = document.get(lineIndex);
-        if (isNotStep(line))
-        {
-            return Optional.empty();
-        }
-
-        String token = line.substring(0, position.getCharacter());
-        Optional<StepType> type = StepType.detectSafely(token);
-        if (type.isPresent())
-        {
-            return Optional.of(entry(type.get(), token));
-        }
-
-        return findStepHeadIndex(lineIndex, document).map(e ->
-        {
-            String multilineToken = document.subList(e.getValue(), lineIndex).stream()
-                    .collect(Collectors.joining(System.lineSeparator(), "", token));
-            return entry(e.getKey(), multilineToken);
-        });
-    }
-
-    private static boolean isNotStep(String line)
-    {
-        return STEP_BREAKERS.stream().anyMatch(line::startsWith);
-    }
-
-    private static Optional<Entry<StepType, Integer>> findStepHeadIndex(int currentIndex, List<String> lines)
-    {
-        for (int index = lines.size() - 1; index >= 0; index--)
-        {
-            String line = lines.get(index);
-            Optional<StepType> type = StepType.detectSafely(line);
-            if (type.isPresent() && currentIndex > index)
-            {
-                return Optional.of(entry(type.get(), index));
-            }
-
-            if (isNotStep(line))
-            {
-                return Optional.empty();
-            }
-        }
-
-        return Optional.empty();
     }
 }

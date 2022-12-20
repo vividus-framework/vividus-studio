@@ -1,0 +1,153 @@
+/*-
+ * *
+ * *
+ * Copyright (C) 2020 - 2022 the original author or authors.
+ * *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * *
+ */
+
+package org.vividus.studio.plugin.service;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.eclipse.lsp4j.Position;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.document.TextDocumentProvider;
+import org.vividus.studio.plugin.model.Parameter;
+import org.vividus.studio.plugin.model.ResolvedStepDefinition;
+import org.vividus.studio.plugin.model.StepDefinition;
+
+@ExtendWith(MockitoExtension.class)
+class StepDefinitionResolverTests
+{
+    private static final String GIVEN_STEP = "Given random value";
+    private static final String DOCUMENT_ID = "document-id";
+    private static final String DOCS = "documentation";
+    private static final String MODULE = "module";
+
+    @Mock private TextDocumentProvider textDocumentProvider;
+    @InjectMocks private StepDefinitionResolver resolver;
+
+    @BeforeEach
+    void init()
+    {
+        StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(),
+                List.of(GIVEN_STEP));
+        StepDefinition whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
+                List.of(new Parameter(1, "$value", 15)), List.of("When I convert ", " into custom type"));
+        StepDefinition thenStepDefinition = new StepDefinition(MODULE,
+                "Then $value is equal to $expected after conversion", DOCS,
+                List.of(new Parameter(1, "$value", 5), new Parameter(2, "$expected", 24)),
+                List.of("Then ", " is equal to ", " after conversion"));
+        resolver.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+    }
+
+    static Stream<Arguments> resolveAtPositionDataset()
+    {
+        return Stream.of(
+            arguments(
+                List.of("Given rand"),
+                new Position(0, 10),
+                0, 0,
+                GIVEN_STEP,
+                List.of()
+            ),
+            arguments(
+                List.of("Then McDonald's is equal t"),
+                new Position(0, 26),
+                0, 1,
+                " is equal t",
+                List.of(5, 15)
+            ),
+            arguments(
+                List.of("Then ", "line1", "line2", " is equa"),
+                new Position(3, 8),
+                0, 1,
+                " is equa",
+                List.of(5, 17)
+            ),
+            arguments(
+                List.of("Given some step", "Then McDonald's is equal to Fat ass after conversion"),
+                new Position(1, 52),
+                1, 2,
+                "",
+                List.of(5, 15, 28, 35)
+            )
+        );
+    }
+
+    @MethodSource("resolveAtPositionDataset")
+    @ParameterizedTest
+    void shouldResolveAtPosition(List<String> lines, Position position, int lineIndex, int tokenIndex, String subToken,
+            List<Integer> argIndices)
+    {
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(lines);
+
+        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolveAtPosition(DOCUMENT_ID, position)
+                .collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(1));
+        ResolvedStepDefinition resolved = resolvedDefinitions.get(0);
+        assertEquals(subToken, resolved.getSubToken());
+        assertStepDefinition(resolved, lineIndex, tokenIndex, argIndices);
+    }
+
+    @Test
+    void shouldResolveForDocument()
+    {
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(
+            "Scenario: Conversion",
+            "Given a task to calculate number conversion",
+            "When I convert PI into custom type",
+            "Then PI is equal to 3.14159265359 after conversion",
+            GIVEN_STEP,
+            "Then ${random-value} is equal to ??? after conversion",
+            "When I convert XII into",
+            "Then XII is equ",
+            "Then the end is reached"
+        ));
+
+        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(6));
+        assertStepDefinition(resolvedDefinitions.get(0), 2, 1, List.of(15, 17));
+        assertStepDefinition(resolvedDefinitions.get(1), 3, 2, List.of(5, 7, 20, 33));
+        assertStepDefinition(resolvedDefinitions.get(2), 4, 0, List.of());
+        assertStepDefinition(resolvedDefinitions.get(3), 5, 2, List.of(5, 20, 33, 36));
+        assertStepDefinition(resolvedDefinitions.get(4), 6, 1, List.of(15, 18));
+        assertStepDefinition(resolvedDefinitions.get(5), 7, 1, List.of(5, 8));
+    }
+
+    private static void assertStepDefinition(ResolvedStepDefinition resolved, int lineIndex, int tokenIndex,
+            List<Integer> argIndices)
+    {
+        assertEquals(lineIndex, resolved.getLineIndex());
+        assertEquals(tokenIndex, resolved.getTokenIndex());
+        assertEquals(argIndices, resolved.getArgIndices());
+    }
+}

@@ -58,6 +58,15 @@
             }
         ],
         "configurationDefaults": {
+            "editor.semanticHighlighting.enabled": true,
+            "editor.semanticTokenColorCustomizations": {
+                "rules": {
+                    "vividus-step-argument": {
+                        "foreground": "#b3b306",
+                        "fontStyle": "bold"
+                    }
+                }
+            },
             "editor.tokenColorCustomizations": {
                 "textMateRules": [
                     {

@@ -36,7 +36,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.document.TextDocumentProvider;
@@ -67,7 +66,7 @@ class CompletionItemServiceTests
     private static final String DOCUMENT_ID = "document-id";
 
     @Mock TextDocumentProvider textDocumentProvider;
-    @InjectMocks private CompletionItemService completionItemService;
+    private CompletionItemService completionItemService;
 
     @BeforeEach
     void init()
@@ -81,7 +80,9 @@ class CompletionItemServiceTests
                 new Parameter(2, "$expected", 24)
         ), List.of("Then ", " is equal to ", " after conversion"));
         thenStepDefinition.setDeprecated(true);
-        completionItemService.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+        StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider);
+        resolver.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+        completionItemService = new CompletionItemService(resolver);
     }
 
     static Stream<Arguments> findAllDataset()
