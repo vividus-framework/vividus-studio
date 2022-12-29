@@ -66,6 +66,7 @@ import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
+import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
@@ -143,11 +144,14 @@ class VividusStudioLanguageServerTests
             when(mock.getInputStream()).thenReturn(is);
             when(mock.getOutputStream()).thenReturn(os);
         });
-            MockedStatic<LSPLauncher> lspLauncher = mockStatic(LSPLauncher.class))
+            MockedStatic<LSPLauncher> lspLauncher = mockStatic(LSPLauncher.class);
+            MockedStatic<VividusStudioLogAppender> logAppender = mockStatic(VividusStudioLogAppender.class))
         {
             Launcher<LanguageClient> launcher = mock(Launcher.class);
             lspLauncher.when(() -> LSPLauncher.createServerLauncher(languageServer, is,
                     os)).thenReturn(launcher);
+            VividusStudioLogAppender appender = mock(VividusStudioLogAppender.class);
+            logAppender.when(() -> VividusStudioLogAppender.getInstance()).thenReturn(appender);
             LanguageClient client = mock(LanguageClient.class);
             when(launcher.getRemoteProxy()).thenReturn(client);
 
@@ -158,6 +162,7 @@ class VividusStudioLanguageServerTests
             verify(clientNotificationService).setLanguageClient(client);
             verify(launcher).startListening();
             verify(clientNotificationService).showInfo("Welcome to the Vividus Studio");
+            verify(appender).setClientNotificationService(clientNotificationService);
         }
     }
 

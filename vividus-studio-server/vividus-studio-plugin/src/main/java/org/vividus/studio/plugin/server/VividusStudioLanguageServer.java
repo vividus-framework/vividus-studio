@@ -63,6 +63,7 @@ import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
+import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
@@ -196,6 +197,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, socket.getInputStream(),
                     socket.getOutputStream());
             clientNotificationService.setLanguageClient(launcher.getRemoteProxy());
+            VividusStudioLogAppender.getInstance().setClientNotificationService(clientNotificationService);
             launcher.startListening();
             LOGGER.info("Socket is listening on {}:{}", socket.getInetAddress(), socket.getPort());
             clientNotificationService.showInfo("Welcome to the Vividus Studio");
