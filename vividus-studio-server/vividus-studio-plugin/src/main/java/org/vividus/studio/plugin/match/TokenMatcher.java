@@ -64,6 +64,13 @@ public final class TokenMatcher
         for (int index = 1; index < tokens.size(); index++)
         {
             Token token = tokens.get(index);
+
+            if (token.getToken().isEmpty())
+            {
+                indices.add(input.length());
+                break;
+            }
+
             Outcome outcome = matchToken(token, input, position, indices);
 
             while (outcome == Outcome.PROCEED_NEXT_CHAR)
