@@ -91,7 +91,7 @@ class RunStoriesCommandTests
         String message = "message";
         doAnswer(a -> {
             IStreamListener listener = a.getArgument(0, IStreamListener.class);
-            listener.streamAppended("\033[31m" + message + "[m", null);
+            listener.streamAppended("\033[31m" + message + "\033[m", null);
             return null;
         }).when(streamMonitor).addListener(any());
 

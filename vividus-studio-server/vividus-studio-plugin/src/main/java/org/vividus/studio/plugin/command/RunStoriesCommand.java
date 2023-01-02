@@ -78,7 +78,7 @@ public class RunStoriesCommand implements ICommand
             IStreamMonitor streamMonitor = launchProcess.getStreamsProxy().getOutputStreamMonitor();
             streamMonitor.addListener((text, montor) ->
             {
-                String messsage = removeEnd(text, "[m");
+                String messsage = removeEnd(text, "\033[m");
                 messsage = removeStart(messsage, "\033");
                 messsage = messsage.replaceFirst("^\\[..+?m", "").strip();
 
