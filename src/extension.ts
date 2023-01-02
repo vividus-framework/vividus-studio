@@ -1,4 +1,4 @@
-import { ExtensionContext, Uri } from 'vscode';
+import { ExtensionContext, OutputChannel, Uri, window } from 'vscode';
 import { AddressInfo, createServer } from 'net';
 import { launch, Application } from './lib/equinox';
 import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
@@ -18,6 +18,10 @@ export function activate(context: ExtensionContext) {
         contextSupport: true
     };
 
+    const name: string = "VIVIDUS Studio";
+    const channel: OutputChannel = window.createOutputChannel(name);
+    channel.show();
+
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             {
@@ -28,7 +32,8 @@ export function activate(context: ExtensionContext) {
         initializationOptions: [
             completionClientCapabilites
         ],
-        progressOnInitialization: true
+        progressOnInitialization: true,
+        outputChannel: channel,
     };
 
     const client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
