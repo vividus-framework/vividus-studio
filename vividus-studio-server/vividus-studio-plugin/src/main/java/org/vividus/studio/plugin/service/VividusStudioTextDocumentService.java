@@ -25,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -34,6 +33,8 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
@@ -43,13 +44,15 @@ public class VividusStudioTextDocumentService implements TextDocumentService
 {
     private final ICompletionItemService completionItemService;
     private final TextDocumentEventListener textDocumentEventListener;
+    private final SemanticTokensService semanticTokensService;
 
     @Inject
     public VividusStudioTextDocumentService(ICompletionItemService completionItemService,
-            TextDocumentEventListener textDocumentEventListener)
+            TextDocumentEventListener textDocumentEventListener, SemanticTokensService semanticTokensService)
     {
         this.completionItemService = completionItemService;
         this.textDocumentEventListener = textDocumentEventListener;
+        this.semanticTokensService = semanticTokensService;
     }
 
     @Override
@@ -58,14 +61,7 @@ public class VividusStudioTextDocumentService implements TextDocumentService
         return CompletableFuture.supplyAsync(() ->
         {
             List<CompletionItem> completionItems = List.of();
-            CompletionContext context = completionParams.getContext();
-            CompletionTriggerKind triggerKind = context.getTriggerKind();
-            if (triggerKind == CompletionTriggerKind.TriggerCharacter)
-            {
-                String triggerCharacter = context.getTriggerCharacter();
-                completionItems = completionItemService.findAll(triggerCharacter);
-            }
-            else if (triggerKind == CompletionTriggerKind.Invoked)
+            if (completionParams.getContext().getTriggerKind() == CompletionTriggerKind.Invoked)
             {
                 String identifier = completionParams.getTextDocument().getUri();
                 completionItems = completionItemService.findAllAtPosition(identifier, completionParams.getPosition());
@@ -78,6 +74,17 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved)
     {
         return CompletableFuture.completedFuture(unresolved);
+    }
+
+    @Override
+    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params)
+    {
+        return CompletableFuture.supplyAsync(() ->
+        {
+            String documentIdentifier = params.getTextDocument().getUri();
+            List<Integer> semanticTokens = semanticTokensService.getSemanticTokens(documentIdentifier);
+            return new SemanticTokens(semanticTokens);
+        });
     }
 
     @Override

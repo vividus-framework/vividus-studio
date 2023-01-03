@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <properties>
-        <property name="pattern">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</property>
+        <property name="pattern">%d [%t] %-5p %c - %m%n</property>
     </properties>
     <Appenders>
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${pattern}"/>
-        </Console>
         <File name="file" fileName="output.log" bufferedIO="true">
             <PatternLayout pattern="${pattern}"/>
         </File>
+        <VividusStudioLogAppender name="vividusStudioLogAppender">
+            <PatternLayout pattern="${pattern}"/>
+        </VividusStudioLogAppender>
     </Appenders>
     <Loggers>
         <Root level="info">
-            <AppenderRef ref="console"/>
+            <AppenderRef ref="vividusStudioLogAppender"/>
             <AppenderRef ref="file"/>
         </Root>
     </Loggers>

@@ -19,6 +19,7 @@
 
 package org.vividus.studio.plugin.match;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,8 @@ public final class TokenMatcher
 
         if (input.length() <= headToken.length())
         {
-            return headToken.startsWith(input) ? MatchOutcome.passed(0, headToken) : MatchOutcome.failed();
+            return headToken.startsWith(input) ? MatchOutcome.passed(0, headToken, List.of())
+                    : MatchOutcome.failed();
         }
 
         if (!input.startsWith(headToken))
@@ -52,23 +54,35 @@ public final class TokenMatcher
                                              return list;
                                          }));
 
-        MutableInt position = new MutableInt(headToken.length());
+        int headTokenLength = headToken.length();
+
+        List<Integer> indices = new ArrayList<>();
+        indices.add(headTokenLength);
+
+        MutableInt position = new MutableInt(headTokenLength);
 
         for (int index = 1; index < tokens.size(); index++)
         {
             Token token = tokens.get(index);
-            Outcome outcome = matchToken(token, input, position);
+
+            if (token.getToken().isEmpty())
+            {
+                indices.add(input.length());
+                break;
+            }
+
+            Outcome outcome = matchToken(token, input, position, indices);
 
             while (outcome == Outcome.PROCEED_NEXT_CHAR)
             {
                 position.increment();
-                outcome = matchToken(token, input, position);
+                outcome = matchToken(token, input, position, indices);
             }
 
             if (outcome == Outcome.COMPLETED)
             {
                 String subToken = token.getToken().substring(0, position.getValue());
-                return MatchOutcome.passed(index, subToken);
+                return MatchOutcome.passed(index, subToken, indices);
             }
 
             if (outcome == Outcome.FAILED)
@@ -77,10 +91,10 @@ public final class TokenMatcher
             }
         }
 
-        return MatchOutcome.passed(tokens.size() - 1, "");
+        return MatchOutcome.passed(tokens.size() - 1, "", indices);
     }
 
-    private static Outcome matchToken(Token token, String input, MutableInt position)
+    private static Outcome matchToken(Token token, String input, MutableInt position, List<Integer> indices)
     {
         String tokenAsString = token.getToken();
         int currentPos = position.intValue();
@@ -94,11 +108,14 @@ public final class TokenMatcher
 
         currentPos = matchIndex;
 
+        int inputLength = input.length();
+        int completedPosition = inputLength - 1;
         for (int tokenPos = 1; tokenPos < tokenAsString.length(); tokenPos++)
         {
             int nextPos = currentPos + tokenPos;
-            if (nextPos > input.length() - 1)
+            if (nextPos > completedPosition)
             {
+                indices.add(currentPos);
                 position.setValue(tokenPos);
                 return Outcome.COMPLETED;
             }
@@ -112,13 +129,19 @@ public final class TokenMatcher
             }
         }
 
-        position.setValue(currentPos + tokenAsString.length());
+        int nextPosition = currentPos + tokenAsString.length();
+        position.setValue(nextPosition);
 
-        if (token.isLast() && position.intValue() < input.length())
+        if (token.isLast() && position.intValue() < inputLength)
         {
             return Outcome.FAILED;
         }
 
+        indices.add(currentPos);
+        if (inputLength != nextPosition)
+        {
+            indices.add(nextPosition);
+        }
         return Outcome.PROCEED_NEXT_TOKEN;
     }
 
@@ -127,12 +150,14 @@ public final class TokenMatcher
         private final boolean match;
         private final int tokenIndex;
         private final String subToken;
+        private final List<Integer> argIndices;
 
-        private MatchOutcome(boolean match, int tokenIndex, String subToken)
+        private MatchOutcome(boolean match, int tokenIndex, String subToken, List<Integer> argIndices)
         {
             this.match = match;
             this.tokenIndex = tokenIndex;
             this.subToken = subToken;
+            this.argIndices = argIndices;
         }
 
         public boolean isMatch()
@@ -150,14 +175,19 @@ public final class TokenMatcher
             return subToken;
         }
 
-        private static MatchOutcome failed()
+        public List<Integer> getArgIndices()
         {
-            return new MatchOutcome(false, -1, null);
+            return argIndices;
         }
 
-        private static MatchOutcome passed(int tokenIndex, String subToken)
+        private static MatchOutcome failed()
         {
-            return new MatchOutcome(true, tokenIndex, subToken);
+            return new MatchOutcome(false, -1, null, List.of());
+        }
+
+        private static MatchOutcome passed(int tokenIndex, String subToken, List<Integer> matchIndices)
+        {
+            return new MatchOutcome(true, tokenIndex, subToken, matchIndices);
         }
     }
 

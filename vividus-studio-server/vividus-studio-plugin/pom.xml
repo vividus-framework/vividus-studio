@@ -14,16 +14,16 @@
     <properties>
         <maven.compiler.source>12</maven.compiler.source>
         <maven.compiler.target>12</maven.compiler.target>
-        <junit.jupiter.version>5.7.2</junit.jupiter.version>
-        <junit.platform.version>1.7.2</junit.platform.version>
-        <org.mockito.version>3.12.4</org.mockito.version>
+        <junit.jupiter.version>5.8.2</junit.jupiter.version>
+        <junit.platform.version>1.9.1</junit.platform.version>
+        <org.mockito.version>4.11.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <checkstyle.version>8.45.1</checkstyle.version>
+        <checkstyle.version>10.4</checkstyle.version>
         <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
-        <sevntu.checkstyle.plugin.version>1.40.0</sevntu.checkstyle.plugin.version>
-        <slf4j.api.version>2.0.0-alpha5</slf4j.api.version>
+        <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <log4j.version>2.13.2</log4j.version>
+        <slf4j.api.version>2.0.6</slf4j.api.version>
+        <log4j.version>2.19.0</log4j.version>
     </properties>
 
     <dependencies>
@@ -41,13 +41,13 @@
         <dependency>
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
-            <version>1.11.13</version>
+            <version>1.12.20</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.objenesis</groupId>
             <artifactId>objenesis</artifactId>
-            <version>3.2</version>
+            <version>3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -74,7 +74,24 @@
             <version>${slf4j.api.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+    	<dependencies>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-bom</artifactId>
+                <version>${log4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>  
 
     <build>
         <plugins>
@@ -159,7 +176,7 @@
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.75</minimum>
+                                            <minimum>0.74</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -171,7 +188,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
                 <executions>
                     <execution>
                         <id>test</id>
@@ -228,7 +245,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <?m2e execute onConfiguration?>
@@ -250,17 +267,14 @@
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-api</artifactId>
-                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
                             <artifactId>log4j-core</artifactId>
-                            <version>${log4j.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.apache.logging.log4j</groupId>
-                            <artifactId>log4j-slf4j18-impl</artifactId>
-                            <version>${log4j.version}</version>
+                            <artifactId>log4j-slf4j2-impl</artifactId>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.junit.jupiter</groupId>

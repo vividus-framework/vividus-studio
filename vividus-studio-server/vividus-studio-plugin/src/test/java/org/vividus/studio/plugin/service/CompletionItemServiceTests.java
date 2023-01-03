@@ -21,7 +21,6 @@ package org.vividus.studio.plugin.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.when;
@@ -29,19 +28,14 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.gson.JsonObject;
-
 import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemTag;
-import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.document.TextDocumentProvider;
@@ -68,13 +62,11 @@ class CompletionItemServiceTests
 
     private static final String DOCS = "documentation";
     private static final String MODULE = "module";
-    private static final String HASH = "hash";
-    private static final String TRIGGER = "trigger";
 
     private static final String DOCUMENT_ID = "document-id";
 
     @Mock TextDocumentProvider textDocumentProvider;
-    @InjectMocks private CompletionItemService completionItemService;
+    private CompletionItemService completionItemService;
 
     @BeforeEach
     void init()
@@ -88,7 +80,9 @@ class CompletionItemServiceTests
                 new Parameter(2, "$expected", 24)
         ), List.of("Then ", " is equal to ", " after conversion"));
         thenStepDefinition.setDeprecated(true);
-        completionItemService.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+        StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider);
+        resolver.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+        completionItemService = new CompletionItemService(resolver);
     }
 
     static Stream<Arguments> findAllDataset()
@@ -97,27 +91,6 @@ class CompletionItemServiceTests
             arguments(GIVEN_TRIGGER, GIVEN_STEP, GIVEN_STEP_SNIPPET, GIVEN_STEP_HASH, null),
             arguments(WHEN_TRIGGER, WHEN_STEP, WHEN_STEP_SNIPPET, WHEN_STEP_HASH, null),
             arguments(THEN_TRIGGER, THEN_STEP, THEN_STEP_SNIPPET, THEN_STEP_HASH, List.of(CompletionItemTag.Deprecated))
-        );
-    }
-
-    @MethodSource("findAllDataset")
-    @ParameterizedTest
-    void testFindAll(String trigger, String label, String snippet, int hash, List<CompletionItemTag> tags)
-    {
-        List<CompletionItem> completions = completionItemService.findAll(trigger);
-        assertThat(completions, hasSize(1));
-        CompletionItem item = completions.get(0);
-        JsonObject data = (JsonObject) item.getData();
-        assertAll(
-            () -> assertEquals(CompletionItemKind.Method, item.getKind()),
-            () -> assertEquals(label, item.getLabel()),
-            () -> assertEquals(InsertTextFormat.Snippet, item.getInsertTextFormat()),
-            () -> assertEquals(snippet, item.getInsertText()),
-            () -> assertEquals(MODULE, item.getDetail()),
-            () -> assertEquals(DOCS, item.getDocumentation().getLeft()),
-            () -> assertEquals(trigger, data.get(TRIGGER).getAsString()),
-            () -> assertEquals(hash, data.get(HASH).getAsInt()),
-            () -> assertEquals(tags, item.getTags())
         );
     }
 
@@ -153,7 +126,14 @@ class CompletionItemServiceTests
             arguments(List.of("Nutty", "Putty", "Cave"), 2, 3),
             arguments(List.of("When I procrastinate"), 0, 20),
             arguments(List.of("Scenario: Salute to the Sun"), 0, 35),
-            arguments(List.of("Scenario: Salute", "to", "the", "Sun"), 3, 2)
+            arguments(List.of("Scenario: Salute", "to", "the", "Sun"), 3, 2),
+            arguments(List.of(
+                "Scenario: Have no idea how to name it :(",
+                "Given friday",
+                "When I try to work",
+                "O",
+                "Then work is not going"
+                ), 3, 1)
         );
     }
 

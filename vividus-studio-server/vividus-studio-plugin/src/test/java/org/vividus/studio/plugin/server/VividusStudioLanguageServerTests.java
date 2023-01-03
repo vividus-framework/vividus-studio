@@ -62,27 +62,27 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
-import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
+import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.service.ClientNotificationService;
-import org.vividus.studio.plugin.service.ICompletionItemService;
+import org.vividus.studio.plugin.service.StepDefinitionResolver;
 
 @ExtendWith(MockitoExtension.class)
 class VividusStudioLanguageServerTests
 {
     private static final String COMMAND = "test-command";
-    private static final String PROJECT_NAME = "project-name";
 
-    @Mock private ICompletionItemService completionItemService;
+    @Mock private StepDefinitionResolver stepDefinitionResolver;
     @Mock private IStepDefinitionFinder stepDefinitionFinder;
     @Mock private IJavaProjectLoader projectLoader;
     @Mock private JVMConfigurator jvmConfigurator;
     @Mock private ClientNotificationService clientNotificationService;
     @Mock private WorkspaceService workspaceService;
-    @Mock private VividusStudioConfiguration vividusStudioConfiguration;
+    @Mock private VividusStudioEnvronment vividusStudioConfiguration;
 
     private VividusStudioLanguageServer languageServer;
 
@@ -92,7 +92,7 @@ class VividusStudioLanguageServerTests
         ICommand command = mock(ICommand.class);
         lenient().when(command.getName()).thenReturn(COMMAND);
 
-        languageServer = new VividusStudioLanguageServer(null, completionItemService, workspaceService, projectLoader,
+        languageServer = new VividusStudioLanguageServer(null, stepDefinitionResolver, workspaceService, projectLoader,
                 null, stepDefinitionFinder, jvmConfigurator, clientNotificationService, vividusStudioConfiguration,
                 Set.of(command));
     }
@@ -122,10 +122,10 @@ class VividusStudioLanguageServerTests
 
         ServerCapabilities serverCapabilities = result.getCapabilities();
         List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
-        assertEquals(List.of("G", "W", "T"), triggers);
-        verify(completionItemService).setStepDefinitions(List.of(stepDefinition));
+        assertEquals(List.of(), triggers);
+        verify(stepDefinitionResolver).setStepDefinitions(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
-        verify(vividusStudioConfiguration).setProjectName(PROJECT_NAME);
+        verify(vividusStudioConfiguration).setProject(javaProject.getProject());
         assertEquals(List.of(COMMAND), serverCapabilities.getExecuteCommandProvider().getCommands());
 
         notificationServiceOrder.verify(clientNotificationService).startProgress(token, "Initialization",
@@ -144,11 +144,14 @@ class VividusStudioLanguageServerTests
             when(mock.getInputStream()).thenReturn(is);
             when(mock.getOutputStream()).thenReturn(os);
         });
-            MockedStatic<LSPLauncher> lspLauncher = mockStatic(LSPLauncher.class))
+            MockedStatic<LSPLauncher> lspLauncher = mockStatic(LSPLauncher.class);
+            MockedStatic<VividusStudioLogAppender> logAppender = mockStatic(VividusStudioLogAppender.class))
         {
             Launcher<LanguageClient> launcher = mock(Launcher.class);
             lspLauncher.when(() -> LSPLauncher.createServerLauncher(languageServer, is,
                     os)).thenReturn(launcher);
+            VividusStudioLogAppender appender = mock(VividusStudioLogAppender.class);
+            logAppender.when(() -> VividusStudioLogAppender.getInstance()).thenReturn(appender);
             LanguageClient client = mock(LanguageClient.class);
             when(launcher.getRemoteProxy()).thenReturn(client);
 
@@ -159,6 +162,7 @@ class VividusStudioLanguageServerTests
             verify(clientNotificationService).setLanguageClient(client);
             verify(launcher).startListening();
             verify(clientNotificationService).showInfo("Welcome to the Vividus Studio");
+            verify(appender).setClientNotificationService(clientNotificationService);
         }
     }
 
@@ -167,7 +171,6 @@ class VividusStudioLanguageServerTests
         IJavaProject javaProject = mock(IJavaProject.class);
         IProject project = mock(IProject.class);
         when(javaProject.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn(PROJECT_NAME);
         return javaProject;
     }
 }

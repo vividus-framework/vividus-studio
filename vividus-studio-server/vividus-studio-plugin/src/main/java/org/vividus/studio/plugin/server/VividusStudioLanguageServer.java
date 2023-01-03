@@ -31,19 +31,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.DocumentFilter;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -58,14 +58,14 @@ import org.slf4j.LoggerFactory;
 import org.vividus.studio.plugin.VividusStudioActivator;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
-import org.vividus.studio.plugin.configuration.VividusStudioConfiguration;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
-import org.vividus.studio.plugin.model.StepType;
+import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
-import org.vividus.studio.plugin.service.ICompletionItemService;
+import org.vividus.studio.plugin.service.StepDefinitionResolver;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
 @SuppressWarnings("paramNum")
@@ -77,14 +77,14 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private static final int TIME_TO_WAIT_EXIT = 3;
 
     private final TextDocumentService textDocumentService;
-    private final ICompletionItemService completionItemService;
+    private final StepDefinitionResolver stepDefinitionResolver;
     private final WorkspaceService workspaceService;
     private final IJavaProjectLoader projectLoader;
     private final IWorkspace workspace;
     private final IStepDefinitionFinder stepDefinitionFinder;
     private final JVMConfigurator jvmConfigurator;
     private final ClientNotificationService clientNotificationService;
-    private final VividusStudioConfiguration vividusStudioConfiguration;
+    private final VividusStudioEnvronment vividusStudioConfiguration;
     private final Set<ICommand> commands;
 
     private boolean exit;
@@ -92,18 +92,18 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     @Inject
     public VividusStudioLanguageServer(
             TextDocumentService textDocumentService,
-            ICompletionItemService completionItemService,
+            StepDefinitionResolver stepDefinitionResolver,
             WorkspaceService workspaceService,
             IJavaProjectLoader projectLoader,
             IWorkspace workspace,
             IStepDefinitionFinder stepDefinitionFinder,
             JVMConfigurator jvmConfigurator,
             ClientNotificationService clientNotificationService,
-            VividusStudioConfiguration vividusStudioConfiguration,
+            VividusStudioEnvronment vividusStudioConfiguration,
             Set<ICommand> commands)
     {
         this.textDocumentService = textDocumentService;
-        this.completionItemService = completionItemService;
+        this.stepDefinitionResolver = stepDefinitionResolver;
         this.workspaceService = workspaceService;
         this.projectLoader = projectLoader;
         this.workspace = workspace;
@@ -123,20 +123,19 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
 
             clientNotificationService.startProgress(token, "Initialization", "Initialize project");
 
-            InitializeResult initResult = new InitializeResult();
             ServerCapabilities capabilities = new ServerCapabilities();
             capabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
-            List<String> triggers = Stream.of(StepType.values())
-                                          .map(StepType::getId)
-                                          .collect(Collectors.toList());
-            capabilities.setCompletionProvider(new CompletionOptions(true, triggers));
+            capabilities.setCompletionProvider(new CompletionOptions(true, List.of()));
 
             ExecuteCommandOptions commandOptions = commands.stream()
                     .map(ICommand::getName)
                     .collect(collectingAndThen(toList(), ExecuteCommandOptions::new));
             capabilities.setExecuteCommandProvider(commandOptions);
 
-            initResult.setCapabilities(capabilities);
+            SemanticTokensLegend legend = new SemanticTokensLegend(List.of("vividus-step-argument"), List.of());
+            SemanticTokensWithRegistrationOptions options = new SemanticTokensWithRegistrationOptions(legend, true);
+            options.setDocumentSelector(List.of(new DocumentFilter("vividus-dsl", null, null)));
+            capabilities.setSemanticTokensProvider(options);
 
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
                     Event.LOADED, n -> clientNotificationService.showInfo(
@@ -146,17 +145,16 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                     Event.INFO, msg -> clientNotificationService.progress(token, msg)));
 
             javaProject.map(stepDefinitionFinder::find)
-                       .ifPresent(completionItemService::setStepDefinitions);
+                       .ifPresent(stepDefinitionResolver::setStepDefinitions);
 
             javaProject.map(IJavaProject::getProject)
-                       .map(IProject::getName)
-                       .ifPresent(vividusStudioConfiguration::setProjectName);
+                       .ifPresent(vividusStudioConfiguration::setProject);
 
             RuntimeWrapper.wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 
             clientNotificationService.endProgress(token, "Completed");
 
-            return initResult;
+            return new InitializeResult(capabilities);
         });
     }
 
@@ -199,6 +197,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, socket.getInputStream(),
                     socket.getOutputStream());
             clientNotificationService.setLanguageClient(launcher.getRemoteProxy());
+            VividusStudioLogAppender.getInstance().setClientNotificationService(clientNotificationService);
             launcher.startListening();
             LOGGER.info("Socket is listening on {}:{}", socket.getInetAddress(), socket.getPort());
             clientNotificationService.showInfo("Welcome to the Vividus Studio");

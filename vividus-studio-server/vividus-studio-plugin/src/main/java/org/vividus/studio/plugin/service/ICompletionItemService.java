@@ -24,9 +24,7 @@ import java.util.List;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.Position;
 
-public interface ICompletionItemService extends IStepDefinitionsAware
+public interface ICompletionItemService
 {
-    List<CompletionItem> findAll(String trigger);
-
     List<CompletionItem> findAllAtPosition(String documentIdentifier, Position position);
 }

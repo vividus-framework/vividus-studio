@@ -54,25 +54,6 @@ class VividusStudioTextDocumentServiceTests
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
 
     @Test
-    void testCompletionTriggerCharacter() throws InterruptedException, ExecutionException
-    {
-        CompletionParams params = mock(CompletionParams.class);
-        CompletionContext context = mock(CompletionContext.class);
-        CompletionItem item = mock(CompletionItem.class);
-        String triggerCharacter = "W";
-
-        when(params.getContext()).thenReturn(context);
-        when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.TriggerCharacter);
-        when(context.getTriggerCharacter()).thenReturn(triggerCharacter);
-        when(completionItemService.findAll(triggerCharacter)).thenReturn(List.of(item));
-
-        List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
-
-        assertEquals(List.of(item), items);
-        verifyNoMoreInteractions(completionItemService, context, params, item);
-    }
-
-    @Test
     void testCompletionInvoked() throws InterruptedException, ExecutionException
     {
         CompletionParams params = mock(CompletionParams.class);

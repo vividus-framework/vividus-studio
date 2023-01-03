@@ -14,21 +14,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install JDK 16
-        uses: actions/setup-java@v2.3.0
+        uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
           java-version: 16
-
-      - name: Cache maven dependencies
-        uses: pat-s/always-upload-cache@v2.1.5
-        with:
-          path: ~/.m2/repository
-          key: maven-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            maven-build-
+          cache: 'maven'
 
       - name: Build server
         run: cd vividus-studio-server && ./mvnw clean install
@@ -40,7 +33,7 @@ jobs:
         run: npm run lint
 
       - name: Extension Tests
-        uses: GabrielBB/xvfb-action@v1.5
+        uses: GabrielBB/xvfb-action@v1.6
         with:
           run: npm test
       

@@ -4,17 +4,19 @@
     "description": "Vividus extendsion for Visual Studio Code",
     "version": "0.0.1",
     "publisher": "vividus-framework",
+    "icon": "images/icon.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/vividus-framework/vividus-studio.git"
     },
     "license": "Apache-2.0",
     "engines": {
-        "vscode": "^1.59.0"
+        "vscode": "^1.67.0"
     },
     "categories": [],
     "activationEvents": [
-        "*"
+        "workspaceContains:**/*.story",
+        "workspaceContains:**/*.steps"
     ],
     "main": "./out/extension.js",
     "contributes": {
@@ -55,13 +57,149 @@
                 "path": "./syntaxes/vividus.log.tmLanguage.json"
             }
         ],
-        "themes": [
-            {
-                "label": "vividus-dark-theme",
-                "uiTheme": "vs-dark",
-                "path": "./themes/vividus.tmTheme.json"
+        "configurationDefaults": {
+            "editor.semanticHighlighting.enabled": true,
+            "editor.semanticTokenColorCustomizations": {
+                "rules": {
+                    "vividus-step-argument": {
+                        "foreground": "#b3b306",
+                        "fontStyle": "bold"
+                    }
+                }
+            },
+            "editor.tokenColorCustomizations": {
+                "textMateRules": [
+                    {
+                        "scope": "vividus.scenario.keyword",
+                        "settings": {
+                            "fontStyle": "bold",
+                            "foreground": "#00f3ef"
+                        }
+                    },
+                    {
+                        "scope": "vividus.scenario.title",
+                        "settings": {
+                            "foreground": "#94d6fc"
+                        }
+                    },
+                    {
+                        "scope": "vividus.comment",
+                        "settings": {
+                            "foreground": "#1eff008e",
+                            "fontStyle": "italic"
+                        }
+                    },
+                    {
+                        "scope": "vividus.meta",
+                        "settings": {
+                            "foreground": "#ffe600",
+                            "fontStyle": "bold"
+                        }
+                    },
+                    {
+                        "scope": "vividus.meta.key",
+                        "settings": {
+                            "foreground": "#d6c316",
+                            "fontStyle": "italic"
+                        }
+                    },
+                    {
+                        "scope": "vividus.meta.value",
+                        "settings": {
+                            "foreground": "#ff0095",
+                            "fontStyle": "italic"
+                        }
+                    },
+                    {
+                        "scope": "vividus.step.type",
+                        "settings": {
+                            "foreground": "#12b6b3",
+                            "fontStyle": "bold"
+                        }
+                    },
+                    {
+                        "scope": "vividus.step.wording",
+                        "settings": {
+                            "foreground": "#c47332f6"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.keyword"
+                        ],
+                        "settings": {
+                            "fontStyle": "bold",
+                            "foreground": "#a37be1"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.keyword.attribute"
+                        ],
+                        "settings": {
+                            "fontStyle": "italic",
+                            "foreground": "#a8b9fb"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.time"
+                        ],
+                        "settings": {
+                            "foreground": "#666f76"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.thread"
+                        ],
+                        "settings": {
+                            "foreground": "#3a86c3"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.level.info"
+                        ],
+                        "settings": {
+                            "foreground": "#30a815"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.level.error"
+                        ],
+                        "settings": {
+                            "foreground": "#c50f09"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.level.debug"
+                        ],
+                        "settings": {
+                            "foreground": "#1ab288"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.class"
+                        ],
+                        "settings": {
+                            "foreground": "#ddc728"
+                        }
+                    },
+                    {
+                        "scope": [
+                            "vividus.log.message"
+                        ],
+                        "settings": {
+                            "foreground": "#d4dbdd"
+                        }
+                    }
+                ]
             }
-        ],
+        },
         "commands": [
             {
                 "command": "vividus.runStories",
@@ -79,17 +217,16 @@
     },
     "devDependencies": {
         "@types/glob": "^7.1.4",
-        "@types/mocha": "^5.2.7",
-        "@types/node": "^16.7.1",
-        "@types/vscode": "^1.59.0",
-        "glob": "^7.1.7",
-        "mocha": "^7.2.0",
+        "@types/mocha": "^10.0.1",
+        "@types/node": "^18.11.18",
+        "@types/vscode": "^1.67.0",
+        "mocha": "^10.2.0",
         "tslint": "^6.1.3",
-        "typescript": "^4.3.5",
+        "typescript": "^4.9.3",
         "vscode-test": "^1.6.1"
     },
     "dependencies": {
         "vscode-languageclient": "^7.0.0",
-        "glob": "^7.1.7"
+        "glob": "^8.0.3"
     }
 }

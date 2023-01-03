@@ -83,12 +83,18 @@
             }
         },
         "step": {
-            "match": "^(Given(?!Stories)|When|Then|And)(.+)",
-            "captures": {
+            "begin": "^(Given(?!Stories)|When|Then|And)(.+)",
+            "beginCaptures": {
                 "1": {
                     "name": "vividus.step.type"
                 },
                 "2": {
+                    "name": "vividus.step.wording"
+                }
+            },
+            "while": "^((?!Scenario:|Given(?!Stories)|When|Then|And|Composite:|Before:|After:|Scope:|Outcome:|Examples:|!--).+)$",
+            "whileCaptures": {
+                "1": {
                     "name": "vividus.step.wording"
                 }
             }
