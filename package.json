@@ -32,7 +32,11 @@
                     ".story",
                     ".steps"
                 ],
-                "configuration": "./language-configuration.json"
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "dark": "./images/icon.png",
+                    "light": "./images/icon.png"
+                }
             },
             {
                 "id": "vividus-log",
