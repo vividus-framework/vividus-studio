@@ -161,7 +161,7 @@ class VividusStudioLanguageServerTests
 
             verify(clientNotificationService).setLanguageClient(client);
             verify(launcher).startListening();
-            verify(clientNotificationService).showInfo("Welcome to the Vividus Studio");
+            verify(clientNotificationService).showInfo("Welcome to the VIVIDUS Studio");
             verify(appender).setClientNotificationService(clientNotificationService);
         }
     }

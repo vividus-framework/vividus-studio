@@ -2,7 +2,7 @@ Meta:
     @epic vividus-plugin-websocket
     @requirementId 1402
 
-Scenario: Vividus is a continuously growing collection of testing actions and
+Scenario: VIVIDUS is a continuously growing collection of testing actions and
 utilities combined into a one-box application to enable human-readable
 tests.socket
 When I wait with `PT30S` timeout until count of text messages received over `echo` websocket is greater than `0`

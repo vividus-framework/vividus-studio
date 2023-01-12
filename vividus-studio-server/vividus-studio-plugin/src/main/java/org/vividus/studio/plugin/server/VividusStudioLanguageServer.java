@@ -200,7 +200,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             VividusStudioLogAppender.getInstance().setClientNotificationService(clientNotificationService);
             launcher.startListening();
             LOGGER.info("Socket is listening on {}:{}", socket.getInetAddress(), socket.getPort());
-            clientNotificationService.showInfo("Welcome to the Vividus Studio");
+            clientNotificationService.showInfo("Welcome to the VIVIDUS Studio");
             while (!exit)
             {
                 TimeUnit.SECONDS.sleep(TIME_TO_WAIT_EXIT);

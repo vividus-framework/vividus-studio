@@ -54,7 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TextDocumentEditorTests
 {
-    private static final String ABOUT = "Vividus is a continuously growing collection of testing actions and"
+    private static final String ABOUT = "VIVIDUS is a continuously growing collection of testing actions and"
             + System.lineSeparator() + "utilities combined into a one-box application to enable human-readable"
             + System.lineSeparator() +  "tests.";
     private static final String ID = "document-id";

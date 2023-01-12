@@ -1,1 +1,1 @@
-# [WIP] Vividus extension for Visual Studio Code
+# [WIP] VIVIDUS extension for Visual Studio Code
