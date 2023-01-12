@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Vividus Studio" uid="vividus-studio-server.product" id="org.vividus.studio.plugin.product" application="org.vividus.studio.plugin.application" useFeatures="false" includeLaunchers="true" version="0.1.0">
+<product name="VIVIDUS Studio" uid="vividus-studio-server.product" id="org.vividus.studio.plugin.product" application="org.vividus.studio.plugin.application" useFeatures="false" includeLaunchers="true" version="0.1.0">
 
     <configIni use="default"/>
 

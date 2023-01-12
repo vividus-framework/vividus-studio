@@ -1,7 +1,7 @@
 {
     "name": "vividus-studio",
-    "displayName": "vividus-studio",
-    "description": "Vividus extendsion for Visual Studio Code",
+    "displayName": "VIVIDUS Studio",
+    "description": "VIVIDUS extension for Visual Studio Code",
     "version": "0.0.1",
     "publisher": "vividus-framework",
     "icon": "images/icon.png",
@@ -207,7 +207,7 @@
         "commands": [
             {
                 "command": "vividus.runStories",
-                "title": "Vividus: Run Stories"
+                "title": "VIVIDUS: Run Stories"
             }
         ]
     },

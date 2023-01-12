@@ -9,7 +9,7 @@
     <inceptionYear>2020</inceptionYear>
 
     <properties>
-        <base.name>Vividus Studio</base.name>
+        <base.name>VIVIDUS Studio</base.name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tycho-version>3.0.1</tycho-version>
         <tycho-extras-version>${tycho-version}</tycho-extras-version>
@@ -30,7 +30,7 @@
     </licenses>
 
     <organization>
-        <name>Vividus Framework</name>
+        <name>VIVIDUS Framework</name>
         <url>https://github.com/vividus-framework</url>
     </organization>
 

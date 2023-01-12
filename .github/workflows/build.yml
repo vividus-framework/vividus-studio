@@ -1,4 +1,4 @@
-name: Vividus Studio CI
+name: VIVIDUS Studio CI
 
 on:
   push:

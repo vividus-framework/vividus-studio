@@ -7,8 +7,8 @@
         </application>
     </extension>
     <extension id="product" point="org.eclipse.core.runtime.products">
-        <product application="org.vividus.studio.plugin.application" name="Vividus Studio">
-            <property name="appName" value="Vividus Studio" />
+        <product application="org.vividus.studio.plugin.application" name="VIVIDUS Studio">
+            <property name="appName" value="VIVIDUS Studio" />
         </product>
     </extension>
 </plugin>

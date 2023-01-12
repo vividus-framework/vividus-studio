@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-    "name": "Vividus Log",
+    "name": "VIVIDUS Log",
     "patterns": [
         {
             "include": "#log"

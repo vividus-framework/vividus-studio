@@ -3,7 +3,7 @@ Meta:
     @requirementId 1402
 
 Scenario: WebSocket interactions
-Vividus is a continuously growing collection of testing actions and
+VIVIDUS is a continuously growing collection of testing actions and
 utilities combined into a one-box application to enable human-readable
 tests.
 
