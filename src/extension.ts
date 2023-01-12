@@ -4,6 +4,8 @@ import { launch, Application } from './lib/equinox';
 import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
 import { LanguageClientOptions, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
 
+let client: LanguageClient;
+
 export function activate(context: ExtensionContext) {
 
     const completionClientCapabilites: CompletionClientCapabilities = {
@@ -36,8 +38,8 @@ export function activate(context: ExtensionContext) {
         outputChannel: channel,
     };
 
-    const client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
-    context.subscriptions.push(client.start());
+    client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
+    client.start()
 }
 
 function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
@@ -59,5 +61,9 @@ function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
     });
 }
 
-export function deactivate() {
+export function deactivate(): Thenable<void> | undefined {
+    if (client) {
+        return client.stop();
+    }
+    return undefined;
 }
