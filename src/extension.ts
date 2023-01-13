@@ -63,7 +63,7 @@ function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
 
 export function deactivate(): Thenable<void> | undefined {
     if (client) {
-        return client.stop();
+        return client.dispose()
     }
     return undefined;
 }
