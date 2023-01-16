@@ -5,7 +5,7 @@ import { Uri } from 'vscode';
 import { resolve } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 
-export function launch(address: AddressInfo, application: Application) {
+export function launch(exec: string, address: AddressInfo, application: Application) {
 
     const serverArgs: string[] = [];
 
@@ -44,7 +44,7 @@ export function launch(address: AddressInfo, application: Application) {
     serverArgs.push('-data');
     serverArgs.push(workspace)
 
-    const serverProcess = spawn('java', serverArgs, { detached: true });
+    const serverProcess = spawn(exec, serverArgs, { detached: true });
     serverProcess.stdout.on('data', function(data) {
         console.log(data.toString()); 
     });

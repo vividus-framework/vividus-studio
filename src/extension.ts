@@ -1,8 +1,11 @@
 import { ExtensionContext, OutputChannel, Uri, window } from 'vscode';
 import { AddressInfo, createServer } from 'net';
 import { launch, Application } from './lib/equinox';
+import { findJavaExecutable } from './lib/utils';
 import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
 import { LanguageClientOptions, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
+import { IJavaRuntime } from 'jdk-utils';
+import { resolve } from 'path';
 
 let client: LanguageClient;
 
@@ -42,8 +45,12 @@ export function activate(context: ExtensionContext) {
     client.start()
 }
 
-function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
-    return new Promise((res, rej) => {
+async function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
+
+    const javaRuntime: IJavaRuntime = await findJavaExecutable();
+    window.showInformationMessage(`Using JDK ${javaRuntime.version?.java_version}`);
+
+    return new Promise(async (res, rej) => {
         const server = createServer(connection => res({ writer: connection, reader: connection }));
         server.on('error', rej);
 
@@ -55,7 +62,7 @@ function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
                 applicationDir: context.extensionPath,
                 storageDir: context.storageUri as Uri
             };
-            launch(address, application);
+            launch(resolve(javaRuntime.homedir, 'bin', 'java'), address, application);
         });
         return server;
     });
