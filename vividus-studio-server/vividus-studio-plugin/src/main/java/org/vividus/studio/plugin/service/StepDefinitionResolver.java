@@ -24,11 +24,11 @@ import static java.util.Map.entry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,13 +72,17 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
     public Stream<ResolvedStepDefinition> resolveAtPosition(String documentIdentifier, Position position)
     {
         return findStep(textDocumentProvider.getTextDocument(documentIdentifier), position)
-                .map(step -> groupedStepDefinitions.get().get(step.getType())
-                        .stream()
-                        .map(tryToResolve(step))
-                        .flatMap(Optional::stream))
-                .orElseGet(Stream::empty);
+                .stream()
+                .flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), false));
     }
 
+    /**
+     * The method resolves each step line in the document to step definition that the step matches, if step matches
+     * more than one definition, the one more specific definition will be returned.
+     *
+     * @param documentIdentifier The identifier of document containing steps to resolve
+     * @return The stream of resolved step definitions
+     */
     public Stream<ResolvedStepDefinition> resolve(String documentIdentifier)
     {
         List<String> document = textDocumentProvider.getTextDocument(documentIdentifier);
@@ -104,14 +108,7 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
 
         Collections.reverse(steps);
 
-        return steps.stream()
-                    .map(step -> groupedStepDefinitions.get().get(step.getType())
-                        .stream()
-                        .map(tryToResolve(step))
-                        .filter(Optional::isPresent)
-                        .findFirst())
-                    .flatMap(Optional::stream)
-                    .flatMap(Optional::stream);
+        return steps.stream().flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), true));
     }
 
     @Override
@@ -120,19 +117,44 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
         this.stepDefinitions.addAll(stepDefinitions);
     }
 
-    private Function<StepDefinition, Optional<ResolvedStepDefinition>> tryToResolve(Step step)
+    private Stream<ResolvedStepDefinition> resolve(Step step, List<StepDefinition> definitions,
+            boolean limitResultsToOne)
     {
-        return def ->
+        String stepValue = step.getValue().strip();
+
+        List<Entry<StepDefinition, MatchOutcome>> matchedDefinitions = new ArrayList<>();
+        for (StepDefinition definition : definitions)
         {
-            MatchOutcome outcome = TokenMatcher.match(step.getValue().strip(), def.getMatchTokens());
-            if (!outcome.isMatch())
+            List<String> matchTokens = definition.getMatchTokens();
+            MatchOutcome outcome = TokenMatcher.match(stepValue, matchTokens);
+
+            if (outcome.isMatch())
             {
-                return Optional.empty();
+                if (limitResultsToOne && outcome.getTokenIndex() == matchTokens.size() - 1)
+                {
+                    return Stream.of(createResolved(step, outcome, definition));
+                }
+
+                matchedDefinitions.add(entry(definition, outcome));
             }
-            ResolvedStepDefinition resolved = new ResolvedStepDefinition(step.getLineIndex(), outcome.getTokenIndex(),
-                    outcome.getSubToken(), outcome.getArgIndices(), def);
-            return Optional.of(resolved);
-        };
+        }
+
+        Collections.sort(matchedDefinitions,
+                Comparator.comparing(e -> e.getValue().getTokenIndex(), Comparator.reverseOrder()));
+
+        if (limitResultsToOne && !matchedDefinitions.isEmpty())
+        {
+            Entry<StepDefinition, MatchOutcome> entry = matchedDefinitions.get(0);
+            return Stream.of(createResolved(step, entry.getValue(), entry.getKey()));
+        }
+
+        return matchedDefinitions.stream().map(e -> createResolved(step, e.getValue(), e.getKey()));
+    }
+
+    private static ResolvedStepDefinition createResolved(Step step, MatchOutcome outcome, StepDefinition definition)
+    {
+        return new ResolvedStepDefinition(step.getLineIndex(), outcome.getTokenIndex(), outcome.getSubToken(),
+                outcome.getArgIndices(), definition);
     }
 
     private static Optional<Step> findStep(List<String> document, Position position)
