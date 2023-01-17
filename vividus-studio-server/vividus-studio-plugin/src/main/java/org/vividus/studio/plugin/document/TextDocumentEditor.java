@@ -19,8 +19,6 @@
 
 package org.vividus.studio.plugin.document;
 
-import static org.apache.commons.lang3.StringUtils.splitByWholeSeparatorPreserveAllTokens;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,9 +109,7 @@ public class TextDocumentEditor implements TextDocumentEventListener, TextDocume
             return true;
         }
 
-        List<String> tokens = Stream
-                .of(splitByWholeSeparatorPreserveAllTokens(eventText, System.lineSeparator()))
-                .collect(Collectors.toList());
+        List<String> tokens = split(eventText);
 
         // handle insertion of text with several lines
         if (tokens.size() > 1)
@@ -176,7 +172,6 @@ public class TextDocumentEditor implements TextDocumentEventListener, TextDocume
 
     private static List<String> split(String text)
     {
-        return Stream.of(splitByWholeSeparatorPreserveAllTokens(text, System.lineSeparator()))
-                     .collect(Collectors.toList());
+        return Stream.of(text.split("\\R", -1)).collect(Collectors.toList());
     }
 }
