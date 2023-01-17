@@ -143,6 +143,27 @@ class StepDefinitionResolverTests
         assertStepDefinition(resolvedDefinitions.get(5), 7, 1, List.of(5, 8));
     }
 
+    @Test
+    void shouldReturnMoreSpecificResolvedDefinition()
+    {
+        StepDefinition whenStepDefinition1 = new StepDefinition(MODULE,
+                "When I add '$product' into a bucket with the id '$id'", DOCS,
+                List.of(new Parameter(1, "$product", 12), new Parameter(1, "$id", 49)),
+                List.of("When I add '", "' into a bucket with the id '", "'"));
+        StepDefinition whenStepDefinition2 = new StepDefinition(MODULE,
+                "When I add '$product' into a bucket with the name '$name'", DOCS,
+                List.of(new Parameter(1, "$product", 12), new Parameter(1, "$name", 51)),
+                List.of("When I add '", "' into a bucket with the name '", "'"));
+        resolver.setStepDefinitions(List.of(whenStepDefinition1, whenStepDefinition2));
+
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID))
+                .thenReturn(List.of("When I add 'Milk' into a bucket with the name 'Grocery'"));
+
+        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(1));
+        assertEquals(whenStepDefinition2.getStepAsString(), resolvedDefinitions.get(0).getStepAsString());
+    }
+
     private static void assertStepDefinition(ResolvedStepDefinition resolved, int lineIndex, int tokenIndex,
             List<Integer> argIndices)
     {
