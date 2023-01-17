@@ -35,7 +35,7 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
     serverArgs.push('-configuration');
     serverArgs.push(`${application.applicationDir}/${bundle}`);
 
-    const workspace = resolve(application.storageDir.path, 'workspace');
+    const workspace = resolve(application.storageDir.fsPath, 'workspace');
     if(!existsSync(workspace)) {
         mkdirSync(workspace, {
             recursive: true

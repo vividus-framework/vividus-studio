@@ -23,7 +23,6 @@ import static java.util.Optional.ofNullable;
 
 import java.io.File;
 import java.net.URI;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -66,7 +65,7 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     {
         return RuntimeWrapper.wrapMono(() ->
         {
-            File projectFolder = Paths.get(new URI(uri).getPath()).toFile();
+            File projectFolder = new File(new URI(uri).getPath());
 
             build(projectFolder, ofNullable(handlers.get(Event.INFO)));
 
