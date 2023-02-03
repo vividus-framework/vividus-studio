@@ -1,0 +1,67 @@
+name: VIVIDUS Studio Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        required: true
+        type: string
+        description: The release version, e.g. 1.0.0
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_RELEASE_TOKEN }}
+
+      - name: Install JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: 'maven'
+
+      - name: Create release commit
+        run: |
+          git config --global user.email "uarlouski@gmail.com"
+          git config --global user.name "Uladzislau Arlouski"
+
+          npm version ${{ inputs.release-version }} -m "Release %s"
+
+          sed -i 's/Unreleased/${{ inputs.release-version }}/g' CHANGELOG.md
+          git add CHANGELOG.md
+          git commit --amend --date=now --no-edit
+
+      - name: Build server
+        run: |
+          export JAVA_TOOL_OPTIONS=--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+          cd vividus-studio-server
+          ./mvnw clean install
+
+      - name: Extension packaging
+        run: |
+          sudo npm install -g vsce
+          npm install
+          vsce package
+
+      - name: Publish to Visual Studio Marketplace
+        uses: HaaLeo/publish-vscode-extension@v1
+        with:
+          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+          registryUrl: https://marketplace.visualstudio.com
+          extensionFile: vividus-studio-${{ inputs.release-version }}.vsix
+
+      - name: Publish to GitHub
+        run: git push
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+        with:
+          files: vividus-studio-${{ inputs.release-version }}.vsix
+          tag_name: v${{ inputs.release-version }}
