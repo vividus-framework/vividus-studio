@@ -2,7 +2,7 @@
     "name": "vividus-studio",
     "displayName": "VIVIDUS Studio",
     "description": "VIVIDUS extension for Visual Studio Code",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "publisher": "vividus",
     "icon": "images/icon.png",
     "repository": {
@@ -61,7 +61,7 @@
                 "path": "./syntaxes/vividus.log.tmLanguage.json"
             }
         ],
-        "configuration":[
+        "configuration": [
             {
                 "title": "VIVIDUS Studio",
                 "properties": {
