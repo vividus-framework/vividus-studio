@@ -32,7 +32,9 @@ jobs:
 
           npm version ${{ inputs.release-version }} -m "Release %s"
 
-          sed -i 's/Unreleased/${{ inputs.release-version }}/g' CHANGELOG.md
+          RELEASE_LINE="[${{ inputs.release-version }}] - $(date --iso-8601)"
+          sed -i "s/\[Unreleased\]/$RELEASE_LINE/g" CHANGELOG.md
+
           git add CHANGELOG.md
           git commit --amend --date=now --no-edit
 
