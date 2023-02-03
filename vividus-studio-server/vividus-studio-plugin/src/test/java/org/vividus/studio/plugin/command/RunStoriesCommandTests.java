@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -73,13 +72,7 @@ class RunStoriesCommandTests
         when(launchConfiguration.launch(ILaunchManager.RUN_MODE, null, true)).thenReturn(launch);
 
         Either<String, Integer> token = Either.forLeft("token");
-        CompletableFuture future = mock(CompletableFuture.class);
-        when(clientNotificationService.createProgress()).thenReturn(future);
-        doAnswer(a ->
-        {
-            a.getArgument(0, Consumer.class).accept(token);
-            return null;
-        }).when(future).thenAccept(any());
+        when(clientNotificationService.createProgress()).thenReturn(CompletableFuture.completedFuture(token));
 
         IProcess launchProcess = mock(IProcess.class);
         when(launch.getProcesses()).thenReturn(new IProcess[] { launchProcess });
@@ -98,7 +91,7 @@ class RunStoriesCommandTests
         when(launch.isTerminated()).thenReturn(false).thenReturn(true);
 
         command = new RunStoriesCommand(clientNotificationService, launchConfigurationFactory, configuration);
-        command.execute().get();
+        assertEquals(0, command.execute().get());
 
         verify(project).refreshLocal(IResource.DEPTH_INFINITE, null);
         verify(clientNotificationService).startProgress(token, "Run Stories", "Running...");
