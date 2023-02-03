@@ -3,6 +3,6 @@ import * as vscode from 'vscode';
 
 suite('VIVIDUS Studio', () => {
     test('Extension should be present', () => {
-        assert.ok(vscode.extensions.getExtension('vividus-framework.vividus-studio'));
+        assert.ok(vscode.extensions.getExtension('vividus.vividus-studio'));
     });
 });

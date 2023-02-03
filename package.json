@@ -3,7 +3,7 @@
     "displayName": "VIVIDUS Studio",
     "description": "VIVIDUS extension for Visual Studio Code",
     "version": "0.0.1",
-    "publisher": "vividus-framework",
+    "publisher": "vividus",
     "icon": "images/icon.png",
     "repository": {
         "type": "git",
