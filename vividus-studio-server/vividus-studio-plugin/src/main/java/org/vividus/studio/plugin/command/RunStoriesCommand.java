@@ -19,10 +19,9 @@
 
 package org.vividus.studio.plugin.command;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.apache.commons.lang3.StringUtils.removeStart;
-import static org.vividus.studio.plugin.util.RuntimeWrapper.wrap;
+import static org.vividus.studio.plugin.util.RuntimeWrapper.wrapMono;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +61,7 @@ public class RunStoriesCommand implements ICommand
     @Override
     public CompletableFuture<Object> execute()
     {
-        return supplyAsync(() -> clientNotificationService.createProgress().thenAccept(token -> wrap(() ->
+        return clientNotificationService.createProgress().thenApplyAsync(token -> wrapMono(() ->
         {
             clientNotificationService.startProgress(token, "Run Stories", "Running...");
 
@@ -91,7 +90,9 @@ public class RunStoriesCommand implements ICommand
             }
 
             clientNotificationService.endProgress(token, "Completed");
-        }, VividusStudioException::new)));
+
+            return 0;
+        }, VividusStudioException::new));
     }
 
     @Override
