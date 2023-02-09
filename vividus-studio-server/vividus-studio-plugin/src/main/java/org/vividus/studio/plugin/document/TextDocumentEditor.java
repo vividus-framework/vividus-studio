@@ -19,13 +19,13 @@
 
 package org.vividus.studio.plugin.document;
 
+import static org.vividus.studio.plugin.util.Splitter.split;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
@@ -168,10 +168,5 @@ public class TextDocumentEditor implements TextDocumentEventListener, TextDocume
     private static String positionalConcat(String line, Position startPos, Position endPos, String concatToken)
     {
         return positionalConcat(line, startPos, line, endPos, concatToken);
-    }
-
-    private static List<String> split(String text)
-    {
-        return Stream.of(text.split("\\R", -1)).collect(Collectors.toList());
     }
 }

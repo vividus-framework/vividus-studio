@@ -91,7 +91,7 @@ class StepDefinitionResolverTests
                 new Position(3, 8),
                 0, 1,
                 " is equa",
-                List.of(5, 17)
+                List.of(5, 18)
             ),
             arguments(
                 List.of("Given some step", "Then McDonald's is equal to Fat ass after conversion"),
@@ -167,7 +167,7 @@ class StepDefinitionResolverTests
     private static void assertStepDefinition(ResolvedStepDefinition resolved, int lineIndex, int tokenIndex,
             List<Integer> argIndices)
     {
-        assertEquals(lineIndex, resolved.getLineIndex());
+        assertEquals(lineIndex, resolved.getStep().getLineIndex());
         assertEquals(tokenIndex, resolved.getTokenIndex());
         assertEquals(argIndices, resolved.getArgIndices());
     }

@@ -21,15 +21,20 @@ package org.vividus.studio.plugin.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.vividus.studio.plugin.model.Step;
+import org.vividus.studio.plugin.util.Splitter;
 
 @Singleton
 public class SemanticTokensService
 {
+    private static final int NEW_LINE = 1;
+
     private final StepDefinitionResolver stepDefinitionResolver;
 
     @Inject
@@ -40,40 +45,100 @@ public class SemanticTokensService
 
     public List<Integer> getSemanticTokens(String documentIdentifier)
     {
-        List<Integer> semanticTokens = new ArrayList<>();
+        SemanticTokens semanticTokens = new SemanticTokens();
 
         MutableInt lineShift = new MutableInt(0);
 
         stepDefinitionResolver.resolve(documentIdentifier).filter(def -> !def.getArgIndices().isEmpty()).forEach(def ->
         {
-            int shiftedLine = def.getLineIndex() - lineShift.intValue();
-            lineShift.setValue(def.getLineIndex());
+            Step step = def.getStep();
+
+            int shiftedLine = step.getLineIndex() - lineShift.intValue();
+            lineShift.setValue(step.getLineIndex());
 
             List<Integer> argIndices = def.getArgIndices();
-            semanticTokens.add(shiftedLine);
+            semanticTokens.shiftLine(shiftedLine);
 
             Integer previousFrom = 0;
             for (int pos = 0; pos < argIndices.size() - 1; pos += 2)
             {
                 if (pos != 0)
                 {
-                    semanticTokens.add(0);
+                    semanticTokens.shiftLine(0);
                 }
 
                 Integer from = argIndices.get(pos);
-                Integer length = argIndices.get(pos + 1) - from;
+                int to = argIndices.get(pos + 1);
+                Integer length = to - from;
 
-                semanticTokens.addAll(List.of(
-                    from - previousFrom,
-                    length,
-                    0,
-                    0
-                ));
+                String argument = step.getValue().substring(from, to);
+                List<Integer> argumentLengths = Splitter.split(argument)
+                        .stream()
+                        .map(String::length)
+                        .collect(Collectors.toList());
 
-                previousFrom = from;
+                if (argumentLengths.size() == 1)
+                {
+                    semanticTokens.addToken(from - previousFrom, length);
+                    previousFrom = from;
+                }
+                else
+                {
+                    for (int index = 0; index < argumentLengths.size(); index++)
+                    {
+                        int argumentLength = argumentLengths.get(index);
+                        if (index == 0)
+                        {
+                            semanticTokens.addToken(from - previousFrom, argumentLength);
+                        }
+                        else
+                        {
+                            semanticTokens.shiftLine(1);
+                            semanticTokens.addToken(0, argumentLength);
+                        }
+                    }
+
+                    int limit = argumentLengths.size() - 1;
+                    int shift = argumentLengths.stream()
+                                               .limit(limit)
+                                               .mapToInt(Integer::intValue)
+                                               .map(size -> size + NEW_LINE)
+                                               .sum();
+
+                    lineShift.add(limit);
+                    previousFrom = from + shift;
+                }
             }
         });
 
-        return semanticTokens;
+        return semanticTokens.getSemanticTokens();
+    }
+
+    private static final class SemanticTokens
+    {
+        private final List<Integer> semanticTokens;
+
+        private SemanticTokens()
+        {
+            semanticTokens = new ArrayList<>();
+        }
+
+        private void shiftLine(Integer nextLine)
+        {
+            semanticTokens.add(nextLine);
+        }
+
+        private void addToken(Integer from, Integer length)
+        {
+            semanticTokens.add(from);
+            semanticTokens.add(length);
+            semanticTokens.add(0);
+            semanticTokens.add(0);
+        }
+
+        private List<Integer> getSemanticTokens()
+        {
+            return semanticTokens;
+        }
     }
 }

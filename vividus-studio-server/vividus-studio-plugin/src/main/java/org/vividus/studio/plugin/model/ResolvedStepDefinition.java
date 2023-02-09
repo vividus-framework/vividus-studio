@@ -23,25 +23,25 @@ import java.util.List;
 
 public class ResolvedStepDefinition extends StepDefinition
 {
-    private final int lineIndex;
+    private final Step step;
     private final int tokenIndex;
     private final String subToken;
     private final List<Integer> argIndices;
 
-    public ResolvedStepDefinition(int lineIndex, int tokenIndex, String subToken, List<Integer> argIndices,
+    public ResolvedStepDefinition(Step step, int tokenIndex, String subToken, List<Integer> argIndices,
             StepDefinition stepDefinition)
     {
         super(stepDefinition.getModule(), stepDefinition.getStepAsString(), stepDefinition.getDocumentation(),
                 stepDefinition.getParameters(), stepDefinition.getMatchTokens());
-        this.lineIndex = lineIndex;
+        this.step = step;
         this.tokenIndex = tokenIndex;
         this.subToken = subToken;
         this.argIndices = argIndices;
     }
 
-    public int getLineIndex()
+    public Step getStep()
     {
-        return lineIndex;
+        return step;
     }
 
     public int getTokenIndex()

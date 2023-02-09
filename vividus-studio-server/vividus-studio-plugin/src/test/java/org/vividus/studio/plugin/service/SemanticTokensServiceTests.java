@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -41,10 +42,11 @@ class SemanticTokensServiceTests
     private static final String MODULE = "module";
 
     @Mock TextDocumentProvider textDocumentProvider;
+    private StepDefinitionResolver resolver;
     private SemanticTokensService tokenService;
 
-    @Test
-    void shouldReturnSemanticTokens()
+    @BeforeEach
+    void init()
     {
         StepDefinition givenStepDefinition = new StepDefinition(MODULE, "Given random value", DOCS, List.of(),
                 List.of("Given random value"));
@@ -54,8 +56,76 @@ class SemanticTokensServiceTests
                 "Then $value is equal to $expected after conversion", DOCS,
                 List.of(new Parameter(1, "$value", 5), new Parameter(2, "$expected", 24)),
                 List.of("Then ", " is equal to ", " after conversion"));
-        StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider);
-        resolver.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+        StepDefinition unboundArgStepDefinition = new StepDefinition(MODULE, "When I initialize variable to $data",
+                DOCS, List.of(new Parameter(1, "$data", 59)), List.of("When I initialize variable to ", ""));
+        resolver = new StepDefinitionResolver(textDocumentProvider);
+        resolver.setStepDefinitions(
+                List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition, unboundArgStepDefinition));
+    }
+
+    @Test
+    void shouldReturnSemanticTokensForInlinedArguments()
+    {
+        tokenService = new SemanticTokensService(resolver);
+
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(
+            "Scenario: Conversion",
+            "Given a task to calculate number conversion",
+            "When I convert PI into custom type",
+            "Then P",
+            "I is equal to ",
+            "3.14",
+            "15926",
+            "5359",
+            " after conversion",
+            "Given random value",
+            "Then ${random-value} is equal to ",
+            "??? after conversion",
+            "When I convert X",
+            "I",
+            "I",
+            " into",
+            "Then XII is equ",
+            "When I initialize variable to before end",
+            "Then the end is reached",
+            "When I initialize variable to ",
+            "|city   |region        |alignment|",
+            "|Vivec  |Ascadian Isles|Various  |",
+            "|Caldera|West Gash     |Imperial |",
+            "|Balmora|West Gash     |Hlaalu   |"
+        ));
+
+        List<Integer> expectedTokens = List.of(
+            2, 15, 2, 0, 0,
+            1, 5, 1, 0, 0,
+            1, 0, 1, 0, 0,
+            0, 14, 0, 0, 0,
+            1, 0, 4, 0, 0,
+            1, 0, 5, 0, 0,
+            1, 0, 4, 0, 0,
+            1, 0, 0, 0, 0,
+            2, 5, 15, 0, 0,
+            0, 28, 0, 0, 0,
+            1, 0, 3, 0, 0,
+            1, 15, 1, 0, 0,
+            1, 0, 1, 0, 0,
+            1, 0, 1, 0, 0,
+            1, 0, 0, 0, 0,
+            1, 5, 3, 0, 0,
+            1, 30, 10, 0, 0,
+            2, 30, 0, 0, 0,
+            1, 0, 34, 0, 0,
+            1, 0, 34, 0, 0,
+            1, 0, 34, 0, 0,
+            1, 0, 34, 0, 0
+        );
+
+        assertEquals(expectedTokens, tokenService.getSemanticTokens(DOCUMENT_ID));
+    }
+
+    @Test
+    void shouldReturnSemanticTokensForMultilineArguments()
+    {
         tokenService = new SemanticTokensService(resolver);
 
         when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(
@@ -63,11 +133,13 @@ class SemanticTokensServiceTests
             "Given a task to calculate number conversion",
             "When I convert PI into custom type",
             "Then PI is equal to 3.14159265359 after conversion",
-            givenStepDefinition.getStepAsString(),
+            "Given random value",
             "Then ${random-value} is equal to ??? after conversion",
             "When I convert XII into",
             "Then XII is equ",
-            "Then the end is reached"
+            "When I initialize variable to before end",
+            "Then the end is reached",
+            "When I initialize variable to after end"
         ));
 
         List<Integer> expectedTokens = List.of(
@@ -77,7 +149,9 @@ class SemanticTokensServiceTests
             2, 5, 15, 0, 0,
             0, 28, 3, 0, 0,
             1, 15, 3, 0, 0,
-            1, 5, 3, 0, 0
+            1, 5, 3, 0, 0,
+            1, 30, 10, 0, 0,
+            2, 30, 9, 0, 0
         );
 
         assertEquals(expectedTokens, tokenService.getSemanticTokens(DOCUMENT_ID));
