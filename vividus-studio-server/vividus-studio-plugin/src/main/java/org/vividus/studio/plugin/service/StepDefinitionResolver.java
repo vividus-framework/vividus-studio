@@ -42,6 +42,7 @@ import org.vividus.studio.plugin.document.TextDocumentProvider;
 import org.vividus.studio.plugin.match.TokenMatcher;
 import org.vividus.studio.plugin.match.TokenMatcher.MatchOutcome;
 import org.vividus.studio.plugin.model.ResolvedStepDefinition;
+import org.vividus.studio.plugin.model.Step;
 import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.model.StepType;
 
@@ -120,13 +121,11 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
     private Stream<ResolvedStepDefinition> resolve(Step step, List<StepDefinition> definitions,
             boolean limitResultsToOne)
     {
-        String stepValue = step.getValue().strip();
-
         List<Entry<StepDefinition, MatchOutcome>> matchedDefinitions = new ArrayList<>();
         for (StepDefinition definition : definitions)
         {
             List<String> matchTokens = definition.getMatchTokens();
-            MatchOutcome outcome = TokenMatcher.match(stepValue, matchTokens);
+            MatchOutcome outcome = TokenMatcher.match(step.getValue(), matchTokens);
 
             if (outcome.isMatch())
             {
@@ -153,7 +152,7 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
 
     private static ResolvedStepDefinition createResolved(Step step, MatchOutcome outcome, StepDefinition definition)
     {
-        return new ResolvedStepDefinition(step.getLineIndex(), outcome.getTokenIndex(), outcome.getSubToken(),
+        return new ResolvedStepDefinition(step, outcome.getTokenIndex(), outcome.getSubToken(),
                 outcome.getArgIndices(), definition);
     }
 
@@ -176,7 +175,7 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
         return findStepHeadIndex(lineIndex, document).map(e ->
         {
             String multilineToken = document.subList(e.getValue(), lineIndex).stream()
-                    .collect(Collectors.joining(System.lineSeparator(), "", token));
+                    .collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator() + token));
             return new Step(e.getValue(), e.getKey(), multilineToken);
         });
     }
@@ -204,34 +203,5 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
         }
 
         return Optional.empty();
-    }
-
-    private static final class Step
-    {
-        private final int lineIndex;
-        private final StepType type;
-        private final String value;
-
-        private Step(int lineIndex, StepType type, String value)
-        {
-            this.lineIndex = lineIndex;
-            this.type = type;
-            this.value = value;
-        }
-
-        private int getLineIndex()
-        {
-            return lineIndex;
-        }
-
-        private StepType getType()
-        {
-            return type;
-        }
-
-        private String getValue()
-        {
-            return value;
-        }
     }
 }
