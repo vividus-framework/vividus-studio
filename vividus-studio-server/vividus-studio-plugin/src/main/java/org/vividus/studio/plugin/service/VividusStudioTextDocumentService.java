@@ -21,6 +21,7 @@ package org.vividus.studio.plugin.service;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -33,8 +34,10 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
@@ -42,6 +45,8 @@ import org.vividus.studio.plugin.document.TextDocumentEventListener;
 @Singleton
 public class VividusStudioTextDocumentService implements TextDocumentService
 {
+    private final TypingChecker typingChecker = new TypingChecker();
+
     private final ICompletionItemService completionItemService;
     private final TextDocumentEventListener textDocumentEventListener;
     private final SemanticTokensService semanticTokensService;
@@ -63,8 +68,12 @@ public class VividusStudioTextDocumentService implements TextDocumentService
             List<CompletionItem> completionItems = List.of();
             if (completionParams.getContext().getTriggerKind() == CompletionTriggerKind.Invoked)
             {
+                boolean invokedOnTyping = typingChecker.checkSingleType(completionParams.getPosition());
                 String identifier = completionParams.getTextDocument().getUri();
-                completionItems = completionItemService.findAllAtPosition(identifier, completionParams.getPosition());
+                completionItems = completionItemService.findAllAtPosition(identifier, completionParams.getPosition())
+                        .stream()
+                        .filter(item -> !item.getTextEdit().getLeft().getNewText().isEmpty() || !invokedOnTyping)
+                        .collect(Collectors.toList());
             }
             return Either.forLeft(completionItems);
         });
@@ -96,6 +105,7 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     @Override
     public void didChange(DidChangeTextDocumentParams params)
     {
+        typingChecker.set(params);
         textDocumentEventListener.onChange(params);
     }
 
@@ -108,5 +118,26 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     @Override
     public void didSave(DidSaveTextDocumentParams params)
     {
+    }
+
+    private static final class TypingChecker
+    {
+        private boolean singleType;
+        private int character;
+
+        private void set(DidChangeTextDocumentParams params)
+        {
+            List<TextDocumentContentChangeEvent> contentChanges = params.getContentChanges();
+            TextDocumentContentChangeEvent change = contentChanges.get(contentChanges.size() - 1);
+            Position position = change.getRange().getStart();
+
+            this.singleType = change.getText().length() == 1;
+            this.character = position.getCharacter();
+        }
+
+        private boolean checkSingleType(Position position)
+        {
+            return singleType && character + 1 == position.getCharacter();
+        }
     }
 }
