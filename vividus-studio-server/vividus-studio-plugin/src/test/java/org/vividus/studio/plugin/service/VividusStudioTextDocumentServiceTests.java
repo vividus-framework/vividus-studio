@@ -19,8 +19,11 @@
 
 package org.vividus.studio.plugin.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -29,6 +32,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionParams;
@@ -38,9 +42,15 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -49,6 +59,8 @@ import org.vividus.studio.plugin.document.TextDocumentEventListener;
 @ExtendWith(MockitoExtension.class)
 class VividusStudioTextDocumentServiceTests
 {
+    private static final String TEXT_DOCUMENT_IDENTIFIER = "identifier";
+
     @Mock private ICompletionItemService completionItemService;
     @Mock private TextDocumentEventListener textDocumentEventListener;
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
@@ -58,17 +70,16 @@ class VividusStudioTextDocumentServiceTests
     {
         CompletionParams params = mock(CompletionParams.class);
         CompletionContext context = mock(CompletionContext.class);
-        CompletionItem item = mock(CompletionItem.class);
+        CompletionItem item = mockCompletionItem("text");
         TextDocumentIdentifier identifier = mock(TextDocumentIdentifier.class);
         Position position = mock(Position.class);
 
         when(params.getContext()).thenReturn(context);
         when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.Invoked);
         when(params.getTextDocument()).thenReturn(identifier);
-        String uri = "uri";
-        when(identifier.getUri()).thenReturn(uri);
+        when(identifier.getUri()).thenReturn(TEXT_DOCUMENT_IDENTIFIER);
         when(params.getPosition()).thenReturn(position);
-        when(completionItemService.findAllAtPosition(uri, position)).thenReturn(List.of(item));
+        when(completionItemService.findAllAtPosition(TEXT_DOCUMENT_IDENTIFIER, position)).thenReturn(List.of(item));
 
         List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
 
@@ -98,11 +109,12 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidChange()
     {
-        DidChangeTextDocumentParams docParams = mock(DidChangeTextDocumentParams.class);
+        DidChangeTextDocumentParams docParams = mockDidChange(StringUtils.EMPTY, 0);
         textDocumentService.didChange(docParams);
         verify(textDocumentEventListener).onChange(docParams);
-        verifyNoMoreInteractions(textDocumentEventListener);
-        verifyNoInteractions(docParams, completionItemService);
+        verify(docParams).getContentChanges();
+        verifyNoMoreInteractions(docParams, textDocumentEventListener);
+        verifyNoInteractions(completionItemService);
     }
 
     @Test
@@ -121,5 +133,58 @@ class VividusStudioTextDocumentServiceTests
         DidSaveTextDocumentParams docParams = mock(DidSaveTextDocumentParams.class);
         textDocumentService.didSave(docParams);
         verifyNoInteractions(docParams, completionItemService);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "'', 0",
+        "new text, 1"
+    })
+    void shouldFilterCompletionItemsBasedOnInvocationType(String newText, int expectedSize)
+            throws InterruptedException, ExecutionException
+    {
+        CompletionParams params = mock(CompletionParams.class);
+        CompletionContext context = mock(CompletionContext.class);
+        CompletionItem item = mockCompletionItem(newText);
+        TextDocumentIdentifier identifier = mock(TextDocumentIdentifier.class);
+        Position position = spy(Position.class);
+        when(position.getCharacter()).thenReturn(11);
+
+        when(params.getContext()).thenReturn(context);
+        when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.Invoked);
+        when(params.getTextDocument()).thenReturn(identifier);
+        when(identifier.getUri()).thenReturn(TEXT_DOCUMENT_IDENTIFIER);
+        when(params.getPosition()).thenReturn(position);
+        when(completionItemService.findAllAtPosition(TEXT_DOCUMENT_IDENTIFIER, position)).thenReturn(List.of(item));
+
+        DidChangeTextDocumentParams docParams = mockDidChange("O", 10);
+        textDocumentService.didChange(docParams);
+
+        List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
+
+        assertThat(items, hasSize(expectedSize));
+    }
+
+    private static DidChangeTextDocumentParams mockDidChange(String text, int character)
+    {
+        DidChangeTextDocumentParams docParams = mock(DidChangeTextDocumentParams.class);
+        TextDocumentContentChangeEvent changeEvent = mock(TextDocumentContentChangeEvent.class);
+        when(docParams.getContentChanges()).thenReturn(List.of(changeEvent));
+        when(changeEvent.getText()).thenReturn(text);
+        Range range = mock(Range.class);
+        when(changeEvent.getRange()).thenReturn(range);
+        Position position = mock(Position.class);
+        when(range.getStart()).thenReturn(position);
+        when(position.getCharacter()).thenReturn(character);
+        return docParams;
+    }
+
+    private static CompletionItem mockCompletionItem(String text)
+    {
+        CompletionItem item = mock(CompletionItem.class);
+        TextEdit textEdit = mock(TextEdit.class);
+        when(item.getTextEdit()).thenReturn(Either.forLeft(textEdit));
+        when(textEdit.getNewText()).thenReturn(text);
+        return item;
     }
 }
