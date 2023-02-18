@@ -27,6 +27,11 @@ jobs:
         run: |
           cd vividus-studio-server
           ./mvnw clean install
+      
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
 
       - name: Install node_modules
         run: npm install
