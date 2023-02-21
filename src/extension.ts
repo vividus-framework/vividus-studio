@@ -30,7 +30,11 @@ export function activate(context: ExtensionContext) {
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             {
-                language: 'vividus-dsl',
+                language: 'vividus-story',
+                scheme: 'file'
+            },
+            {
+                language: 'vividus-composite-step',
                 scheme: 'file'
             }
         ],
