@@ -5,6 +5,7 @@ VIVIDUS extension for Visual Studio Code
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/vividus.vividus-studio?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/vividus.vividus-studio?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/vividus-framework/vividus-studio/build.yml?branch=master&logo=github)](https://github.com/vividus-framework/vividus-studio/actions?query=workflow:build)
+[![Codecov](https://codecov.io/gh/vividus-framework/vividus-studio/branch/master/graph/badge.svg)](https://codecov.io/gh/vividus-framework/vividus-studio)
 [![License](https://img.shields.io/github/license/vividus-framework/vividus-studio?logo=eclipse)](https://github.com/vividus-framework/vividus-studio/blob/master/LICENSE)
 
 Quick Start
