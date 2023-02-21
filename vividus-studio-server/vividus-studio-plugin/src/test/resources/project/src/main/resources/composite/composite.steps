@@ -1,0 +1,4 @@
+Composite: Then I param $param1 and $param2 and $param3
+Given I perform system initialization
+When I shutdown system
+Then the system is inactive

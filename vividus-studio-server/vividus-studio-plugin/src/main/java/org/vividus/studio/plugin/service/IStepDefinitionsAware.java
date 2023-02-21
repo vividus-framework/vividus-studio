@@ -25,5 +25,5 @@ import org.vividus.studio.plugin.model.StepDefinition;
 
 public interface IStepDefinitionsAware
 {
-    void setStepDefinitions(Collection<StepDefinition> stepDefinitions);
+    void refresh(Collection<StepDefinition> stepDefinitions);
 }

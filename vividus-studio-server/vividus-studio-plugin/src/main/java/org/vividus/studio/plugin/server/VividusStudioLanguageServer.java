@@ -22,6 +22,8 @@ package org.vividus.studio.plugin.server;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
+import static org.vividus.studio.plugin.util.RuntimeWrapper.wrap;
+import static org.vividus.studio.plugin.util.RuntimeWrapper.wrapMono;
 
 import java.net.InetAddress;
 import java.net.Socket;
@@ -66,7 +68,6 @@ import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
-import org.vividus.studio.plugin.util.RuntimeWrapper;
 
 @SuppressWarnings("paramNum")
 @Singleton
@@ -144,13 +145,13 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                             format("Project file by path '%s' is corrupted", p)),
                     Event.INFO, msg -> clientNotificationService.progress(token, msg)));
 
-            javaProject.map(stepDefinitionFinder::find)
-                       .ifPresent(stepDefinitionResolver::setStepDefinitions);
+            javaProject.map(jp -> wrapMono(() -> stepDefinitionFinder.find(jp), VividusStudioException::new))
+                       .ifPresent(stepDefinitionResolver::refresh);
 
             javaProject.map(IJavaProject::getProject)
                        .ifPresent(vividusStudioConfiguration::setProject);
 
-            RuntimeWrapper.wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
+            wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 
             clientNotificationService.endProgress(token, "Completed");
 
@@ -164,7 +165,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         return CompletableFuture.supplyAsync(() ->
         {
             LOGGER.info("Shutting down...");
-            RuntimeWrapper.wrapMono(() -> this.workspace.save(true, null), VividusStudioException::new);
+            wrapMono(() -> this.workspace.save(true, null), VividusStudioException::new);
             return new Object();
         });
     }

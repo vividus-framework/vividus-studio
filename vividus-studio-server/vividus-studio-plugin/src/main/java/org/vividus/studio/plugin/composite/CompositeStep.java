@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 the original author or authors.
+ * Copyright (C) 2020 - 2023 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,26 @@
  * *
  */
 
-package org.vividus.studio.plugin.finder;
+package org.vividus.studio.plugin.composite;
 
-import java.io.IOException;
-import java.util.Collection;
-
-import org.eclipse.jdt.core.IJavaProject;
-import org.vividus.studio.plugin.model.StepDefinition;
-
-public interface IStepDefinitionFinder
+public class CompositeStep
 {
-    Collection<StepDefinition> find(IJavaProject javaProject) throws IOException;
+    private final String name;
+    private final String body;
+
+    CompositeStep(String name, String body)
+    {
+        this.name = name;
+        this.body = body;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public String getBody()
+    {
+        return body;
+    }
 }

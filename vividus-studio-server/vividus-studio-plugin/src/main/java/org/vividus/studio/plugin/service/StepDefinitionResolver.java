@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,10 +58,10 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
         "Examples:"
     );
 
-    private final List<StepDefinition> stepDefinitions = new ArrayList<>();
-    private final Supplier<Map<StepType, List<StepDefinition>>> groupedStepDefinitions = Suppliers.memoize(
-        () -> stepDefinitions.stream()
-                             .collect(Collectors.groupingBy(StepDefinition::getStepType, Collectors.toList())));
+    private final List<StepDefinition> staticStepDefinitions = new ArrayList<>();
+    private final List<StepDefinition> dynamicStepDefinitions = new ArrayList<>();
+
+    private Supplier<Map<StepType, List<StepDefinition>>> groupedStepDefinitions;
 
     private final TextDocumentProvider textDocumentProvider;
 
@@ -113,9 +114,38 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
     }
 
     @Override
-    public void setStepDefinitions(Collection<StepDefinition> stepDefinitions)
+    public void refresh(Collection<StepDefinition> stepDefinitions)
     {
-        this.stepDefinitions.addAll(stepDefinitions);
+        this.groupedStepDefinitions = Suppliers.memoize(() ->
+        {
+            List<StepDefinition> dynamicDefinitions = new ArrayList<>();
+            stepDefinitions.forEach(sd ->
+            {
+                if (sd.isDynamic())
+                {
+                    dynamicDefinitions.add(sd);
+                }
+                else
+                {
+                    this.staticStepDefinitions.add(sd);
+                }
+            });
+
+            if (!this.dynamicStepDefinitions.isEmpty())
+            {
+                Set<String> modules = dynamicDefinitions.stream()
+                        .collect(Collectors.groupingBy(StepDefinition::getModule, Collectors.toList())).keySet();
+                this.dynamicStepDefinitions.removeIf(sd -> modules.contains(sd.getModule()));
+            }
+            this.dynamicStepDefinitions.addAll(dynamicDefinitions);
+
+            List<StepDefinition> allStepDefinitions = new ArrayList<>();
+            allStepDefinitions.addAll(this.staticStepDefinitions);
+            allStepDefinitions.addAll(this.dynamicStepDefinitions);
+
+            return allStepDefinitions.stream()
+                    .collect(Collectors.groupingBy(StepDefinition::getStepType, Collectors.toList()));
+        });
     }
 
     private Stream<ResolvedStepDefinition> resolve(Step step, List<StepDefinition> definitions,

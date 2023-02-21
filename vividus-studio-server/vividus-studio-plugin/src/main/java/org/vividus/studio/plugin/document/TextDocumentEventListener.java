@@ -22,12 +22,23 @@ package org.vividus.studio.plugin.document;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 
 public interface TextDocumentEventListener
 {
-    void onOpen(DidOpenTextDocumentParams openEvent);
+    default void onOpen(DidOpenTextDocumentParams openEvent)
+    {
+    }
 
-    void onChange(DidChangeTextDocumentParams changeEvent);
+    default void onChange(DidChangeTextDocumentParams changeEvent)
+    {
+    }
 
-    void onClose(DidCloseTextDocumentParams closeEvent);
+    default void onClose(DidCloseTextDocumentParams closeEvent)
+    {
+    }
+
+    default void onSave(DidSaveTextDocumentParams params)
+    {
+    }
 }

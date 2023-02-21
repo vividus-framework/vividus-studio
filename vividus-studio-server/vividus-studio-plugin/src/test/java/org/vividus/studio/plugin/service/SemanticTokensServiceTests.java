@@ -59,7 +59,7 @@ class SemanticTokensServiceTests
         StepDefinition unboundArgStepDefinition = new StepDefinition(MODULE, "When I initialize variable to $data",
                 DOCS, List.of(new Parameter(1, "$data", 59)), List.of("When I initialize variable to ", ""));
         resolver = new StepDefinitionResolver(textDocumentProvider);
-        resolver.setStepDefinitions(
+        resolver.refresh(
                 List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition, unboundArgStepDefinition));
     }
 

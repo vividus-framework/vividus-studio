@@ -32,6 +32,8 @@ public class StepDefinition
     private final StepType stepType;
 
     private boolean deprecated;
+    private boolean composite;
+    private boolean dynamic;
 
     public StepDefinition(String module, String stepAsString, String documentation, List<Parameter> parameters,
             List<String> matchTokens)
@@ -84,10 +86,30 @@ public class StepDefinition
         this.deprecated = deprecated;
     }
 
+    public boolean isComposite()
+    {
+        return composite;
+    }
+
+    public void setComposite(boolean composite)
+    {
+        this.composite = composite;
+    }
+
+    public boolean isDynamic()
+    {
+        return dynamic;
+    }
+
+    public void setDynamic(boolean dynamic)
+    {
+        this.dynamic = dynamic;
+    }
+
     @Override
     public int hashCode()
     {
-        return Objects.hash(documentation, module, stepAsString);
+        return Objects.hash(documentation, module, stepAsString, composite, dynamic);
     }
 
     @Override
@@ -104,6 +126,8 @@ public class StepDefinition
         StepDefinition other = (StepDefinition) obj;
         return Objects.equals(documentation, other.documentation)
                 && Objects.equals(module, other.module)
-                && Objects.equals(stepAsString, other.stepAsString);
+                && Objects.equals(stepAsString, other.stepAsString)
+                && composite == other.composite
+                && dynamic == other.dynamic;
     }
 }
