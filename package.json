@@ -22,14 +22,24 @@
     "contributes": {
         "languages": [
             {
-                "id": "vividus-dsl",
+                "id": "vividus-story",
                 "aliases": [
                     "bdd",
                     "jbehave",
                     "dsl"
                 ],
                 "extensions": [
-                    ".story",
+                    ".story"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "dark": "./images/icon.png",
+                    "light": "./images/icon.png"
+                }
+            },
+            {
+                "id": "vividus-composite-step",
+                "extensions": [
                     ".steps"
                 ],
                 "configuration": "./language-configuration.json",
@@ -51,9 +61,14 @@
         ],
         "grammars": [
             {
-                "language": "vividus-dsl",
+                "language": "vividus-story",
                 "scopeName": "source.vividus",
-                "path": "./syntaxes/vividus.tmLanguage.json"
+                "path": "./syntaxes/vividus.story.tmLanguage.json"
+            },
+            {
+                "language": "vividus-composite-step",
+                "scopeName": "source.vividus.composite-step",
+                "path": "./syntaxes/vividus.composite-step.tmLanguage.json"
             },
             {
                 "language": "vividus-log",

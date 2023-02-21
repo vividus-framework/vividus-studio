@@ -1,0 +1,68 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "VIVIDUS Composite Step",
+    "patterns": [
+        {
+            "include": "#composite"
+        },
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#step"
+        },
+        {
+            "include": "#priority"
+        }
+    ],
+    "scopeName": "source.vividus.composite-step",
+    "repository": {
+        "composite": {
+            "match": "^(Composite:)(.*)$",
+            "captures": {
+                "1": {
+                    "name": "vividus.scenario.keyword"
+                },
+                "2": {
+                    "name": "vividus.scenario.title"
+                }
+            }
+        },
+        "comment": {
+            "match": "^\\s*(!--.*)",
+            "captures": {
+                "1": {
+                    "name": "vividus.comment"
+                }
+            }
+        },
+        "priority": {
+            "match": "^(Priority:)(.*)$",
+            "captures": {
+                "1": {
+                    "name": "vividus.meta.key"
+                },
+                "2": {
+                    "name": "vividus.meta.value"
+                }
+            }
+        },
+        "step": {
+            "begin": "^(Given|When|Then|And)(.+)",
+            "beginCaptures": {
+                "1": {
+                    "name": "vividus.step.type"
+                },
+                "2": {
+                    "name": "vividus.step.wording"
+                }
+            },
+            "while": "^((?!Composite:|Given|When|Then|And|!--).+)$",
+            "whileCaptures": {
+                "1": {
+                    "name": "vividus.step.wording"
+                }
+            }
+        }
+    }
+}

@@ -135,7 +135,10 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
 
             SemanticTokensLegend legend = new SemanticTokensLegend(List.of("vividus-step-argument"), List.of());
             SemanticTokensWithRegistrationOptions options = new SemanticTokensWithRegistrationOptions(legend, true);
-            options.setDocumentSelector(List.of(new DocumentFilter("vividus-dsl", null, null)));
+            options.setDocumentSelector(List.of(
+                new DocumentFilter("vividus-story", null, null),
+                new DocumentFilter("vividus-composite-step", null, null)
+            ));
             capabilities.setSemanticTokensProvider(options);
 
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
