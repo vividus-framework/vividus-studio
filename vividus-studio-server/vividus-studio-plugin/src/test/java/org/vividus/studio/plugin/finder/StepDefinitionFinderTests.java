@@ -23,6 +23,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
@@ -37,6 +39,7 @@ import java.util.stream.IntStream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
@@ -56,6 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.factory.StepDefinitionFactory;
 import org.vividus.studio.plugin.model.Parameter;
 import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.model.StepType;
@@ -69,17 +73,21 @@ class StepDefinitionFinderTests
 
     private static final String COMPOSITE_JAVADOC = "Given I perform system initialization\nWhen I shutdown system\n"
             + "Then the system is inactive";
+    private static final String MODULE_NAME = "module-name";
 
-    private final StepDefinitionFinder finder = new StepDefinitionFinder();
+    private final StepDefinitionFinder finder = new StepDefinitionFinder(new StepDefinitionFactory());
 
     @Mock private IJavaProject root;
 
     @BeforeEach
     void beforeEach()
     {
-        IProject project = mock(IProject.class);
+        IProject project = mock();
         when(root.getProject()).thenReturn(project);
         when(project.getName()).thenReturn("name");
+        IPath location = mock();
+        when(project.getLocation()).thenReturn(location);
+        when(location.toString()).thenReturn(getClass().getResource("/project").getFile());
     }
 
     @Test
@@ -116,41 +124,58 @@ class StepDefinitionFinderTests
         when(resource.getContents()).thenReturn(inputStream);
 
         List<StepDefinition> definitions = new ArrayList<>(finder.find(root));
-        assertThat(definitions, hasSize(6));
+        assertThat(definitions, hasSize(7));
 
         // assert java steps
-        asserJavaStepDefinition(definitions.get(0), StepType.GIVEN, GIVEN_FULL_NAME,
+        asserJavaStepDefinition(definitions.get(0), MODULE_NAME, StepType.GIVEN, GIVEN_FULL_NAME,
                 "Javadoc for Given I param $param1", List.of(new Parameter(1, "$param1", 14)), true);
-        asserJavaStepDefinition(definitions.get(1), StepType.WHEN, WHEN_FULL_NAME,
+        asserJavaStepDefinition(definitions.get(1), MODULE_NAME, StepType.WHEN, WHEN_FULL_NAME,
                 "Javadoc for When I param $param1 and $param2",
-                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)), false);
-        asserJavaStepDefinition(definitions.get(2), StepType.THEN, THEN_FULL_NAME,
+                List.of(new Parameter(1, "$param1",  13), new Parameter(2, "$param2", 25)), false);
+        asserJavaStepDefinition(definitions.get(2), MODULE_NAME, StepType.THEN, THEN_FULL_NAME,
                 "Javadoc for Then I param $param1 and $param2 and $param3", List.of(new Parameter(1, "$param1", 13),
                         new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
                 false);
 
-        // assert composire steps
-        asserStepDefinition(definitions.get(3), StepType.GIVEN, GIVEN_FULL_NAME, COMPOSITE_JAVADOC,
-                List.of(new Parameter(1, "$param1", 14)));
-        asserStepDefinition(definitions.get(4), StepType.WHEN, WHEN_FULL_NAME, COMPOSITE_JAVADOC,
-                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)));
-        asserStepDefinition(definitions.get(5), StepType.THEN, THEN_FULL_NAME, COMPOSITE_JAVADOC, List
-                .of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)));
+        // assert static composite steps
+        asserCompositeStepDefinition(definitions.get(3), MODULE_NAME, StepType.GIVEN, GIVEN_FULL_NAME, COMPOSITE_JAVADOC,
+                List.of(new Parameter(1, "$param1", 14)), false);
+        asserCompositeStepDefinition(definitions.get(4), MODULE_NAME, StepType.WHEN, WHEN_FULL_NAME, COMPOSITE_JAVADOC,
+                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)), false);
+        asserCompositeStepDefinition(definitions.get(5), MODULE_NAME, StepType.THEN, THEN_FULL_NAME, COMPOSITE_JAVADOC,
+                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
+                false);
+
+        // assert static composite steps
+        asserCompositeStepDefinition(definitions.get(6), "composite/composite.steps", StepType.THEN, THEN_FULL_NAME,
+                COMPOSITE_JAVADOC, List
+                .of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
+                true);
     }
 
-    private void asserJavaStepDefinition(StepDefinition definition, StepType type, String fullName, String javadoc,
-            List<Parameter> parameters, boolean deprecated)
+    private void asserJavaStepDefinition(StepDefinition definition, String module, StepType type, String fullName,
+            String javadoc, List<Parameter> parameters, boolean deprecated)
     {
         assertEquals(deprecated, definition.isDeprecated());
-        asserStepDefinition(definition, type, fullName, javadoc, parameters);
+        assertFalse(definition.isComposite());
+        assertFalse(definition.isDynamic());
+        asserStepDefinition(definition, module, type, fullName, javadoc, parameters);
     }
 
-    private void asserStepDefinition(StepDefinition definition, StepType type, String fullName, String javadoc,
-            List<Parameter> parameters)
+    private void asserCompositeStepDefinition(StepDefinition definition, String module, StepType type, String fullName,
+            String javadoc, List<Parameter> parameters, boolean dynamic)
+    {
+        assertTrue(definition.isComposite());
+        assertEquals(dynamic, definition.isDynamic());
+        asserStepDefinition(definition, module, type, fullName, javadoc, parameters);
+    }
+
+    private void asserStepDefinition(StepDefinition definition, String module, StepType type, String fullName,
+            String javadoc, List<Parameter> parameters)
     {
         assertAll(() -> assertEquals(type, definition.getStepType()),
                 () -> assertEquals(fullName, definition.getStepAsString()),
-                () -> assertEquals("module-name", definition.getModule()),
+                () -> assertEquals(module, definition.getModule()),
                 () -> assertEquals(javadoc, definition.getDocumentation()));
         List<Parameter> actualParameters = definition.getParameters();
         assertThat(actualParameters, hasSize(parameters.size()));

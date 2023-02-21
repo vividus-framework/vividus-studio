@@ -20,6 +20,7 @@
 package org.vividus.studio.plugin.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -48,15 +49,15 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     private final TypingChecker typingChecker = new TypingChecker();
 
     private final ICompletionItemService completionItemService;
-    private final TextDocumentEventListener textDocumentEventListener;
+    private final Set<TextDocumentEventListener> textDocumentEventListeners;
     private final SemanticTokensService semanticTokensService;
 
     @Inject
     public VividusStudioTextDocumentService(ICompletionItemService completionItemService,
-            TextDocumentEventListener textDocumentEventListener, SemanticTokensService semanticTokensService)
+            Set<TextDocumentEventListener> textDocumentEventListeners, SemanticTokensService semanticTokensService)
     {
         this.completionItemService = completionItemService;
-        this.textDocumentEventListener = textDocumentEventListener;
+        this.textDocumentEventListeners = textDocumentEventListeners;
         this.semanticTokensService = semanticTokensService;
     }
 
@@ -99,25 +100,26 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     @Override
     public void didOpen(DidOpenTextDocumentParams params)
     {
-        textDocumentEventListener.onOpen(params);
+        textDocumentEventListeners.forEach(l -> l.onOpen(params));
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params)
     {
         typingChecker.set(params);
-        textDocumentEventListener.onChange(params);
+        textDocumentEventListeners.forEach(l -> l.onChange(params));
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params)
     {
-        textDocumentEventListener.onClose(params);
+        textDocumentEventListeners.forEach(l -> l.onClose(params));
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params)
     {
+        textDocumentEventListeners.forEach(l -> l.onSave(params));
     }
 
     private static final class TypingChecker

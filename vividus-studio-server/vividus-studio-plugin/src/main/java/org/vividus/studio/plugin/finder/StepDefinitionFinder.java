@@ -23,6 +23,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,11 +35,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.Manifest;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
@@ -55,9 +60,11 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vividus.studio.plugin.composite.CompositeStepParser;
 import org.vividus.studio.plugin.exception.VividusStudioException;
-import org.vividus.studio.plugin.model.Parameter;
+import org.vividus.studio.plugin.factory.StepDefinitionFactory;
 import org.vividus.studio.plugin.model.StepDefinition;
+import org.vividus.studio.plugin.util.ResourceUtils;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
 @Singleton
@@ -65,19 +72,23 @@ import org.vividus.studio.plugin.util.RuntimeWrapper;
 public class StepDefinitionFinder implements IStepDefinitionFinder
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(StepDefinitionFinder.class);
-    private static final Pattern PARAMETER_NAME_PATTERN = Pattern.compile("\\$\\w+");
+
     private static final Pattern STEP_ANNOTATION_PATTERN = Pattern
             .compile("^org\\.jbehave\\.core\\.annotations\\.(When|Then|Given)$");
-    private static final Pattern COMPOSITE_STEP_TOKENIZER = Pattern
-            .compile("^(?:Composite:(.+?)$)(.*?)(?=^Composite:|\\Z)", Pattern.MULTILINE | Pattern.DOTALL);
-    private static final int COMPOSITE_NAME = 1;
-    private static final int COMPOSITE_BODY = 2;
+
+    private final StepDefinitionFactory stepDefinitionFactory;
+
+    @Inject
+    public StepDefinitionFinder(StepDefinitionFactory stepDefinitionFactory)
+    {
+        this.stepDefinitionFactory = stepDefinitionFactory;
+    }
 
     @Override
-    public Collection<StepDefinition> find(IJavaProject root)
+    public Collection<StepDefinition> find(IJavaProject javaProject) throws IOException
     {
-        LOGGER.info("Scanning project {}", root.getProject().getName());
-        List<IPackageFragment> fragments = children(root).parallel()
+        LOGGER.info("Scanning project {}", javaProject.getProject().getName());
+        List<IPackageFragment> fragments = children(javaProject).parallel()
                                                         .filter(JarPackageFragmentRoot.class::isInstance)
                                                         .map(JarPackageFragmentRoot.class::cast)
                                                         .filter(StepDefinitionFinder::isStepDefinitionScanCandidate)
@@ -90,6 +101,8 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
         LOGGER.info("Found {} java steps", javaStepDefinitions.size());
 
         List<StepDefinition> compositeStepDefinitions = findCompositeSteps(fragments);
+        Path resourcesFolder = ResourceUtils.resolveResourcesPath(javaProject.getProject());
+        compositeStepDefinitions.addAll(findLocalCompositeSteps(resourcesFolder));
         LOGGER.info("Found {} composite steps", compositeStepDefinitions.size());
 
         List<StepDefinition> stepDefinitions = new ArrayList<>();
@@ -97,6 +110,31 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
         stepDefinitions.addAll(compositeStepDefinitions);
 
         return stepDefinitions;
+    }
+
+    private List<StepDefinition> findLocalCompositeSteps(Path resourcesFolder) throws IOException
+    {
+        List<StepDefinition> composites = new ArrayList<>();
+
+        Files.walkFileTree(resourcesFolder, new SimpleFileVisitor<Path>()
+        {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+            {
+                if (ResourceUtils.isCompositeFile(file.toString()))
+                {
+                    String stepsContent = Files.readString(file, StandardCharsets.UTF_8);
+                    String location = resourcesFolder.relativize(file).toString();
+                    CompositeStepParser.parse(stepsContent)
+                            .map(cs -> stepDefinitionFactory.createStepDefinition(location, cs.getName(),
+                                    cs.getBody(), true, true))
+                            .forEach(composites::add);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        return composites;
     }
 
     private List<StepDefinition> findCompositeSteps(List<IPackageFragment> fragments)
@@ -107,7 +145,7 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
                         .flatMap(Arrays::stream)
                         .filter(IJarEntryResource.class::isInstance)
                         .map(IJarEntryResource.class::cast)
-                        .filter(e -> e.getName().endsWith(".steps"))
+                        .filter(e -> ResourceUtils.isCompositeFile(e.getName()))
                         .map(r ->
                         {
                             IPackageFragment parent = (IPackageFragment) r.getParent();
@@ -116,15 +154,10 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
                                     error("content", "resource")))
                             {
                                 String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-                                Matcher compositeStepMatcher = COMPOSITE_STEP_TOKENIZER.matcher(content);
-                                List<StepDefinition> definitions = new ArrayList<>();
-                                while (compositeStepMatcher.find())
-                                {
-                                    String stepAsString = compositeStepMatcher.group(COMPOSITE_NAME).strip();
-                                    String documentation = compositeStepMatcher.group(COMPOSITE_BODY).strip();
-                                    definitions.add(createStepDefinition(module, stepAsString, documentation));
-                                }
-                                return definitions;
+                                return CompositeStepParser.parse(content)
+                                    .map(cs -> stepDefinitionFactory.createStepDefinition(module, cs.getName(),
+                                            cs.getBody(), true, false))
+                                    .collect(Collectors.toList());
                             }
                             catch (IOException e)
                             {
@@ -174,7 +207,8 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
                         error("javadoc range", method.getElementName()));
                 String documentation = range != null ? buffer.getText(range.getOffset(), range.getLength())
                         : "No documentation available";
-                StepDefinition definition = createStepDefinition(module, stepAsString, documentation);
+                StepDefinition definition = stepDefinitionFactory.createStepDefinition(module, stepAsString,
+                        documentation);
                 definition.setDeprecated(isDeprecated(annotations));
                 return definition;
             });
@@ -220,39 +254,6 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
                 .map(attrs -> attrs.getValue("Automatic-Module-Name"))
                 .filter(amn -> amn.startsWith("org.vividus"))
                 .isPresent();
-    }
-
-    private StepDefinition createStepDefinition(String module, String stepAsString, String documentation)
-    {
-        List<Parameter> parameters = new ArrayList<>();
-        Matcher parameterMatcher = PARAMETER_NAME_PATTERN.matcher(stepAsString);
-
-        List<Integer> tokenIndices = new ArrayList<>();
-        tokenIndices.add(0);
-
-        int matchIndex = 1;
-        while (parameterMatcher.find())
-        {
-            int start = parameterMatcher.start();
-            String group = parameterMatcher.group();
-
-            Parameter parameter = new Parameter(matchIndex++, group, start);
-            parameters.add(parameter);
-
-            tokenIndices.add(start);
-            tokenIndices.add(start + group.length());
-        }
-
-        tokenIndices.add(stepAsString.length());
-
-        List<String> matchTokens = new ArrayList<>(tokenIndices.size() / 2);
-        for (int index = 0; index < tokenIndices.size(); index += 2)
-        {
-            String token = stepAsString.substring(tokenIndices.get(index), tokenIndices.get(index + 1));
-            matchTokens.add(token);
-        }
-
-        return new StepDefinition(module, stepAsString, documentation, parameters, matchTokens);
     }
 
     @SuppressWarnings("PreferMethodReference")

@@ -35,6 +35,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.command.RunStoriesCommand;
+import org.vividus.studio.plugin.composite.CompositeStepsSaveListener;
 import org.vividus.studio.plugin.document.TextDocumentEditor;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
 import org.vividus.studio.plugin.document.TextDocumentProvider;
@@ -48,6 +49,8 @@ import org.vividus.studio.plugin.server.SocketListener;
 import org.vividus.studio.plugin.server.VividusStudioLanguageServer;
 import org.vividus.studio.plugin.service.CompletionItemService;
 import org.vividus.studio.plugin.service.ICompletionItemService;
+import org.vividus.studio.plugin.service.IStepDefinitionsAware;
+import org.vividus.studio.plugin.service.StepDefinitionResolver;
 import org.vividus.studio.plugin.service.VividusStudioTextDocumentService;
 import org.vividus.studio.plugin.service.VividusStudioWorkspaceService;
 
@@ -64,12 +67,17 @@ public class VividusStudioModule extends AbstractModule
         bind(IWorkspace.class).toProvider(ResourcesPlugin::getWorkspace);
         bind(IStepDefinitionFinder.class).to(StepDefinitionFinder.class);
         bind(TextDocumentProvider.class).to(TextDocumentEditor.class);
-        bind(TextDocumentEventListener.class).to(TextDocumentEditor.class);
+        bind(IStepDefinitionsAware.class).to(StepDefinitionResolver.class);
         bind(Key.get(new TypeLiteral<Function<IProject, IJavaProject>>() { }))
             .toProvider(() -> JavaCore::create);
         bind(LaunchConfigurationFactory.class).to(JavaLaunchConfigurationFactory.class);
 
         Multibinder<ICommand> commandBuilder = Multibinder.newSetBinder(binder(), ICommand.class);
         commandBuilder.addBinding().to(RunStoriesCommand.class);
+
+        Multibinder<TextDocumentEventListener> listenerBuilder = Multibinder.newSetBinder(binder(),
+                TextDocumentEventListener.class);
+        listenerBuilder.addBinding().to(TextDocumentEditor.class);
+        listenerBuilder.addBinding().to(CompositeStepsSaveListener.class);
     }
 }

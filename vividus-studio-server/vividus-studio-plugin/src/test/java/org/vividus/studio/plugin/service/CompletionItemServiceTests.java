@@ -81,7 +81,7 @@ class CompletionItemServiceTests
         ), List.of("Then ", " is equal to ", " after conversion"));
         thenStepDefinition.setDeprecated(true);
         StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider);
-        resolver.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+        resolver.refresh(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
         completionItemService = new CompletionItemService(resolver);
     }
 

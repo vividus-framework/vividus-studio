@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +48,7 @@ import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,7 +65,15 @@ class VividusStudioTextDocumentServiceTests
 
     @Mock private ICompletionItemService completionItemService;
     @Mock private TextDocumentEventListener textDocumentEventListener;
+    @Mock private SemanticTokensService semanticTokensService;
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
+
+    @BeforeEach
+    void init()
+    {
+        this.textDocumentService = new VividusStudioTextDocumentService(completionItemService,
+                Set.of(textDocumentEventListener), semanticTokensService);
+    }
 
     @Test
     void testCompletionInvoked() throws InterruptedException, ExecutionException

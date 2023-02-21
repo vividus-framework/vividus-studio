@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -98,7 +99,7 @@ class VividusStudioLanguageServerTests
     }
 
     @Test
-    void testInitialize() throws InterruptedException, ExecutionException, CoreException
+    void testInitialize() throws InterruptedException, ExecutionException, CoreException, IOException
     {
         InitializeParams params = mock(InitializeParams.class);
         String rootUri = "root uri";
@@ -123,7 +124,7 @@ class VividusStudioLanguageServerTests
         ServerCapabilities serverCapabilities = result.getCapabilities();
         List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of(), triggers);
-        verify(stepDefinitionResolver).setStepDefinitions(List.of(stepDefinition));
+        verify(stepDefinitionResolver).refresh(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
         verify(vividusStudioConfiguration).setProject(javaProject.getProject());
         assertEquals(List.of(COMMAND), serverCapabilities.getExecuteCommandProvider().getCommands());

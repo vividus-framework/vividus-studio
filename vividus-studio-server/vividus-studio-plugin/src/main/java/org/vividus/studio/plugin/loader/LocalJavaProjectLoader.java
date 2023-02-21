@@ -22,7 +22,6 @@ package org.vividus.studio.plugin.loader;
 import static java.util.Optional.ofNullable;
 
 import java.io.File;
-import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -45,6 +44,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProgressListener;
 import org.vividus.studio.plugin.exception.VividusStudioException;
+import org.vividus.studio.plugin.util.ResourceUtils;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
 
 @Singleton
@@ -65,7 +65,7 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     {
         return RuntimeWrapper.wrapMono(() ->
         {
-            File projectFolder = new File(new URI(uri).getPath());
+            File projectFolder = ResourceUtils.asFile(uri);
 
             build(projectFolder, ofNullable(handlers.get(Event.INFO)));
 

@@ -66,7 +66,12 @@ class StepDefinitionResolverTests
                 "Then $value is equal to $expected after conversion", DOCS,
                 List.of(new Parameter(1, "$value", 5), new Parameter(2, "$expected", 24)),
                 List.of("Then ", " is equal to ", " after conversion"));
-        resolver.setStepDefinitions(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
+
+        StepDefinition dynamicStepDefinitionOne = new StepDefinition("composite/users.steps",
+                "Given dynamic step definition one", DOCS, List.of(), List.of("Given dynamic step definition one"));
+        dynamicStepDefinitionOne.setDynamic(true);
+
+        resolver.refresh(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition, dynamicStepDefinitionOne));
     }
 
     static Stream<Arguments> resolveAtPositionDataset()
@@ -119,6 +124,41 @@ class StepDefinitionResolverTests
     }
 
     @Test
+    void shouldRefreshDynamicSteps()
+    {
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(
+            "Scenario: Dynamic steps",
+            "Given dynamic step definition one",
+            "Given dynamic step definition two",
+            "Given dynamic step definition three"
+        ));
+
+        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(1));
+        assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
+
+        StepDefinition dynamicStepDefinitionTwo = new StepDefinition("composite/orders.steps",
+                "Given dynamic step definition two", DOCS, List.of(), List.of("Given dynamic step definition two"));
+        dynamicStepDefinitionTwo.setDynamic(true);
+        resolver.refresh(List.of(dynamicStepDefinitionTwo));
+
+        resolvedDefinitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(2));
+        assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
+        assertEquals("Given dynamic step definition two", resolvedDefinitions.get(1).getStepAsString());
+
+        StepDefinition dynamicStepDefinitionThree = new StepDefinition("composite/orders.steps",
+                "Given dynamic step definition three", DOCS, List.of(), List.of("Given dynamic step definition three"));
+        dynamicStepDefinitionThree.setDynamic(true);
+        resolver.refresh(List.of(dynamicStepDefinitionThree));
+
+        resolvedDefinitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(2));
+        assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
+        assertEquals("Given dynamic step definition three", resolvedDefinitions.get(1).getStepAsString());
+    }
+
+    @Test
     void shouldResolveForDocument()
     {
         when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of(
@@ -154,7 +194,7 @@ class StepDefinitionResolverTests
                 "When I add '$product' into a bucket with the name '$name'", DOCS,
                 List.of(new Parameter(1, "$product", 12), new Parameter(1, "$name", 51)),
                 List.of("When I add '", "' into a bucket with the name '", "'"));
-        resolver.setStepDefinitions(List.of(whenStepDefinition1, whenStepDefinition2));
+        resolver.refresh(List.of(whenStepDefinition1, whenStepDefinition2));
 
         when(textDocumentProvider.getTextDocument(DOCUMENT_ID))
                 .thenReturn(List.of("When I add 'Milk' into a bucket with the name 'Grocery'"));
