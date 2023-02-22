@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+* (Fixes https://github.com/vividus-framework/vividus-studio/issues/367) Fix meta parsing to not consider  meta sign in step as part of meta tags block
+
 ## [0.1.4] - 2023-02-21
 
 ### Added
