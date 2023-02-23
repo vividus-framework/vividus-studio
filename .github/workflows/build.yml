@@ -52,5 +52,5 @@ jobs:
       
       - name: Extension packaging
         run: |
-          sudo npm install -g vsce
+          sudo npm install -g @vscode/vsce
           vsce package
