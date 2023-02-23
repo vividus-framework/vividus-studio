@@ -20,7 +20,9 @@
 package org.vividus.studio.plugin.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.when;
@@ -181,6 +183,15 @@ class StepDefinitionResolverTests
         assertStepDefinition(resolvedDefinitions.get(3), 5, 2, List.of(5, 20, 33, 36));
         assertStepDefinition(resolvedDefinitions.get(4), 6, 1, List.of(15, 18));
         assertStepDefinition(resolvedDefinitions.get(5), 7, 1, List.of(5, 8));
+    }
+
+    @Test
+    void shouldNotResolveForEmptyDocument()
+    {
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of());
+
+        List<ResolvedStepDefinition> definitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(definitions, is(empty()));
     }
 
     @Test

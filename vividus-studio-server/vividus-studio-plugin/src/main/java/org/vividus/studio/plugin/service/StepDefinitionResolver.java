@@ -88,6 +88,11 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
     public Stream<ResolvedStepDefinition> resolve(String documentIdentifier)
     {
         List<String> document = textDocumentProvider.getTextDocument(documentIdentifier);
+        if (document.isEmpty())
+        {
+            return Stream.empty();
+        }
+
         int searchIndex = document.size() - 1;
 
         List<Step> steps = new ArrayList<>(document.size());
