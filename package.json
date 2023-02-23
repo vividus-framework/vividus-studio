@@ -13,7 +13,12 @@
     "engines": {
         "vscode": "^1.74.0"
     },
-    "categories": [],
+    "categories": [
+        "Debuggers",
+        "Formatters",
+        "Programming Languages",
+        "Testing"
+    ],
     "activationEvents": [
         "workspaceContains:**/*.story",
         "workspaceContains:**/*.steps"
