@@ -24,9 +24,14 @@
             {
                 "id": "vividus-story",
                 "aliases": [
-                    "bdd",
-                    "jbehave",
-                    "dsl"
+                    "VIVIDUS Story",
+                    "VIVIDUS",
+                    "Test Automation",
+                    "Quality",
+                    "Testing",
+                    "BDD",
+                    "JBehave",
+                    "DSL"
                 ],
                 "extensions": [
                     ".story"
@@ -39,6 +44,9 @@
             },
             {
                 "id": "vividus-composite-step",
+                "aliases": [
+                    "VIVIDUS Composite Steps"
+                ],
                 "extensions": [
                     ".steps"
                 ],
