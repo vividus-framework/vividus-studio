@@ -263,7 +263,7 @@
         "test": "node ./out/test/runTest.js"
     },
     "devDependencies": {
-        "@types/glob": "^8.0.0",
+        "@types/glob": "^8.1.0",
         "@types/mocha": "^10.0.1",
         "@types/node": "^18.14.0",
         "@types/sinon": "^10.0.13",
@@ -275,7 +275,7 @@
         "vscode-test": "^1.6.1"
     },
     "dependencies": {
-        "glob": "^8.0.3",
+        "glob": "^8.1.0",
         "jdk-utils": "^0.4.4",
         "vscode-languageclient": "^8.1.0"
     }
