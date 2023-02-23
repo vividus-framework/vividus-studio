@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * (Fixes https://github.com/vividus-framework/vividus-studio/issues/367) Fix meta parsing to not consider  meta sign in step as part of meta tags block
+* Fix semantics error occurred when user selects VIVIDUS language mode for new text file that was not saved on the file system
 
 ## [0.1.4] - 2023-02-21
 
