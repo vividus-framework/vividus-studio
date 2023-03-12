@@ -215,6 +215,13 @@ class StepDefinitionResolverTests
         assertEquals(whenStepDefinition2.getStepAsString(), resolvedDefinitions.get(0).getStepAsString());
     }
 
+    @Test
+    void shouldReturnStepDefinitions()
+    {
+        List<StepDefinition> stepDefinitions = resolver.getStepDefinitions().collect(Collectors.toList());
+        assertThat(stepDefinitions, hasSize(4));
+    }
+
     private static void assertStepDefinition(ResolvedStepDefinition resolved, int lineIndex, int tokenIndex,
             List<Integer> argIndices)
     {

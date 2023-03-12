@@ -20,6 +20,7 @@
 package org.vividus.studio.plugin.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -45,6 +46,8 @@ import java.util.function.Consumer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.ServerCapabilities;
@@ -133,6 +136,10 @@ class VividusStudioLanguageServerTests
                 "Initialize project");
         notificationServiceOrder.verify(clientNotificationService).progress(token, info);
         notificationServiceOrder.verify(clientNotificationService).endProgress(token, "Completed");
+
+        CodeActionOptions codeActionOptions = serverCapabilities.getCodeActionProvider().getRight();
+        assertTrue(codeActionOptions.getResolveProvider());
+        assertEquals(List.of(CodeActionKind.Source), codeActionOptions.getCodeActionKinds());
     }
 
     @Test

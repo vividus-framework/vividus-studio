@@ -48,7 +48,7 @@ import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.model.StepType;
 
 @Singleton
-public class StepDefinitionResolver implements IStepDefinitionsAware
+public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefinitionsProvider
 {
     private static final List<String> STEP_BREAKERS = List.of(
         "!--",
@@ -151,6 +151,12 @@ public class StepDefinitionResolver implements IStepDefinitionsAware
             return allStepDefinitions.stream()
                     .collect(Collectors.groupingBy(StepDefinition::getStepType, Collectors.toList()));
         });
+    }
+
+    @Override
+    public Stream<StepDefinition> getStepDefinitions()
+    {
+        return groupedStepDefinitions.get().values().stream().flatMap(List::stream);
     }
 
     private Stream<ResolvedStepDefinition> resolve(Step step, List<StepDefinition> definitions,

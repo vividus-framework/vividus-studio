@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -42,23 +45,30 @@ import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
+import org.vividus.studio.plugin.factory.CodeActionFactory;
+import org.vividus.studio.plugin.model.StepDefinition;
 
 @Singleton
-public class VividusStudioTextDocumentService implements TextDocumentService
+public class VividusStudioTextDocumentService implements TextDocumentService, VividusStudioService
 {
     private final TypingChecker typingChecker = new TypingChecker();
 
     private final ICompletionItemService completionItemService;
     private final Set<TextDocumentEventListener> textDocumentEventListeners;
     private final SemanticTokensService semanticTokensService;
+    private final CodeActionFactory codeActionFactory;
+    private final StepDefinitionsProvider stepDefinitionsProvider;
 
     @Inject
     public VividusStudioTextDocumentService(ICompletionItemService completionItemService,
-            Set<TextDocumentEventListener> textDocumentEventListeners, SemanticTokensService semanticTokensService)
+            Set<TextDocumentEventListener> textDocumentEventListeners, SemanticTokensService semanticTokensService,
+            CodeActionFactory codeActionFactory, StepDefinitionsProvider stepDefinitionsProvider)
     {
         this.completionItemService = completionItemService;
         this.textDocumentEventListeners = textDocumentEventListeners;
         this.semanticTokensService = semanticTokensService;
+        this.codeActionFactory = codeActionFactory;
+        this.stepDefinitionsProvider = stepDefinitionsProvider;
     }
 
     @Override
@@ -98,6 +108,18 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     }
 
     @Override
+    public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params)
+    {
+        return CompletableFuture.supplyAsync(() -> codeActionFactory.createCodeActions(params));
+    }
+
+    @Override
+    public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved)
+    {
+        return CompletableFuture.completedFuture(unresolved);
+    }
+
+    @Override
     public void didOpen(DidOpenTextDocumentParams params)
     {
         textDocumentEventListeners.forEach(l -> l.onOpen(params));
@@ -120,6 +142,14 @@ public class VividusStudioTextDocumentService implements TextDocumentService
     public void didSave(DidSaveTextDocumentParams params)
     {
         textDocumentEventListeners.forEach(l -> l.onSave(params));
+    }
+
+    @Override
+    public CompletableFuture<List<String>> getSteps()
+    {
+        return CompletableFuture.supplyAsync(() -> stepDefinitionsProvider.getStepDefinitions()
+                .map(StepDefinition::getStepAsString)
+                .collect(Collectors.toList()));
     }
 
     private static final class TypingChecker

@@ -39,6 +39,8 @@ import com.google.inject.Singleton;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DocumentFilter;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
@@ -140,6 +142,11 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                 new DocumentFilter("vividus-composite-step", null, null)
             ));
             capabilities.setSemanticTokensProvider(options);
+
+            CodeActionOptions codeActionOptions = new CodeActionOptions();
+            codeActionOptions.setCodeActionKinds(List.of(CodeActionKind.Source));
+            codeActionOptions.setResolveProvider(true);
+            capabilities.setCodeActionProvider(codeActionOptions);
 
             Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
                     Event.LOADED, n -> clientNotificationService.showInfo(
