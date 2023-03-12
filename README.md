@@ -15,8 +15,19 @@ Quick Start
 2. Install the [VIVIDUS Studio Extension](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio).
 3. The extension is activated when you open a project containing story or steps files.
 
-Supported VS Code settings
+VS Code Settings
 ==========================
-The following settings are supported:
 
 * `vividus-studio.java-home`: The directory path containing JDK to run the extension, if not specified the JDK is located automatically.
+
+Source Code Actions
+==========================
+
+### Action 'Insert Step'
+
+![Insert Step Example](./images/insert-step-action.gif)
+
+Configure Shortcuts
+==========================
+
+The keyboard shortcut for `Source Action...` can be configured by the following path `Code -> Preferences -> Keyboard Shortcuts -> Source Action...`

@@ -32,8 +32,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionParams;
@@ -57,6 +61,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
+import org.vividus.studio.plugin.factory.CodeActionFactory;
+import org.vividus.studio.plugin.model.StepDefinition;
 
 @ExtendWith(MockitoExtension.class)
 class VividusStudioTextDocumentServiceTests
@@ -66,13 +72,15 @@ class VividusStudioTextDocumentServiceTests
     @Mock private ICompletionItemService completionItemService;
     @Mock private TextDocumentEventListener textDocumentEventListener;
     @Mock private SemanticTokensService semanticTokensService;
+    @Mock private CodeActionFactory codeActionFactory;
+    @Mock private StepDefinitionsProvider stepDefinitionsProvider;
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
 
     @BeforeEach
     void init()
     {
         this.textDocumentService = new VividusStudioTextDocumentService(completionItemService,
-                Set.of(textDocumentEventListener), semanticTokensService);
+                Set.of(textDocumentEventListener), semanticTokensService, codeActionFactory, stepDefinitionsProvider);
     }
 
     @Test
@@ -173,6 +181,43 @@ class VividusStudioTextDocumentServiceTests
         List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
 
         assertThat(items, hasSize(expectedSize));
+    }
+
+    @Test
+    void shouldReturnCodeActions() throws InterruptedException, ExecutionException
+    {
+        CodeActionParams params = mock();
+        CodeAction action = mock();
+        when(codeActionFactory.createCodeActions(params)).thenReturn(List.of(Either.forRight(action)));
+
+        List<Either<Command, CodeAction>> codeActions = textDocumentService.codeAction(params).get();
+
+        assertThat(codeActions, hasSize(1));
+        CodeAction actualAction = codeActions.get(0).getRight();
+        assertEquals(action, actualAction);
+    }
+
+    @Test
+    void shouldDoNothingOnResolveCodeActons() throws InterruptedException, ExecutionException
+    {
+        CodeAction unresolved = mock();
+
+        CodeAction output = textDocumentService.resolveCodeAction(unresolved).get();
+
+        assertEquals(unresolved, output);
+    }
+
+    @Test
+    void shouldGetSteps() throws InterruptedException, ExecutionException
+    {
+        StepDefinition stepDefinition = mock();
+        String stepAsString = "step-as-string";
+        when(stepDefinitionsProvider.getStepDefinitions()).thenReturn(Stream.of(stepDefinition));
+        when(stepDefinition.getStepAsString()).thenReturn(stepAsString);
+
+        List<String> steps = textDocumentService.getSteps().get();
+
+        assertEquals(List.of(stepAsString), steps);
     }
 
     private static DidChangeTextDocumentParams mockDidChange(String text, int character)

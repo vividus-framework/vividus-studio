@@ -51,6 +51,7 @@ import org.vividus.studio.plugin.service.CompletionItemService;
 import org.vividus.studio.plugin.service.ICompletionItemService;
 import org.vividus.studio.plugin.service.IStepDefinitionsAware;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
+import org.vividus.studio.plugin.service.StepDefinitionsProvider;
 import org.vividus.studio.plugin.service.VividusStudioTextDocumentService;
 import org.vividus.studio.plugin.service.VividusStudioWorkspaceService;
 
@@ -68,6 +69,7 @@ public class VividusStudioModule extends AbstractModule
         bind(IStepDefinitionFinder.class).to(StepDefinitionFinder.class);
         bind(TextDocumentProvider.class).to(TextDocumentEditor.class);
         bind(IStepDefinitionsAware.class).to(StepDefinitionResolver.class);
+        bind(StepDefinitionsProvider.class).to(StepDefinitionResolver.class);
         bind(Key.get(new TypeLiteral<Function<IProject, IJavaProject>>() { }))
             .toProvider(() -> JavaCore::create);
         bind(LaunchConfigurationFactory.class).to(JavaLaunchConfigurationFactory.class);

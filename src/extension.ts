@@ -6,6 +6,7 @@ import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
 import { LanguageClientOptions, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
 import { IJavaRuntime } from 'jdk-utils';
 import { resolve } from 'path';
+import { registerInsertStepCommand } from './lib/codeActions';
 
 let client: LanguageClient;
 
@@ -46,6 +47,9 @@ export function activate(context: ExtensionContext) {
     };
 
     client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
+
+    registerInsertStepCommand(client)
+
     client.start()
 }
 
