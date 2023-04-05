@@ -172,17 +172,28 @@ class StepDefinitionResolverTests
             "Then ${random-value} is equal to ??? after conversion",
             "When I convert XII into",
             "Then XII is equ",
+            "!-- Befor crypto",
+            "Then ",
+            "|from    |to  |",
+            "|DogeCoin|Euro|",
+            "|BitCoin |USD |",
+            " is equal to ",
+            "|DogeCoin|BitCoin  |",
+            "|0.089   |28,551.70|",
+            " after conversion",
+            "!-- After crypto",
             "Then the end is reached"
         ));
 
         List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(DOCUMENT_ID).collect(Collectors.toList());
-        assertThat(resolvedDefinitions, hasSize(6));
+        assertThat(resolvedDefinitions, hasSize(7));
         assertStepDefinition(resolvedDefinitions.get(0), 2, 1, List.of(15, 17));
         assertStepDefinition(resolvedDefinitions.get(1), 3, 2, List.of(5, 7, 20, 33));
         assertStepDefinition(resolvedDefinitions.get(2), 4, 0, List.of());
         assertStepDefinition(resolvedDefinitions.get(3), 5, 2, List.of(5, 20, 33, 36));
         assertStepDefinition(resolvedDefinitions.get(4), 6, 1, List.of(15, 18));
         assertStepDefinition(resolvedDefinitions.get(5), 7, 1, List.of(5, 8));
+        assertStepDefinition(resolvedDefinitions.get(6), 9, 2, List.of(5, 54, 67, 110));
     }
 
     @Test
