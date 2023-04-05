@@ -74,6 +74,7 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
     public Stream<ResolvedStepDefinition> resolveAtPosition(String documentIdentifier, Position position)
     {
         return findStep(textDocumentProvider.getTextDocument(documentIdentifier), position)
+                .getStep()
                 .stream()
                 .flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), false));
     }
@@ -99,17 +100,9 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
         do
         {
             String currentLine = document.get(searchIndex);
-            Optional<Step> outcome = findStep(document, new Position(searchIndex, currentLine.length()));
-            if (outcome.isPresent())
-            {
-                Step step = outcome.get();
-                steps.add(step);
-                searchIndex = step.getLineIndex() - 1;
-            }
-            else
-            {
-                searchIndex--;
-            }
+            FindResult result = findStep(document, new Position(searchIndex, currentLine.length()));
+            searchIndex = result.getNextPosition();
+            result.getStep().ifPresent(steps::add);
         }
         while (searchIndex > 0);
 
@@ -197,28 +190,24 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
                 outcome.getArgIndices(), definition);
     }
 
-    private static Optional<Step> findStep(List<String> document, Position position)
+    private static FindResult findStep(List<String> document, Position position)
     {
         int lineIndex = position.getLine();
         String line = document.get(lineIndex);
         if (isNotStep(line))
         {
-            return Optional.empty();
+            return FindResult.create(lineIndex, null);
         }
 
         String token = line.substring(0, position.getCharacter());
         Optional<StepType> type = StepType.detectSafely(token);
         if (type.isPresent())
         {
-            return Optional.of(new Step(lineIndex, type.get(), token));
+            Step step = new Step(lineIndex, type.get(), token);
+            return FindResult.create(lineIndex, step);
         }
 
-        return findStepHeadIndex(lineIndex, document).map(e ->
-        {
-            String multilineToken = document.subList(e.getValue(), lineIndex).stream()
-                    .collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator() + token));
-            return new Step(e.getValue(), e.getKey(), multilineToken);
-        });
+        return findStepHead(lineIndex, document, token);
     }
 
     private static boolean isNotStep(String line)
@@ -226,23 +215,53 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
         return STEP_BREAKERS.stream().anyMatch(line::startsWith);
     }
 
-    private static Optional<Entry<StepType, Integer>> findStepHeadIndex(int currentIndex, List<String> lines)
+    private static FindResult findStepHead(int currentIndex, List<String> lines, String ending)
     {
-        for (int index = lines.size() - 1; index >= 0; index--)
+        for (int index = currentIndex - 1; index >= 0; index--)
         {
             String line = lines.get(index);
             Optional<StepType> type = StepType.detectSafely(line);
-            if (type.isPresent() && currentIndex > index)
+            if (type.isPresent())
             {
-                return Optional.of(entry(type.get(), index));
+                String multilineToken = lines.subList(index, currentIndex).stream()
+                        .collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator() + ending));
+                Step step = new Step(index, type.get(), multilineToken);
+                return FindResult.create(index, step);
             }
 
             if (isNotStep(line))
             {
-                return Optional.empty();
+                return FindResult.create(currentIndex, null);
             }
         }
 
-        return Optional.empty();
+        return FindResult.create(currentIndex, null);
+    }
+
+    private static final class FindResult
+    {
+        private final int nextPosition;
+        private final Optional<Step> step;
+
+        private FindResult(int nextPosition, Optional<Step> step)
+        {
+            this.nextPosition = nextPosition;
+            this.step = step;
+        }
+
+        private int getNextPosition()
+        {
+            return nextPosition;
+        }
+
+        private Optional<Step> getStep()
+        {
+            return step;
+        }
+
+        private static FindResult create(int currentIndex, Step step)
+        {
+            return new FindResult(currentIndex - 1, Optional.ofNullable(step));
+        }
     }
 }
