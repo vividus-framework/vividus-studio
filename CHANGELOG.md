@@ -3,6 +3,10 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+* Fix invalid boundary resolving of composite steps in composite files
+
 ## [0.1.7] - 2023-04-05
 
 * (Fixes https://github.com/vividus-framework/vividus-studio/issues/406) Fix invalid multiline step highlighting when it's followed by a comment
