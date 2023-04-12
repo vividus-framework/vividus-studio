@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,16 +47,22 @@ import org.vividus.studio.plugin.model.ResolvedStepDefinition;
 import org.vividus.studio.plugin.model.Step;
 import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.model.StepType;
+import org.vividus.studio.plugin.util.ResourceUtils;
 
 @Singleton
 public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefinitionsProvider
 {
-    private static final List<String> STEP_BREAKERS = List.of(
-        "!--",
+    private static final String COMMENT = "!--";
+    private static final List<String> STORY_STEP_BREAKERS = List.of(
+        COMMENT,
         "Scenario:",
         "Meta:",
         "GivenStories:",
         "Examples:"
+    );
+    private static final List<String> COMPOSITE_STEP_BREAKERS = List.of(
+        COMMENT,
+        "Composite:"
     );
 
     private final List<StepDefinition> staticStepDefinitions = new ArrayList<>();
@@ -73,7 +80,8 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
 
     public Stream<ResolvedStepDefinition> resolveAtPosition(String documentIdentifier, Position position)
     {
-        return findStep(textDocumentProvider.getTextDocument(documentIdentifier), position)
+        return findStep(textDocumentProvider.getTextDocument(documentIdentifier),
+                getNotStepPredicate(documentIdentifier), position)
                 .getStep()
                 .stream()
                 .flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), false));
@@ -96,11 +104,12 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
 
         int searchIndex = document.size() - 1;
 
+        Predicate<String> notStepPredicate = getNotStepPredicate(documentIdentifier);
         List<Step> steps = new ArrayList<>(document.size());
         do
         {
             String currentLine = document.get(searchIndex);
-            FindResult result = findStep(document, new Position(searchIndex, currentLine.length()));
+            FindResult result = findStep(document, notStepPredicate, new Position(searchIndex, currentLine.length()));
             searchIndex = result.getNextPosition();
             result.getStep().ifPresent(steps::add);
         }
@@ -190,11 +199,11 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
                 outcome.getArgIndices(), definition);
     }
 
-    private static FindResult findStep(List<String> document, Position position)
+    private static FindResult findStep(List<String> document, Predicate<String> notStepPredicate, Position position)
     {
         int lineIndex = position.getLine();
         String line = document.get(lineIndex);
-        if (isNotStep(line))
+        if (notStepPredicate.test(line))
         {
             return FindResult.create(lineIndex, null);
         }
@@ -207,15 +216,18 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
             return FindResult.create(lineIndex, step);
         }
 
-        return findStepHead(lineIndex, document, token);
+        return findStepHead(lineIndex, document, notStepPredicate, token);
     }
 
-    private static boolean isNotStep(String line)
+    private static Predicate<String> getNotStepPredicate(String documentId)
     {
-        return STEP_BREAKERS.stream().anyMatch(line::startsWith);
+        List<String> stepBreakers = ResourceUtils.isCompositeFile(documentId) ? COMPOSITE_STEP_BREAKERS
+                : STORY_STEP_BREAKERS;
+        return line -> stepBreakers.stream().anyMatch(line::startsWith);
     }
 
-    private static FindResult findStepHead(int currentIndex, List<String> lines, String ending)
+    private static FindResult findStepHead(int currentIndex, List<String> lines, Predicate<String> notStepPredicate,
+            String ending)
     {
         for (int index = currentIndex - 1; index >= 0; index--)
         {
@@ -229,7 +241,7 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
                 return FindResult.create(index, step);
             }
 
-            if (isNotStep(line))
+            if (notStepPredicate.test(line))
             {
                 return FindResult.create(currentIndex, null);
             }
