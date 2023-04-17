@@ -22,7 +22,7 @@
         <checkstyle.plugin.version>3.2.1</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <slf4j.api.version>2.0.6</slf4j.api.version>
+        <slf4j.api.version>2.0.7</slf4j.api.version>
         <log4j.version>2.19.0</log4j.version>
     </properties>
 
