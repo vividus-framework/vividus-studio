@@ -276,7 +276,7 @@
     },
     "dependencies": {
         "glob": "^8.0.3",
-        "jdk-utils": "^0.4.4",
+        "jdk-utils": "^0.4.6",
         "vscode-languageclient": "^8.1.0"
     }
 }
