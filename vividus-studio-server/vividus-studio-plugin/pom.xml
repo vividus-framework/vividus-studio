@@ -18,7 +18,7 @@
         <junit.platform.version>1.9.3</junit.platform.version>
         <org.mockito.version>5.1.1</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <checkstyle.version>10.9.3</checkstyle.version>
+        <checkstyle.version>10.12.1</checkstyle.version>
         <checkstyle.plugin.version>3.2.1</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>2.2</hamcrest.version>
