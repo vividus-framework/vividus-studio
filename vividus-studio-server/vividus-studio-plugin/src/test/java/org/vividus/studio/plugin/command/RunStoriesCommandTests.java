@@ -39,6 +39,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IStreamsProxy;
 import org.eclipse.debug.internal.core.LaunchConfiguration;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,7 @@ class RunStoriesCommandTests
     @Mock private ClientNotificationService clientNotificationService;
     @Mock private LaunchConfigurationFactory launchConfigurationFactory;
     @Mock private IProject project;
+    @Mock private IJavaProject javaProject;
     private RunStoriesCommand command;
 
     @Test
@@ -61,7 +63,8 @@ class RunStoriesCommandTests
     {
         String projectName = "project-name";
         VividusStudioEnvronment configuration = new VividusStudioEnvronment();
-        configuration.setProject(project);
+        configuration.setJavaProject(javaProject);
+        when(javaProject.getProject()).thenReturn(project);
         when(project.getName()).thenReturn(projectName);
 
         LaunchConfiguration launchConfiguration = mock(LaunchConfiguration.class);

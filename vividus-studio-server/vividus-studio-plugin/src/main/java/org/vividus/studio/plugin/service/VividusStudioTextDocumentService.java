@@ -44,9 +44,13 @@ import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
+import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.factory.CodeActionFactory;
+import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.model.StepDefinition;
+import org.vividus.studio.plugin.util.RuntimeWrapper;
 
 @Singleton
 public class VividusStudioTextDocumentService implements TextDocumentService, VividusStudioService
@@ -58,17 +62,25 @@ public class VividusStudioTextDocumentService implements TextDocumentService, Vi
     private final SemanticTokensService semanticTokensService;
     private final CodeActionFactory codeActionFactory;
     private final StepDefinitionsProvider stepDefinitionsProvider;
+    private final ClientNotificationService clientNotificationService;
+    private final IJavaProjectLoader projectLoader;
+    private final VividusStudioEnvronment vividusStudioConfiguration;
 
     @Inject
     public VividusStudioTextDocumentService(ICompletionItemService completionItemService,
             Set<TextDocumentEventListener> textDocumentEventListeners, SemanticTokensService semanticTokensService,
-            CodeActionFactory codeActionFactory, StepDefinitionsProvider stepDefinitionsProvider)
+            CodeActionFactory codeActionFactory, StepDefinitionsProvider stepDefinitionsProvider,
+            ClientNotificationService clientNotificationService, IJavaProjectLoader projectLoader,
+            VividusStudioEnvronment vividusStudioConfiguration)
     {
         this.completionItemService = completionItemService;
         this.textDocumentEventListeners = textDocumentEventListeners;
         this.semanticTokensService = semanticTokensService;
         this.codeActionFactory = codeActionFactory;
         this.stepDefinitionsProvider = stepDefinitionsProvider;
+        this.clientNotificationService = clientNotificationService;
+        this.projectLoader = projectLoader;
+        this.vividusStudioConfiguration = vividusStudioConfiguration;
     }
 
     @Override
@@ -150,6 +162,21 @@ public class VividusStudioTextDocumentService implements TextDocumentService, Vi
         return CompletableFuture.supplyAsync(() -> stepDefinitionsProvider.getStepDefinitions()
                 .map(StepDefinition::getStepAsString)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public CompletableFuture<Void> refreshProject()
+    {
+        return clientNotificationService.createProgress().thenAccept(token -> RuntimeWrapper.wrap(() ->
+        {
+            clientNotificationService.startProgress(token, "Refresh", "Refreshing...");
+
+            projectLoader.reload(vividusStudioConfiguration.getProject(),
+                    msg -> clientNotificationService.progress(token, msg));
+            stepDefinitionsProvider.refresh();
+
+            clientNotificationService.endProgress(token, "Completed");
+        }, VividusStudioException::new));
     }
 
     private static final class TypingChecker

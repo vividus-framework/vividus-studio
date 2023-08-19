@@ -64,7 +64,6 @@ import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
 import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.exception.VividusStudioException;
-import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
@@ -84,7 +83,6 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private final WorkspaceService workspaceService;
     private final IJavaProjectLoader projectLoader;
     private final IWorkspace workspace;
-    private final IStepDefinitionFinder stepDefinitionFinder;
     private final JVMConfigurator jvmConfigurator;
     private final ClientNotificationService clientNotificationService;
     private final VividusStudioEnvronment vividusStudioConfiguration;
@@ -99,7 +97,6 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             WorkspaceService workspaceService,
             IJavaProjectLoader projectLoader,
             IWorkspace workspace,
-            IStepDefinitionFinder stepDefinitionFinder,
             JVMConfigurator jvmConfigurator,
             ClientNotificationService clientNotificationService,
             VividusStudioEnvronment vividusStudioConfiguration,
@@ -110,7 +107,6 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         this.workspaceService = workspaceService;
         this.projectLoader = projectLoader;
         this.workspace = workspace;
-        this.stepDefinitionFinder = stepDefinitionFinder;
         this.jvmConfigurator = jvmConfigurator;
         this.clientNotificationService = clientNotificationService;
         this.vividusStudioConfiguration = vividusStudioConfiguration;
@@ -155,11 +151,11 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
                             format("Project file by path '%s' is corrupted", p)),
                     Event.INFO, msg -> clientNotificationService.progress(token, msg)));
 
-            javaProject.map(jp -> wrapMono(() -> stepDefinitionFinder.find(jp), VividusStudioException::new))
-                       .ifPresent(stepDefinitionResolver::refresh);
-
-            javaProject.map(IJavaProject::getProject)
-                       .ifPresent(vividusStudioConfiguration::setProject);
+            javaProject.ifPresent(jp ->
+            {
+                vividusStudioConfiguration.setJavaProject(jp);
+                stepDefinitionResolver.refresh();
+            });
 
             wrap(jvmConfigurator::configureDefaultJvm, VividusStudioException::new);
 

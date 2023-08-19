@@ -22,6 +22,10 @@ package org.vividus.studio.plugin.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -31,10 +35,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionParams;
 import org.eclipse.lsp4j.Command;
@@ -57,11 +64,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.document.TextDocumentEventListener;
 import org.vividus.studio.plugin.factory.CodeActionFactory;
+import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.model.StepDefinition;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,13 +84,17 @@ class VividusStudioTextDocumentServiceTests
     @Mock private SemanticTokensService semanticTokensService;
     @Mock private CodeActionFactory codeActionFactory;
     @Mock private StepDefinitionsProvider stepDefinitionsProvider;
+    @Mock private ClientNotificationService clientNotificationService;
+    @Mock private IJavaProjectLoader projectLoader;
+    @Mock private VividusStudioEnvronment vividusStudioConfiguration;
     @InjectMocks private VividusStudioTextDocumentService textDocumentService;
 
     @BeforeEach
     void init()
     {
         this.textDocumentService = new VividusStudioTextDocumentService(completionItemService,
-                Set.of(textDocumentEventListener), semanticTokensService, codeActionFactory, stepDefinitionsProvider);
+                Set.of(textDocumentEventListener), semanticTokensService, codeActionFactory, stepDefinitionsProvider,
+                clientNotificationService, projectLoader, vividusStudioConfiguration);
     }
 
     @Test
@@ -218,6 +232,31 @@ class VividusStudioTextDocumentServiceTests
         List<String> steps = textDocumentService.getSteps().get();
 
         assertEquals(List.of(stepAsString), steps);
+    }
+
+    @Test
+    void shouldRefreshProject() throws Exception
+    {
+        Either<String, Integer> token = Either.forLeft("token");
+        when(clientNotificationService.createProgress()).thenReturn(CompletableFuture.completedFuture(token));
+        IProject project = mock();
+        when(vividusStudioConfiguration.getProject()).thenReturn(project);
+        String message = "message";
+        doAnswer(a ->
+        {
+            Consumer<String> messageConsumer = a.getArgument(1);
+            messageConsumer.accept(message);
+            return null;
+        }).when(projectLoader).reload(eq(project), any());
+        InOrder order = inOrder(clientNotificationService, projectLoader, stepDefinitionsProvider);
+
+        textDocumentService.refreshProject().get();
+
+        order.verify(clientNotificationService).startProgress(token, "Refresh", "Refreshing...");
+        order.verify(projectLoader).reload(eq(project), any());
+        order.verify(clientNotificationService).progress(token, message);
+        order.verify(stepDefinitionsProvider).refresh();
+        order.verify(clientNotificationService).endProgress(token, "Completed");
     }
 
     private static DidChangeTextDocumentParams mockDidChange(String text, int character)

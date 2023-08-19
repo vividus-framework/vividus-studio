@@ -23,11 +23,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 
 public interface IJavaProjectLoader
 {
     Optional<IJavaProject> load(String uri, Map<Event, Consumer<String>> handlers);
+
+    void reload(IProject project, Consumer<String> messageConsumer) throws Exception;
 
     enum Event
     {

@@ -25,12 +25,15 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +44,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.document.TextDocumentProvider;
+import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.model.Parameter;
 import org.vividus.studio.plugin.model.ResolvedStepDefinition;
 import org.vividus.studio.plugin.model.StepDefinition;
@@ -55,6 +60,8 @@ class StepDefinitionResolverTests
     private static final String MODULE = "module";
 
     @Mock private TextDocumentProvider textDocumentProvider;
+    @Mock private IStepDefinitionFinder stepDefinitionFinder;
+    @Mock private VividusStudioEnvronment vividusStudioConfiguration;
     @InjectMocks private StepDefinitionResolver resolver;
 
     @BeforeEach
@@ -158,6 +165,35 @@ class StepDefinitionResolverTests
         assertThat(resolvedDefinitions, hasSize(2));
         assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
         assertEquals("Given dynamic step definition three", resolvedDefinitions.get(1).getStepAsString());
+    }
+
+    @Test
+    void shouldRefresh() throws IOException
+    {
+        when(textDocumentProvider.getTextDocument(STORY_DOCUMENT_ID)).thenReturn(List.of(
+            "Scenario: Static steps",
+            "Given static step definition 1",
+            "Given static step definition 2"
+        ));
+
+        StepDefinition staticStepDefOne = new StepDefinition(MODULE, "Given static step definition 1", DOCS,
+                List.of(), List.of("Given static step definition 1"));
+        resolver.refresh(List.of(staticStepDefOne));
+
+        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(1));
+        assertEquals("Given static step definition 1", resolvedDefinitions.get(0).getStepAsString());
+
+        IJavaProject javaProject = mock();
+        when(vividusStudioConfiguration.getJavaProject()).thenReturn(javaProject);
+        StepDefinition staticStepDefTwo = new StepDefinition(MODULE, "Given static step definition 2", DOCS,
+                List.of(), List.of("Given static step definition 2"));
+        when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of(staticStepDefTwo));
+        resolver.refresh();
+
+        resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, hasSize(1));
+        assertEquals("Given static step definition 2", resolvedDefinitions.get(0).getStepAsString());
     }
 
     @Test

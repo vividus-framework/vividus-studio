@@ -41,6 +41,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProgressListener;
 import org.vividus.studio.plugin.exception.VividusStudioException;
@@ -89,6 +90,19 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
             ofNullable(handlers.get(Event.LOADED)).ifPresent(c -> c.accept(description.getName()));
             return Optional.of(projectTransformer.apply(project));
         }, VividusStudioException::new);
+    }
+
+    @SuppressWarnings("restriction")
+    public void reload(IProject project, Consumer<String> messageConsumer) throws Exception
+    {
+        JavaModelManager.PerProjectInfo perProjectInfo = JavaModelManager.getJavaModelManager()
+                .getPerProjectInfo(project, true);
+        perProjectInfo.setRawClasspath(null, null, null);
+        perProjectInfo.resetResolvedClasspath();
+        perProjectInfo.forgetExternalTimestampsAndIndexes();
+
+        build(project.getLocation().toFile(), Optional.of(messageConsumer));
+        project.refreshLocal(IResource.DEPTH_INFINITE, null);
     }
 
     private static void build(File projectFolder, Optional<Consumer<String>> messageConsumer) throws Exception

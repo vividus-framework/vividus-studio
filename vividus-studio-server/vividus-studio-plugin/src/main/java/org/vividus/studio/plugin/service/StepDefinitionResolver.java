@@ -20,6 +20,7 @@
 package org.vividus.studio.plugin.service;
 
 import static java.util.Map.entry;
+import static org.vividus.studio.plugin.util.RuntimeWrapper.wrapMono;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,7 +41,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.eclipse.lsp4j.Position;
+import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.document.TextDocumentProvider;
+import org.vividus.studio.plugin.exception.VividusStudioException;
+import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.match.TokenMatcher;
 import org.vividus.studio.plugin.match.TokenMatcher.MatchOutcome;
 import org.vividus.studio.plugin.model.ResolvedStepDefinition;
@@ -71,11 +75,16 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
     private Supplier<Map<StepType, List<StepDefinition>>> groupedStepDefinitions;
 
     private final TextDocumentProvider textDocumentProvider;
+    private final IStepDefinitionFinder stepDefinitionFinder;
+    private final VividusStudioEnvronment vividusStudioConfiguration;
 
     @Inject
-    public StepDefinitionResolver(TextDocumentProvider textDocumentProvider)
+    public StepDefinitionResolver(TextDocumentProvider textDocumentProvider, IStepDefinitionFinder stepDefinitionFinder,
+            VividusStudioEnvronment vividusStudioConfiguration)
     {
         this.textDocumentProvider = textDocumentProvider;
+        this.stepDefinitionFinder = stepDefinitionFinder;
+        this.vividusStudioConfiguration = vividusStudioConfiguration;
     }
 
     public Stream<ResolvedStepDefinition> resolveAtPosition(String documentIdentifier, Position position)
@@ -118,6 +127,18 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
         Collections.reverse(steps);
 
         return steps.stream().flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), true));
+    }
+
+    @Override
+    public void refresh()
+    {
+        Collection<StepDefinition> stepDefinitions = wrapMono(
+                () -> stepDefinitionFinder.find(vividusStudioConfiguration.getJavaProject()),
+                VividusStudioException::new);
+
+        this.staticStepDefinitions.clear();
+
+        refresh(stepDefinitions);
     }
 
     @Override

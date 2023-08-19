@@ -30,4 +30,7 @@ public interface VividusStudioService
 {
     @JsonRequest
     CompletableFuture<List<String>> getSteps();
+
+    @JsonRequest
+    CompletableFuture<Void> refreshProject();
 }

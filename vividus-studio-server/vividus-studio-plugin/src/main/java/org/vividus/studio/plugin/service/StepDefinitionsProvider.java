@@ -19,6 +19,7 @@
 
 package org.vividus.studio.plugin.service;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.vividus.studio.plugin.model.StepDefinition;
@@ -26,4 +27,8 @@ import org.vividus.studio.plugin.model.StepDefinition;
 public interface StepDefinitionsProvider
 {
     Stream<StepDefinition> getStepDefinitions();
+
+    void refresh();
+
+    void refresh(Collection<StepDefinition> stepDefinitions);
 }
