@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 - 2021 the original author or authors.
+ * Copyright (C) 2020 - 2023 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,27 @@
 
 package org.vividus.studio.plugin.configuration;
 
-import com.google.inject.Singleton;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
+import org.junit.jupiter.api.Test;
 
-@Singleton
-public class VividusStudioEnvronment
+class VividusStudioEnvronmentTests
 {
-    private IJavaProject javaProject;
-
-    public IJavaProject getJavaProject()
+    @Test
+    void shouldReturnProject()
     {
-        return javaProject;
-    }
+        IJavaProject javaProject = mock();
+        IProject project = mock();
+        when(javaProject.getProject()).thenReturn(project);
 
-    public void setJavaProject(IJavaProject javaProject)
-    {
-        this.javaProject = javaProject;
-    }
+        VividusStudioEnvronment envronment = new VividusStudioEnvronment();
+        envronment.setJavaProject(javaProject);
 
-    public IProject getProject()
-    {
-        return javaProject.getProject();
+        assertEquals(javaProject, envronment.getJavaProject());
+        assertEquals(project, envronment.getProject());
     }
 }

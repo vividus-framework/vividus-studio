@@ -43,7 +43,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CodeActionKind;
@@ -67,11 +66,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
 import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
-import org.vividus.studio.plugin.finder.IStepDefinitionFinder;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
-import org.vividus.studio.plugin.model.StepDefinition;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
 
@@ -81,7 +78,6 @@ class VividusStudioLanguageServerTests
     private static final String COMMAND = "test-command";
 
     @Mock private StepDefinitionResolver stepDefinitionResolver;
-    @Mock private IStepDefinitionFinder stepDefinitionFinder;
     @Mock private IJavaProjectLoader projectLoader;
     @Mock private JVMConfigurator jvmConfigurator;
     @Mock private ClientNotificationService clientNotificationService;
@@ -97,8 +93,7 @@ class VividusStudioLanguageServerTests
         lenient().when(command.getName()).thenReturn(COMMAND);
 
         languageServer = new VividusStudioLanguageServer(null, stepDefinitionResolver, workspaceService, projectLoader,
-                null, stepDefinitionFinder, jvmConfigurator, clientNotificationService, vividusStudioConfiguration,
-                Set.of(command));
+                null, jvmConfigurator, clientNotificationService, vividusStudioConfiguration, Set.of(command));
     }
 
     @Test
@@ -106,8 +101,7 @@ class VividusStudioLanguageServerTests
     {
         InitializeParams params = mock(InitializeParams.class);
         String rootUri = "root uri";
-        IJavaProject javaProject = mockJavaProject();
-        StepDefinition stepDefinition = mock(StepDefinition.class);
+        IJavaProject javaProject = mock(IJavaProject.class);
         Either<String, Integer> token = Either.forLeft("token");
 
         when(params.getWorkDoneToken()).thenReturn(token);
@@ -118,7 +112,6 @@ class VividusStudioLanguageServerTests
             infoConsumer.accept(info);
             return true;
         }))).thenReturn(Optional.of(javaProject));
-        when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of(stepDefinition));
 
         InOrder notificationServiceOrder = inOrder(clientNotificationService);
 
@@ -127,9 +120,9 @@ class VividusStudioLanguageServerTests
         ServerCapabilities serverCapabilities = result.getCapabilities();
         List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of(), triggers);
-        verify(stepDefinitionResolver).refresh(List.of(stepDefinition));
         verify(jvmConfigurator).configureDefaultJvm();
-        verify(vividusStudioConfiguration).setProject(javaProject.getProject());
+        verify(vividusStudioConfiguration).setJavaProject(javaProject);
+        verify(stepDefinitionResolver).refresh();
         assertEquals(List.of(COMMAND), serverCapabilities.getExecuteCommandProvider().getCommands());
 
         notificationServiceOrder.verify(clientNotificationService).startProgress(token, "Initialization",
@@ -172,13 +165,5 @@ class VividusStudioLanguageServerTests
             verify(clientNotificationService).showInfo("Welcome to the VIVIDUS Studio");
             verify(appender).setClientNotificationService(clientNotificationService);
         }
-    }
-
-    private IJavaProject mockJavaProject()
-    {
-        IJavaProject javaProject = mock(IJavaProject.class);
-        IProject project = mock(IProject.class);
-        when(javaProject.getProject()).thenReturn(project);
-        return javaProject;
     }
 }

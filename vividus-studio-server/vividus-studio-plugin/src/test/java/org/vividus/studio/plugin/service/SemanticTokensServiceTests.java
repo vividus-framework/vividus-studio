@@ -58,7 +58,7 @@ class SemanticTokensServiceTests
                 List.of("Then ", " is equal to ", " after conversion"));
         StepDefinition unboundArgStepDefinition = new StepDefinition(MODULE, "When I initialize variable to $data",
                 DOCS, List.of(new Parameter(1, "$data", 59)), List.of("When I initialize variable to ", ""));
-        resolver = new StepDefinitionResolver(textDocumentProvider);
+        resolver = new StepDefinitionResolver(textDocumentProvider, null, null);
         resolver.refresh(
                 List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition, unboundArgStepDefinition));
     }

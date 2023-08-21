@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.function.FailableRunnable;
 import org.eclipse.buildship.core.GradleBuild;
 import org.eclipse.buildship.core.GradleCore;
 import org.eclipse.buildship.core.GradleWorkspace;
@@ -44,9 +45,12 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
 import org.junit.jupiter.api.Test;
@@ -56,6 +60,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
+import org.vividus.studio.plugin.util.ResourceUtils;
 
 @ExtendWith(MockitoExtension.class)
 class LocalJavaProjectLoaderTests
@@ -80,11 +85,13 @@ class LocalJavaProjectLoaderTests
 
         Map<Event, Consumer<String>> events = mockEvents();
 
-        Optional<IJavaProject> loaded = doLoad(getProjectFolder(), events);
-
-        assertTrue(loaded.isPresent());
-        IJavaProject output = loaded.get();
-        assertEquals(javaProject, output);
+        mockGradlelBuild(() ->
+        {
+            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), events);
+            assertTrue(loaded.isPresent());
+            IJavaProject output = loaded.get();
+            assertEquals(javaProject, output);
+        });
 
         verify(events.get(Event.LOADED)).accept(PROJECT_NAME);
         verify(project).create(projectDescription, IResource.HIDDEN, null);
@@ -102,16 +109,45 @@ class LocalJavaProjectLoaderTests
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(false);
 
         Map<Event, Consumer<String>> events = mockEvents();
-        Optional<IJavaProject> loaded = doLoad(getProjectFolder(), events);
 
-        assertTrue(loaded.isEmpty());
+        mockGradlelBuild(() ->
+        {
+            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), events);
+            assertTrue(loaded.isEmpty());
+        });
 
         verify(events.get(Event.CORRUPTED)).accept(getProjectFile());
         verify(project).open(null);
         verifyNoMoreInteractions(events.get(Event.LOADED), workspace, projectTransformer, project);
     }
 
-    private Optional<IJavaProject> doLoad(String uri, Map<Event, Consumer<String>> handlers) throws Exception
+    @SuppressWarnings("restriction")
+    @Test
+    void shouldReloadProject() throws Exception
+    {
+        IProject project = mock();
+        IPath path = mock();
+        when(project.getLocation()).thenReturn(path);
+        when(path.toFile()).thenReturn(ResourceUtils.asFile(getProjectFolder()));
+        JavaModelManager javaModelManager = mock();
+
+        try (MockedStatic<JavaModelManager> javaModelManagerMocked = mockStatic(JavaModelManager.class))
+        {
+            javaModelManagerMocked.when(() -> JavaModelManager.getJavaModelManager()).thenReturn(javaModelManager);
+            PerProjectInfo info = mock();
+            when(javaModelManager.getPerProjectInfo(project, true)).thenReturn(info);
+            Consumer<String> event = mock();
+
+            mockGradlelBuild(() -> projectLoader.reload(project, event));
+
+            verify(info).setRawClasspath(null, null, null);
+            verify(info).resetResolvedClasspath();
+            verify(info).forgetExternalTimestampsAndIndexes();
+            verify(project).refreshLocal(IResource.DEPTH_INFINITE, null);
+        }
+    }
+
+    private void mockGradlelBuild(FailableRunnable<Exception> run) throws Exception
     {
         try (MockedStatic<GradleCore> gradleCore = mockStatic(GradleCore.class))
         {
@@ -130,11 +166,9 @@ class LocalJavaProjectLoaderTests
             when(projectConnection.newBuild()).thenReturn(buildLauncher);
             when(buildLauncher.forTasks("eclipse")).thenReturn(buildLauncher);
 
-            Optional<IJavaProject> loaded = projectLoader.load(uri, handlers);
+            run.run();
 
             verify(buildLauncher).run();
-
-            return loaded;
         }
     }
 

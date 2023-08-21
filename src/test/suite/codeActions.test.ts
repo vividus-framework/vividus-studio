@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 
-import { commands, Position, QuickPickItem, window, workspace } from 'vscode'
+import { commands, FileSystemWatcher, Position, QuickPickItem, StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode'
 import { LanguageClient } from 'vscode-languageclient/node';
-import { InsertStepParameters, registerInsertStepCommand } from '../../lib/codeActions'
+import { InsertStepParameters, registerInsertStepCommand, registerRefreshProjectCommand } from '../../lib/codeActions'
 
 suite('Code Actions', () => {
 
@@ -35,5 +35,38 @@ suite('Code Actions', () => {
             title: 'Insert step'
         }))
         assert.equal(true, workspaceStub.calledOnce)
+    })
+
+    test('Refresh Project', async () => {
+        const showStub: sinon.SinonStub = sinon.stub()
+        const hideStub: sinon.SinonStub = sinon.stub()
+
+        let refreshBar = <StatusBarItem>{};
+        refreshBar.show = showStub;
+        refreshBar.hide = hideStub;
+
+        const createStatusBarStub: sinon.SinonStub = sinon.stub(window, 'createStatusBarItem').returns(refreshBar)
+
+        const gradleWatcherStub: FileSystemWatcher = <FileSystemWatcher>{
+            onDidChange: (uri) => {}
+        };
+        // refresh bar show is not covered by this unit test
+        const createFileSystemWatcherStub: sinon.SinonStub = sinon.stub(workspace, 'createFileSystemWatcher').returns(gradleWatcherStub);
+        
+        const sendRequestStub: sinon.SinonStub = sinon.stub()
+
+        const languageClient: LanguageClient = sinon.createStubInstance(LanguageClient, {
+            sendRequest: Promise.resolve([sendRequestStub])
+        })
+
+        registerRefreshProjectCommand(languageClient)
+
+        await commands.executeCommand('vividus.action.refreshProject')
+
+        assert.equal('vividus.action.refreshProject', refreshBar.command)
+        assert.equal('$(refresh) Re-build VIVIDUS project', refreshBar.text)
+        assert.equal(true, createStatusBarStub.calledOnceWith(StatusBarAlignment.Right, 100))
+        assert.equal(true, hideStub.calledOnce)
+        assert.equal(true, createFileSystemWatcherStub.calledOnceWith('**/*.gradle', true, false, true))
     })
 })

@@ -3,10 +3,10 @@ import { AddressInfo, createServer } from 'net';
 import { launch, Application } from './lib/equinox';
 import { findJavaExecutable } from './lib/utils';
 import { LanguageClient, StreamInfo } from "vscode-languageclient/node";
-import { LanguageClientOptions, CompletionClientCapabilities, CompletionItemKind } from 'vscode-languageclient';
+import { LanguageClientOptions, CompletionClientCapabilities, CompletionItemKind, Disposable } from 'vscode-languageclient';
 import { IJavaRuntime } from 'jdk-utils';
 import { resolve } from 'path';
-import { registerInsertStepCommand } from './lib/codeActions';
+import { registerInsertStepCommand, registerRefreshProjectCommand } from './lib/codeActions';
 
 let client: LanguageClient;
 
@@ -48,7 +48,10 @@ export function activate(context: ExtensionContext) {
 
     client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
 
-    registerInsertStepCommand(client)
+    const disposables: Disposable[] = context.subscriptions;
+
+    disposables.push(registerInsertStepCommand(client));
+    disposables.push(...registerRefreshProjectCommand(client) as Disposable[]);
 
     client.start()
 }
