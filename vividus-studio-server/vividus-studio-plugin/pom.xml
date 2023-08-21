@@ -14,8 +14,6 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <junit.platform.version>1.9.3</junit.platform.version>
         <org.mockito.version>5.4.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <checkstyle.version>10.12.2</checkstyle.version>
@@ -30,13 +28,11 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-commons</artifactId>
-            <version>${junit.platform.version}</version>
         </dependency>
         <dependency>
             <groupId>net.bytebuddy</groupId>
@@ -90,8 +86,15 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.9.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
-    </dependencyManagement>  
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -279,17 +282,14 @@
                         <artifactItem>
                             <groupId>org.junit.jupiter</groupId>
                             <artifactId>junit-jupiter-api</artifactId>
-                            <version>${junit.jupiter.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.junit.jupiter</groupId>
                             <artifactId>junit-jupiter-params</artifactId>
-                            <version>${junit.jupiter.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.junit.platform</groupId>
                             <artifactId>junit-platform-commons</artifactId>
-                            <version>${junit.platform.version}</version>
                         </artifactItem>
                         <artifactItem>
                             <groupId>org.mockito</groupId>
