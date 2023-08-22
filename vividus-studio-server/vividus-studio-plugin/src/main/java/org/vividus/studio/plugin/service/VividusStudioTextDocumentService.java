@@ -172,7 +172,7 @@ public class VividusStudioTextDocumentService implements TextDocumentService, Vi
             clientNotificationService.startProgress(token, "Refresh", "Refreshing...");
 
             projectLoader.reload(vividusStudioConfiguration.getProject(),
-                    msg -> clientNotificationService.progress(token, msg));
+                    msg -> clientNotificationService.progress(token, msg), clientNotificationService::showError);
             stepDefinitionsProvider.refresh();
 
             clientNotificationService.endProgress(token, "Completed");

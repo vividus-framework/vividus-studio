@@ -19,7 +19,6 @@
 
 package org.vividus.studio.plugin.loader;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -28,9 +27,9 @@ import org.eclipse.jdt.core.IJavaProject;
 
 public interface IJavaProjectLoader
 {
-    Optional<IJavaProject> load(String uri, Map<Event, Consumer<String>> handlers);
+    Optional<IJavaProject> load(String uri, Consumer<String> onInfo, Consumer<String> onLoad, Consumer<String> onError);
 
-    void reload(IProject project, Consumer<String> messageConsumer) throws Exception;
+    void reload(IProject project, Consumer<String> onInfo, Consumer<String> onError) throws Exception;
 
     enum Event
     {

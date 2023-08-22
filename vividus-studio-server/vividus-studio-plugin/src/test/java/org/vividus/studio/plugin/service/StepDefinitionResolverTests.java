@@ -287,6 +287,23 @@ class StepDefinitionResolverTests
         assertThat(stepDefinitions, hasSize(4));
     }
 
+    @Test
+    void shouldReturnEmptyDefinitionsIfUnableToResolveDefinitionForGivenStepByItsType() throws IOException
+    {
+        when(textDocumentProvider.getTextDocument(STORY_DOCUMENT_ID)).thenReturn(List.of(
+            "Scenario: Unable to resolve",
+            "Given step"
+        ));
+
+        IJavaProject javaProject = mock();
+        when(vividusStudioConfiguration.getJavaProject()).thenReturn(javaProject);
+        when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of());
+        resolver.refresh();
+
+        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        assertThat(resolvedDefinitions, is(empty()));
+    }
+
     private static void assertStepDefinition(ResolvedStepDefinition resolved, int lineIndex, int tokenIndex,
             List<Integer> argIndices)
     {
