@@ -32,6 +32,7 @@ import com.google.inject.Singleton;
 import org.eclipse.buildship.core.BuildConfiguration;
 import org.eclipse.buildship.core.GradleBuild;
 import org.eclipse.buildship.core.GradleCore;
+import org.eclipse.buildship.core.GradleDistribution;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -109,6 +110,8 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     private static void build(File projectFolder, Consumer<String> onInfo, Consumer<String> onError) throws Exception
     {
         BuildConfiguration config = BuildConfiguration.forRootProjectDirectory(projectFolder)
+                                                      .overrideWorkspaceConfiguration(true)
+                                                      .gradleDistribution(GradleDistribution.forVersion("8.3"))
                                                       .build();
 
         GradleBuild build = GradleCore.getWorkspace().createBuild(config);
