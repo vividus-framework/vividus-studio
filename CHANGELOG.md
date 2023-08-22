@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Add ability to refresh project after changes in dependencies
 * Show notifications on errors encountered during project build process
-* Bump Gradle Wrapper version to 8.3
+* Bump version of Gradle used to build projects to 8.3
 
 ## [0.1.8] - 2023-04-12
 
