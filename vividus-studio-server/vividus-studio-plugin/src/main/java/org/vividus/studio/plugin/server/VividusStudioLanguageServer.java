@@ -19,7 +19,6 @@
 
 package org.vividus.studio.plugin.server;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static org.vividus.studio.plugin.util.RuntimeWrapper.wrap;
@@ -28,7 +27,6 @@ import static org.vividus.studio.plugin.util.RuntimeWrapper.wrapMono;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -65,7 +63,6 @@ import org.vividus.studio.plugin.configuration.JVMConfigurator;
 import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
-import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
@@ -144,12 +141,10 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             codeActionOptions.setResolveProvider(true);
             capabilities.setCodeActionProvider(codeActionOptions);
 
-            Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(), Map.of(
-                    Event.LOADED, n -> clientNotificationService.showInfo(
-                            format("Project with the name '%s' is loaded", n)),
-                    Event.CORRUPTED, p -> clientNotificationService.showError(
-                            format("Project file by path '%s' is corrupted", p)),
-                    Event.INFO, msg -> clientNotificationService.progress(token, msg)));
+            Optional<IJavaProject> javaProject = projectLoader.load(params.getRootUri(),
+                    msg -> clientNotificationService.progress(token, msg),
+                    clientNotificationService::showInfo,
+                    clientNotificationService::showError);
 
             javaProject.ifPresent(jp ->
             {

@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
@@ -67,7 +66,6 @@ import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
 import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
-import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
@@ -107,9 +105,19 @@ class VividusStudioLanguageServerTests
         when(params.getWorkDoneToken()).thenReturn(token);
         when(params.getRootUri()).thenReturn(rootUri);
         String info = "info";
-        when(projectLoader.load(eq(rootUri), argThat(events -> {
-            Consumer<String> infoConsumer = events.get(Event.INFO);
-            infoConsumer.accept(info);
+        String load = "load";
+        String error = "error";
+        when(projectLoader.load(eq(rootUri), argThat(onInfo ->
+        {
+            onInfo.accept(info);
+            return true;
+        }), argThat(onLoad ->
+        {
+            onLoad.accept(load);
+            return true;
+        }), argThat(onError ->
+        {
+            onError.accept(error);
             return true;
         }))).thenReturn(Optional.of(javaProject));
 
@@ -128,6 +136,8 @@ class VividusStudioLanguageServerTests
         notificationServiceOrder.verify(clientNotificationService).startProgress(token, "Initialization",
                 "Initialize project");
         notificationServiceOrder.verify(clientNotificationService).progress(token, info);
+        notificationServiceOrder.verify(clientNotificationService).showInfo(load);
+        notificationServiceOrder.verify(clientNotificationService).showError(error);
         notificationServiceOrder.verify(clientNotificationService).endProgress(token, "Completed");
 
         CodeActionOptions codeActionOptions = serverCapabilities.getCodeActionProvider().getRight();

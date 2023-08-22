@@ -247,13 +247,13 @@ class VividusStudioTextDocumentServiceTests
             Consumer<String> messageConsumer = a.getArgument(1);
             messageConsumer.accept(message);
             return null;
-        }).when(projectLoader).reload(eq(project), any());
+        }).when(projectLoader).reload(eq(project), any(), any());
         InOrder order = inOrder(clientNotificationService, projectLoader, stepDefinitionsProvider);
 
         textDocumentService.refreshProject().get();
 
         order.verify(clientNotificationService).startProgress(token, "Refresh", "Refreshing...");
-        order.verify(projectLoader).reload(eq(project), any());
+        order.verify(projectLoader).reload(eq(project), any(), any());
         order.verify(clientNotificationService).progress(token, message);
         order.verify(stepDefinitionsProvider).refresh();
         order.verify(clientNotificationService).endProgress(token, "Completed");

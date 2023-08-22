@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 * Add ability to refresh project after changes in dependencies
+* Show notifications on errors encountered during project build process
 
 ## [0.1.8] - 2023-04-12
 

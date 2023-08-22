@@ -22,6 +22,7 @@ package org.vividus.studio.plugin.loader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -29,12 +30,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableRunnable;
 import org.eclipse.buildship.core.GradleBuild;
 import org.eclipse.buildship.core.GradleCore;
@@ -52,6 +55,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.ProgressEvent;
+import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ProjectConnection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +64,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.vividus.studio.plugin.loader.IJavaProjectLoader.Event;
 import org.vividus.studio.plugin.util.ResourceUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +71,7 @@ class LocalJavaProjectLoaderTests
 {
     private static final String PROJECT_NAME = "projectName";
     private static final String PROJECT = ".project";
+    private static final String INFO = "info message";
 
     @Mock private IWorkspace workspace;
     @Mock private Function<IProject, IJavaProject> projectTransformer;
@@ -83,20 +88,23 @@ class LocalJavaProjectLoaderTests
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(true);
         when(projectTransformer.apply(project)).thenReturn(javaProject);
 
-        Map<Event, Consumer<String>> events = mockEvents();
+        Consumer<String> onInfo = mock();
+        Consumer<String> onLoad = mock();
+        Consumer<String> onError = mock();
 
         mockGradlelBuild(() ->
         {
-            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), events);
+            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
             assertTrue(loaded.isPresent());
             IJavaProject output = loaded.get();
             assertEquals(javaProject, output);
-        });
+        }, StringUtils.EMPTY);
 
-        verify(events.get(Event.LOADED)).accept(PROJECT_NAME);
+        verify(onInfo).accept(INFO);
+        verify(onLoad).accept(String.format("Project with the name '%s' is loaded", PROJECT_NAME));
         verify(project).create(projectDescription, IResource.HIDDEN, null);
         verify(project).open(null);
-        verifyNoMoreInteractions(events.get(Event.CORRUPTED), workspace, projectTransformer, project);
+        verifyNoMoreInteractions(onError, workspace, projectTransformer, project);
     }
 
     @Test
@@ -108,17 +116,20 @@ class LocalJavaProjectLoaderTests
         when(project.exists()).thenReturn(true);
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(false);
 
-        Map<Event, Consumer<String>> events = mockEvents();
+        Consumer<String> onInfo = mock();
+        Consumer<String> onLoad = mock();
+        Consumer<String> onError = mock();
 
         mockGradlelBuild(() ->
         {
-            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), events);
+            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
             assertTrue(loaded.isEmpty());
-        });
+        }, StringUtils.EMPTY);
 
-        verify(events.get(Event.CORRUPTED)).accept(getProjectFile());
+        verify(onInfo).accept(INFO);
+        verify(onError).accept(String.format("Project file by path '%s' is corrupted", getProjectFile()));
         verify(project).open(null);
-        verifyNoMoreInteractions(events.get(Event.LOADED), workspace, projectTransformer, project);
+        verifyNoMoreInteractions(onLoad, workspace, projectTransformer, project);
     }
 
     @SuppressWarnings("restriction")
@@ -136,18 +147,23 @@ class LocalJavaProjectLoaderTests
             javaModelManagerMocked.when(() -> JavaModelManager.getJavaModelManager()).thenReturn(javaModelManager);
             PerProjectInfo info = mock();
             when(javaModelManager.getPerProjectInfo(project, true)).thenReturn(info);
-            Consumer<String> event = mock();
 
-            mockGradlelBuild(() -> projectLoader.reload(project, event));
+            Consumer<String> onInfo = mock();
+            Consumer<String> onError = mock();
 
+            String unresolvedDependency = "Could not resolve: org.vividus:vividus-plugin-web-app:7.7.7";
+            mockGradlelBuild(() -> projectLoader.reload(project, onInfo, onError), unresolvedDependency);
+
+            verify(onInfo).accept(INFO);
             verify(info).setRawClasspath(null, null, null);
             verify(info).resetResolvedClasspath();
             verify(info).forgetExternalTimestampsAndIndexes();
             verify(project).refreshLocal(IResource.DEPTH_INFINITE, null);
+            verify(onError).accept(unresolvedDependency);
         }
     }
 
-    private void mockGradlelBuild(FailableRunnable<Exception> run) throws Exception
+    private void mockGradlelBuild(FailableRunnable<Exception> run, String outputs) throws Exception
     {
         try (MockedStatic<GradleCore> gradleCore = mockStatic(GradleCore.class))
         {
@@ -165,6 +181,18 @@ class LocalJavaProjectLoaderTests
             }).when(gradleBuild).withConnection(any(), any());
             when(projectConnection.newBuild()).thenReturn(buildLauncher);
             when(buildLauncher.forTasks("eclipse")).thenReturn(buildLauncher);
+            when(buildLauncher.setStandardOutput(argThat(os ->
+            {
+                ByteArrayOutputStream baos = (ByteArrayOutputStream) os;
+                baos.writeBytes(outputs.getBytes(StandardCharsets.UTF_8));
+                return true;
+            }))).thenReturn(buildLauncher);
+            doAnswer(a -> {
+                ProgressListener listener = a.getArgument(0);
+                ProgressEvent event = () -> INFO;
+                listener.statusChanged(event);
+                return null;
+            }).when(buildLauncher).addProgressListener(any(ProgressListener.class));
 
             run.run();
 
@@ -183,15 +211,6 @@ class LocalJavaProjectLoaderTests
         when(workspaceRoot.getProject(PROJECT_NAME)).thenReturn(project);
 
         return project;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<Event, Consumer<String>> mockEvents()
-    {
-        return Map.of(
-            Event.LOADED, mock(Consumer.class),
-            Event.CORRUPTED, mock(Consumer.class)
-        );
     }
 
     private String getProjectFolder()

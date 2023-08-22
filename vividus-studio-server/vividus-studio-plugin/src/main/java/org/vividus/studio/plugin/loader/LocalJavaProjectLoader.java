@@ -19,10 +19,9 @@
 
 package org.vividus.studio.plugin.loader;
 
-import static java.util.Optional.ofNullable;
-
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,6 +46,7 @@ import org.gradle.tooling.ProgressListener;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.util.ResourceUtils;
 import org.vividus.studio.plugin.util.RuntimeWrapper;
+import org.vividus.studio.plugin.util.Splitter;
 
 @Singleton
 public class LocalJavaProjectLoader implements IJavaProjectLoader
@@ -62,13 +62,14 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     }
 
     @Override
-    public Optional<IJavaProject> load(String uri, Map<Event, Consumer<String>> handlers)
+    public Optional<IJavaProject> load(String uri, Consumer<String> onInfo, Consumer<String> onLoad,
+            Consumer<String> onError)
     {
         return RuntimeWrapper.wrapMono(() ->
         {
             File projectFolder = ResourceUtils.asFile(uri);
 
-            build(projectFolder, ofNullable(handlers.get(Event.INFO)));
+            build(projectFolder, onInfo, onError);
 
             String absProjectPath = projectFolder.toPath().resolve(".project").toString();
             Path projectPath = new Path(absProjectPath);
@@ -83,17 +84,17 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
 
             if (!project.hasNature(JavaCore.NATURE_ID))
             {
-                ofNullable(handlers.get(Event.CORRUPTED)).ifPresent(c -> c.accept(absProjectPath));
+                onError.accept(String.format("Project file by path '%s' is corrupted", absProjectPath));
                 return Optional.empty();
             }
 
-            ofNullable(handlers.get(Event.LOADED)).ifPresent(c -> c.accept(description.getName()));
+            onLoad.accept(String.format("Project with the name '%s' is loaded", description.getName()));
             return Optional.of(projectTransformer.apply(project));
         }, VividusStudioException::new);
     }
 
     @SuppressWarnings("restriction")
-    public void reload(IProject project, Consumer<String> messageConsumer) throws Exception
+    public void reload(IProject project, Consumer<String> onInfo, Consumer<String> onError) throws Exception
     {
         JavaModelManager.PerProjectInfo perProjectInfo = JavaModelManager.getJavaModelManager()
                 .getPerProjectInfo(project, true);
@@ -101,27 +102,31 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
         perProjectInfo.resetResolvedClasspath();
         perProjectInfo.forgetExternalTimestampsAndIndexes();
 
-        build(project.getLocation().toFile(), Optional.of(messageConsumer));
+        build(project.getLocation().toFile(), onInfo, onError);
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
     }
 
-    private static void build(File projectFolder, Optional<Consumer<String>> messageConsumer) throws Exception
+    private static void build(File projectFolder, Consumer<String> onInfo, Consumer<String> onError) throws Exception
     {
         BuildConfiguration config = BuildConfiguration.forRootProjectDirectory(projectFolder)
                                                       .build();
 
         GradleBuild build = GradleCore.getWorkspace().createBuild(config);
 
-        build.withConnection(connection ->
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
         {
-            BuildLauncher launcher = connection.newBuild().forTasks("eclipse");
-            messageConsumer.ifPresent(msgConsumer ->
+            build.withConnection(connection ->
             {
-                ProgressListener listener = event -> msgConsumer.accept(event.getDescription());
+                BuildLauncher launcher = connection.newBuild().setStandardOutput(outputStream).forTasks("eclipse");
+                ProgressListener listener = event -> onInfo.accept(event.getDescription());
                 launcher.addProgressListener(listener);
-            });
-            launcher.run();
-            return null;
-        }, new NullProgressMonitor());
+                launcher.run();
+                return null;
+            }, new NullProgressMonitor());
+
+            String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            Splitter.split(output).stream().filter(l -> l.startsWith("Could not resolve:"))
+                                           .forEach(onError);
+        }
     }
 }

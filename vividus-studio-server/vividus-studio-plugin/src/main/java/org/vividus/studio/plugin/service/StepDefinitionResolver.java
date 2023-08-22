@@ -93,7 +93,7 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
                 getNotStepPredicate(documentIdentifier), position)
                 .getStep()
                 .stream()
-                .flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), false));
+                .flatMap(step -> resolve(step, getByType(step.getType()), false));
     }
 
     /**
@@ -126,7 +126,12 @@ public class StepDefinitionResolver implements IStepDefinitionsAware, StepDefini
 
         Collections.reverse(steps);
 
-        return steps.stream().flatMap(step -> resolve(step, groupedStepDefinitions.get().get(step.getType()), true));
+        return steps.stream().flatMap(step -> resolve(step, getByType(step.getType()), true));
+    }
+
+    private List<StepDefinition> getByType(StepType stepType)
+    {
+        return Optional.ofNullable(groupedStepDefinitions.get().get(stepType)).orElse(List.of());
     }
 
     @Override
