@@ -22,9 +22,15 @@
         <hamcrest.version>2.2</hamcrest.version>
         <slf4j.api.version>2.0.9</slf4j.api.version>
         <log4j.version>2.21.1</log4j.version>
+        <jakarta.inject.version>2.0.1</jakarta.inject.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+            <version>${jakarta.inject.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -262,6 +268,11 @@
                 <configuration>
                     <outputDirectory>${basedir}/external/</outputDirectory>
                     <artifactItems>
+                        <artifactItem>
+                            <groupId>jakarta.inject</groupId>
+                            <artifactId>jakarta.inject-api</artifactId>
+                            <version>${jakarta.inject.version}</version>
+                        </artifactItem>
                         <artifactItem>
                             <groupId>org.slf4j</groupId>
                             <artifactId>slf4j-api</artifactId>

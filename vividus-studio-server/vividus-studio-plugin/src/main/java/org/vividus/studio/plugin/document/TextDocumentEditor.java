@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import javax.inject.Singleton;
+import com.google.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
