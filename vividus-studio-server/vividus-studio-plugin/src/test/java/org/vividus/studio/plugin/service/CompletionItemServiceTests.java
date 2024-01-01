@@ -58,7 +58,7 @@ class CompletionItemServiceTests
     private static final int THEN_STEP_HASH = -1351541186;
     private static final String THEN_TRIGGER = "T";
     private static final String THEN_STEP = "Then $value is equal to $expected after conversion";
-    private static final String THEN_STEP_SNIPPET = "Then ${1:value} is equal to ${2:expected} after conversion";
+    private static final String THEN_STEP_SNIPPET = "Then ${1:value} is equal to ${2|v1,v2,v3|} after conversion";
 
     private static final String DOCS = "documentation";
     private static final String MODULE = "module";
@@ -73,11 +73,11 @@ class CompletionItemServiceTests
     {
         StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(), List.of(GIVEN_STEP));
         StepDefinition whenStepDefinition = new StepDefinition(MODULE, WHEN_STEP, DOCS, List.of(
-                new Parameter(1, "$value", 15)
+                new Parameter(1, "$value", 15, List.of())
         ), List.of("When I convert ", " into custom type"));
         StepDefinition thenStepDefinition = new StepDefinition(MODULE, THEN_STEP, DOCS, List.of(
-                new Parameter(1, "$value", 5),
-                new Parameter(2, "$expected", 24)
+                new Parameter(1, "$value", 5, List.of()),
+                new Parameter(2, "$expected", 24, List.of("v1", "v2", "v3"))
         ), List.of("Then ", " is equal to ", " after conversion"));
         thenStepDefinition.setDeprecated(true);
         StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider, null, null);
@@ -98,8 +98,8 @@ class CompletionItemServiceTests
     {
         return Stream.of(
             arguments(List.of("Given rand"), "om value", 0, 10),
-            arguments(List.of("Then McDonald's is equal t"), "o ${2:expected} after conversion", 0, 26),
-            arguments(List.of("Then ", "line1", "line2", " is equa"), "l to ${2:expected} after conversion", 3, 8),
+            arguments(List.of("Then McDonald's is equal t"), "o ${2|v1,v2,v3|} after conversion", 0, 26),
+            arguments(List.of("Then ", "line1", "line2", " is equa"), "l to ${2|v1,v2,v3|} after conversion", 3, 8),
             arguments(List.of("Then McDonald's is equal to Fat ass after conversion"), "", 0, 52)
         );
     }

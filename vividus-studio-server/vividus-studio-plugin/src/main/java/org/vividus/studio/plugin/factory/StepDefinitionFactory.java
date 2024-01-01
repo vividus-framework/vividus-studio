@@ -21,6 +21,7 @@ package org.vividus.studio.plugin.factory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,13 +35,20 @@ public class StepDefinitionFactory
 {
     private static final Pattern PARAMETER_NAME_PATTERN = Pattern.compile("\\$\\w+");
 
-    public StepDefinition createStepDefinition(String module, String stepAsString, String documentation)
+    public StepDefinition createStepDefinition(String module, String stepAsString, String documentation,
+            Map<Integer, List<String>> parameterVariants)
     {
-        return createStepDefinition(module, stepAsString, documentation, false, false);
+        return createStepDefinition(module, stepAsString, documentation, parameterVariants, false, false);
     }
 
     public StepDefinition createStepDefinition(String module, String stepAsString, String documentation,
             boolean composite, boolean dynamic)
+    {
+        return createStepDefinition(module, stepAsString, documentation, Map.of(), composite, dynamic);
+    }
+
+    public StepDefinition createStepDefinition(String module, String stepAsString, String documentation,
+            Map<Integer, List<String>> parameterVariants, boolean composite, boolean dynamic)
     {
         List<Parameter> parameters = new ArrayList<>();
         Matcher parameterMatcher = PARAMETER_NAME_PATTERN.matcher(stepAsString);
@@ -54,7 +62,8 @@ public class StepDefinitionFactory
             int start = parameterMatcher.start();
             String group = parameterMatcher.group();
 
-            Parameter parameter = new Parameter(matchIndex++, group, start);
+            List<String> values = parameterVariants.getOrDefault(matchIndex - 1, List.of());
+            Parameter parameter = new Parameter(matchIndex++, group, start, values);
             parameters.add(parameter);
 
             tokenIndices.add(start);

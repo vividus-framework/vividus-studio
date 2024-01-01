@@ -19,6 +19,9 @@
 
 package org.vividus.studio.plugin.service;
 
+import static java.lang.String.format;
+import static java.lang.String.join;
+
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,7 +49,8 @@ public class CompletionItemService implements ICompletionItemService
 {
     private static final String HASH = "hash";
     private static final String TRIGGER = "trigger";
-    private static final String SNIPPER_FORMAT = "${%d:%s}";
+    private static final String PLACEHOLDER_FORMAT = "${%d:%s}";
+    private static final String CHOICE_FORMAT = "${%d|%s|}";
 
     private final StepDefinitionResolver stepDefinitionResolver;
 
@@ -90,9 +94,10 @@ public class CompletionItemService implements ICompletionItemService
 
     private static String createSnippet(Parameter parameter)
     {
-        String name = parameter.getName();
-        String nameNoAnchor = name.substring(1);
-        return String.format(SNIPPER_FORMAT, parameter.getIndex(), nameNoAnchor);
+        List<String> values = parameter.getValues();
+        return values.isEmpty()
+                ? format(PLACEHOLDER_FORMAT, parameter.getIndex(), parameter.getName().substring(1))
+                : format(CHOICE_FORMAT, parameter.getIndex(), join(",", values));
     }
 
     private static void setInfo(CompletionItem item, StepDefinition stepDefinition)
