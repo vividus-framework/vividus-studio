@@ -19,17 +19,21 @@
 
 package org.vividus.studio.plugin.model;
 
+import java.util.List;
+
 public class Parameter
 {
     private final int index;
     private final String name;
     private final int startAt;
+    private final List<String> values;
 
-    public Parameter(int index, String name, int startAt)
+    public Parameter(int index, String name, int startAt, List<String> values)
     {
         this.index = index;
         this.name = name;
         this.startAt = startAt;
+        this.values = values;
     }
 
     public int getIndex()
@@ -45,5 +49,10 @@ public class Parameter
     public int getStartAt()
     {
         return startAt;
+    }
+
+    public List<String> getValues()
+    {
+        return values;
     }
 }

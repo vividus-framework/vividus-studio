@@ -70,10 +70,12 @@ class StepDefinitionResolverTests
         StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(),
                 List.of(GIVEN_STEP));
         StepDefinition whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
-                List.of(new Parameter(1, "$value", 15)), List.of("When I convert ", " into custom type"));
+                List.of(new Parameter(1, "$value", 15, List.of())), List.of("When I convert ",
+                        " into custom type"));
         StepDefinition thenStepDefinition = new StepDefinition(MODULE,
                 "Then $value is equal to $expected after conversion", DOCS,
-                List.of(new Parameter(1, "$value", 5), new Parameter(2, "$expected", 24)),
+                List.of(new Parameter(1, "$value", 5, List.of()),
+                        new Parameter(2, "$expected", 24, List.of())),
                 List.of("Then ", " is equal to ", " after conversion"));
 
         StepDefinition dynamicStepDefinitionOne = new StepDefinition("composite/users.steps",
@@ -264,11 +266,13 @@ class StepDefinitionResolverTests
     {
         StepDefinition whenStepDefinition1 = new StepDefinition(MODULE,
                 "When I add '$product' into a bucket with the id '$id'", DOCS,
-                List.of(new Parameter(1, "$product", 12), new Parameter(1, "$id", 49)),
+                List.of(new Parameter(1, "$product", 12, List.of()),
+                        new Parameter(1, "$id", 49, List.of())),
                 List.of("When I add '", "' into a bucket with the id '", "'"));
         StepDefinition whenStepDefinition2 = new StepDefinition(MODULE,
                 "When I add '$product' into a bucket with the name '$name'", DOCS,
-                List.of(new Parameter(1, "$product", 12), new Parameter(1, "$name", 51)),
+                List.of(new Parameter(1, "$product", 12, List.of()),
+                        new Parameter(1, "$name", 51, List.of())),
                 List.of("When I add '", "' into a bucket with the name '", "'"));
         resolver.refresh(List.of(whenStepDefinition1, whenStepDefinition2));
 

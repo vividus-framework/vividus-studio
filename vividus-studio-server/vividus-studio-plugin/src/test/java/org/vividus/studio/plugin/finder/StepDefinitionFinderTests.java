@@ -37,12 +37,14 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -52,6 +54,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,11 +102,54 @@ class StepDefinitionFinderTests
         // Mock java steps
         ClassFileMock stepsClass = createStepsClass();
         IMember classMember = mock(IMember.class);
-        IJavaElement given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true);
+        IJavaElement given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true, m ->
+        {
+            when(m.getParameterTypes()).thenReturn(new String[] {"I"});
+        });
         IJavaElement when = createStep("When", "I param $param1 and $param2", stepsClass.getClassFileBuffer(), 2, 3,
-                false);
+                false, m ->
+                {
+                    String paramType = "my.test.type.Color";
+                    String rawType = rawType(paramType);
+
+                    when(m.getParameterTypes())
+                            .thenReturn(new String[] { rawType, "Ljava.util.Set<%s>;".formatted(rawType) });
+                    when(m.getJavaProject()).thenReturn(root);
+
+                    IType type = mock(IType.class);
+                    when(root.findType(paramType)).thenReturn(type);
+                    when(type.isEnum()).thenReturn(true);
+
+                    IField white = mock(IField.class);
+                    when(white.getFlags()).thenReturn(16409);
+                    when(white.getElementName()).thenReturn("WHITE");
+
+                    IField black = mock(IField.class);
+                    when(black.getFlags()).thenReturn(16409);
+                    when(black.getElementName()).thenReturn("BLACK");
+
+                    IField values = mock(IField.class);
+                    when(values.getFlags()).thenReturn(4122);
+
+                    IField internal = mock(IField.class);
+                    when(internal.getFlags()).thenReturn(18);
+
+                    when(type.getFields()).thenReturn(new IField[] { white, black, values, internal });
+                });
         IJavaElement then = createStep("Then", "I param $param1 and $param2 and $param3",
-                stepsClass.getClassFileBuffer(), 3, 4, false);
+                stepsClass.getClassFileBuffer(), 3, 4, false, m ->
+                {
+                    String paramType = "my.test.type.JustClass";
+                    String unresolvableType = "java.util.Map<Ljava.lang.String;Ljava.lang.String;>";
+                    when(m.getParameterTypes()).thenReturn(new String[] {rawType(paramType), rawType(unresolvableType), "I"});
+                    when(m.getJavaProject()).thenReturn(root);
+
+                    when(root.findType(unresolvableType)).thenReturn(null);
+
+                    IType type = mock(IType.class);
+                    when(root.findType(paramType)).thenReturn(type);
+                    when(type.isEnum()).thenReturn(false);
+                });
 
         when(root.getChildren()).thenReturn(new IJavaElement[] { module });
         when(module.getChildren()).thenReturn(new IJavaElement[] { packageFragment });
@@ -128,29 +174,39 @@ class StepDefinitionFinderTests
 
         // assert java steps
         asserJavaStepDefinition(definitions.get(0), MODULE_NAME, StepType.GIVEN, GIVEN_FULL_NAME,
-                "Javadoc for Given I param $param1", List.of(new Parameter(1, "$param1", 14)), true);
+                "Javadoc for Given I param $param1", List.of(new Parameter(1, "$param1", 14, List.of())), true);
         asserJavaStepDefinition(definitions.get(1), MODULE_NAME, StepType.WHEN, WHEN_FULL_NAME,
                 "Javadoc for When I param $param1 and $param2",
-                List.of(new Parameter(1, "$param1",  13), new Parameter(2, "$param2", 25)), false);
+                List.of(
+                        new Parameter(1, "$param1", 13, List.of("WHITE", "BLACK")),
+                        new Parameter(2, "$param2", 25, List.of("WHITE", "BLACK"))), false);
         asserJavaStepDefinition(definitions.get(2), MODULE_NAME, StepType.THEN, THEN_FULL_NAME,
-                "Javadoc for Then I param $param1 and $param2 and $param3", List.of(new Parameter(1, "$param1", 13),
-                        new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
+                "Javadoc for Then I param $param1 and $param2 and $param3", List.of(
+                        new Parameter(1, "$param1", 13, List.of()), new Parameter(2, "$param2", 25, List.of()),
+                        new Parameter(3, "$param3", 37, List.of())),
                 false);
 
         // assert static composite steps
         asserCompositeStepDefinition(definitions.get(3), MODULE_NAME, StepType.GIVEN, GIVEN_FULL_NAME, COMPOSITE_JAVADOC,
-                List.of(new Parameter(1, "$param1", 14)), false);
+                List.of(new Parameter(1, "$param1", 14, List.of())), false);
         asserCompositeStepDefinition(definitions.get(4), MODULE_NAME, StepType.WHEN, WHEN_FULL_NAME, COMPOSITE_JAVADOC,
-                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25)), false);
+                List.of(new Parameter(1, "$param1", 13, List.of()), new Parameter(2, "$param2", 25, List.of())), false);
         asserCompositeStepDefinition(definitions.get(5), MODULE_NAME, StepType.THEN, THEN_FULL_NAME, COMPOSITE_JAVADOC,
-                List.of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
+                List.of(new Parameter(1, "$param1", 13, List.of()), new Parameter(2, "$param2", 25, List.of()),
+                        new Parameter(3, "$param3", 37, List.of())),
                 false);
 
         // assert static composite steps
         asserCompositeStepDefinition(definitions.get(6), "composite/composite.steps", StepType.THEN, THEN_FULL_NAME,
                 COMPOSITE_JAVADOC, List
-                .of(new Parameter(1, "$param1", 13), new Parameter(2, "$param2", 25), new Parameter(3, "$param3", 37)),
+                .of(new Parameter(1, "$param1", 13, List.of()), new Parameter(2, "$param2", 25, List.of()),
+                        new Parameter(3, "$param3", 37, List.of())),
                 true);
+    }
+
+    private static String rawType(String type)
+    {
+        return "L%s;".formatted(type);
     }
 
     private void asserJavaStepDefinition(StepDefinition definition, String module, StepType type, String fullName,
@@ -185,7 +241,8 @@ class StepDefinitionFinderTests
             Parameter expected = parameters.get(index);
             assertAll(() -> assertEquals(expected.getIndex(), actual.getIndex()),
                     () -> assertEquals(expected.getStartAt(), actual.getStartAt()),
-                    () -> assertEquals(expected.getName(), actual.getName()));
+                    () -> assertEquals(expected.getName(), actual.getName()),
+                    () -> assertEquals(expected.getValues(), actual.getValues()));
         });
     }
 
@@ -228,7 +285,8 @@ class StepDefinitionFinderTests
     }
 
     private IJavaElement createStep(String type, String naming, IBuffer classBufer, int from, int to,
-            boolean deprecated) throws JavaModelException
+            boolean deprecated, FailableConsumer<IMethod, JavaModelException> parametersMocker)
+            throws JavaModelException
     {
         IJavaElement javaElement = mock(IJavaElement.class, withSettings().extraInterfaces(IMethod.class));
         IMethod method = (IMethod) javaElement;
@@ -248,6 +306,8 @@ class StepDefinitionFinderTests
         when(sourceRange.getOffset()).thenReturn(from);
         when(sourceRange.getLength()).thenReturn(to);
         when(classBufer.getText(from, to)).thenReturn(String.format("Javadoc for %s %s", type, naming));
+
+        parametersMocker.accept(method);
 
         return javaElement;
     }

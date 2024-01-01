@@ -19,6 +19,8 @@
 
 package org.vividus.studio.plugin.finder;
 
+import static org.vividus.studio.plugin.util.RuntimeWrapper.wrapStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -31,10 +33,14 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,9 +50,11 @@ import com.google.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -57,6 +65,8 @@ import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +82,10 @@ import org.vividus.studio.plugin.util.RuntimeWrapper;
 public class StepDefinitionFinder implements IStepDefinitionFinder
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(StepDefinitionFinder.class);
+
+    private static final String TYPE = "type";
+
+    private static final Pattern COLLECTION_PARAMETER_PATTERN = Pattern.compile("Ljava\\.util\\.(?:Set|List)<(.+)>;");
 
     private static final Pattern STEP_ANNOTATION_PATTERN = Pattern
             .compile("^org\\.jbehave\\.core\\.annotations\\.(When|Then|Given)$");
@@ -170,16 +184,17 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
 
     private List<StepDefinition> findJavaSteps(List<IPackageFragment> fragments)
     {
+        Map<String, List<String>> typesCache = new ConcurrentHashMap<>();
         return fragments.parallelStream()
                         .flatMap(StepDefinitionFinder::children)
                         .filter(e -> IJavaElement.CLASS_FILE == e.getElementType())
                         .filter(e -> StringUtils.contains(e.getElementName(), "Steps"))
                         .map(IClassFile.class::cast)
-                        .flatMap(this::findStepDefinitions)
+                        .flatMap(c -> findStepDefinitions(c, typesCache))
                         .collect(Collectors.toList());
     }
 
-    private Stream<StepDefinition> findStepDefinitions(IClassFile classFile)
+    private Stream<StepDefinition> findStepDefinitions(IClassFile classFile, Map<String, List<String>> typesCache)
     {
         String module = classFile.getParent().getParent().getElementName();
         IOpenable openable = classFile.getOpenable();
@@ -190,16 +205,16 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
             .flatMap(StepDefinitionFinder::children)
             .filter(m -> m.getElementType() == IJavaElement.METHOD)
             .map(IMethod.class::cast)
-            .map(m -> getStepDefinition(m, buffer, module))
+            .map(m -> getStepDefinition(m, buffer, module, typesCache))
             .filter(Optional::isPresent)
             .map(Optional::get);
     }
 
-    private Optional<StepDefinition> getStepDefinition(IMethod method, IBuffer buffer, String module)
+    private Optional<StepDefinition> getStepDefinition(IMethod method, IBuffer buffer, String module,
+            Map<String, List<String>> argumentsCache)
     {
-        List<IAnnotation> annotations = RuntimeWrapper
-                .wrapStream(method::getAnnotations, error("annotations", method.getElementName()))
-                .collect(Collectors.toList());
+        List<IAnnotation> annotations = wrapStream(method::getAnnotations,
+                error("annotations", method.getElementName())).collect(Collectors.toList());
         return getStepAsString(annotations)
             .map(stepAsString ->
             {
@@ -207,11 +222,71 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
                         error("javadoc range", method.getElementName()));
                 String documentation = range != null ? buffer.getText(range.getOffset(), range.getLength())
                         : "No documentation available";
+
+                Map<Integer, List<String>> parameterVariants = new HashMap<>();
+                String[] parameterTypes = method.getParameterTypes();
+                for (int index = 0; index < parameterTypes.length; index++)
+                {
+                    String rawParameterType = parameterTypes[index];
+
+                    int signatureKind = Signature.getTypeSignatureKind(rawParameterType);
+                    if (signatureKind == Signature.CLASS_TYPE_SIGNATURE)
+                    {
+                        Matcher collectionParameterMatcher = COLLECTION_PARAMETER_PATTERN.matcher(rawParameterType);
+                        rawParameterType = collectionParameterMatcher.matches()
+                                ? collectionParameterMatcher.group(1)
+                                : rawParameterType;
+
+                        List<String> variants = argumentsCache.computeIfAbsent(rawParameterType,
+                                getClassTypeValues(method.getJavaProject()));
+
+                        if (!variants.isEmpty())
+                        {
+                            parameterVariants.put(index, variants);
+                        }
+                    }
+                }
+
                 StepDefinition definition = stepDefinitionFactory.createStepDefinition(module, stepAsString,
-                        documentation);
+                        documentation, parameterVariants);
                 definition.setDeprecated(isDeprecated(annotations));
                 return definition;
             });
+    }
+
+    private static Function<String, List<String>> getClassTypeValues(IJavaProject project)
+    {
+        return rType ->
+        {
+            String parameterType = rType.substring(1, rType.length() - 1);
+            IType type = RuntimeWrapper.wrapMono(() -> project.findType(parameterType),
+                    error(TYPE, project.getElementName()));
+
+            /**
+             * Examples of cases where the type is null:
+             * - java.util.Map<Ljava.lang.String;Ljava.lang.String;>
+             * - org.vividus.ui.action.AtomicAction<Lorg.vividus.mobileapp.action.TouchGestures;>
+             */
+            if (type == null)
+            {
+                return List.of();
+            }
+
+            boolean enumType = RuntimeWrapper.wrapMono(type::isEnum, error("is enum", type.getElementName()));
+            if (enumType)
+            {
+                return wrapStream(type::getFields, error("fields", TYPE))
+                        .filter(f ->
+                        {
+                            int flags = RuntimeWrapper.wrapMono(f::getFlags, error("flags", f.getElementName()));
+                            return Flags.isPublic(flags) && Flags.isStatic(flags);
+                        })
+                        .map(IField::getElementName)
+                        .collect(Collectors.toList());
+            }
+
+            return List.of();
+        };
     }
 
     private boolean isDeprecated(List<IAnnotation> annotations)
@@ -224,8 +299,7 @@ public class StepDefinitionFinder implements IStepDefinitionFinder
 
     private static List<IMemberValuePair> getAnnotationPairs(IAnnotation annotation)
     {
-        return RuntimeWrapper.wrapStream(annotation::getMemberValuePairs, error("pairs", "annotation"))
-                .collect(Collectors.toList());
+        return wrapStream(annotation::getMemberValuePairs, error("pairs", "annotation")).collect(Collectors.toList());
     }
 
     private static Optional<String> getStepAsString(List<IAnnotation> annotations)
