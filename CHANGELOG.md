@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 * Add auto-completion support for step parameters with limited number of choices
+* Enable comments toggling in story and steps files
+
+    The keyboard shortcut for a comment toggling can be configured by the following path `Code -> Preferences -> Keyboard Shortcuts -> Toggle Line Comment`
 
 ## [0.1.9] - 2023-08-22
 
