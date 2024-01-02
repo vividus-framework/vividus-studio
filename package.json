@@ -275,7 +275,7 @@
         "vscode-test": "^1.6.1"
     },
     "dependencies": {
-        "glob": "^8.0.3",
+        "glob": "^10.3.10",
         "jdk-utils": "^0.5.1",
         "vscode-languageclient": "^8.1.0"
     }
