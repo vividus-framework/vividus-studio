@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 * Fix highlighting of GivenStories filtered by scenario meta parameters
+* Add highlighting for 'Descrption' story element
 
 ## [0.1.10] - 2024-01-02
 
