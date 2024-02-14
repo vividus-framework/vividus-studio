@@ -3,6 +3,10 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+* Fix highlighting of GivenStories filtered by scenario meta parameters
+
 ## [0.1.10] - 2024-01-02
 
 * Add auto-completion support for step parameters with limited number of choices
