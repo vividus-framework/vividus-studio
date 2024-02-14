@@ -182,7 +182,7 @@
             }
         },
         "givenStoriesPath": {
-            "match": "(\\s*\\/?[^\\s]*\\.story(?:\\#\\{\\d+\\})?(?:\\,)?)",
+            "match": "(\\s*\\/?[^\\s]*\\.story(?:\\#\\{[\\w:]+\\})?(?:\\,)?)",
             "name": "vividus.keyword.attribute"
         },
         "examples": {
