@@ -22,6 +22,9 @@
         },
         {
             "include": "#examples"
+        },
+        {
+            "include": "#description"
         }
     ],
     "scopeName": "source.vividus",
@@ -198,6 +201,18 @@
                     "name": "vividus.keyword.attribute"
                 }
             }
+        },
+        "description": {
+            "begin": "^(Description:)(.*)$",
+            "beginCaptures": {
+                "1": {
+                    "name": "vividus.keyword"
+                },
+                "2": {
+                    "name": "vividus.comment"
+                }
+            },
+            "end": "$"
         }
     }
 }
