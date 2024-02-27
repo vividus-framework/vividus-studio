@@ -16,25 +16,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install JDK 17
+      - name: Install JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: 21
           cache: 'maven'
 
       - name: Build server
         run: |
           cd vividus-studio-server
           ./mvnw clean install
-      
+
       - name: Upload coverage reports to Codecov
         if: ${{ ! github.event.pull_request.head.repo.fork || github.ref == 'refs/heads/master' }}
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-      
+
       - name: Upload coverage reports to Codecov
         if: ${{ github.event.pull_request.head.repo.fork }}
         uses: codecov/codecov-action@v3
@@ -49,7 +49,7 @@ jobs:
         uses: GabrielBB/xvfb-action@v1.6
         with:
           run: npm test
-      
+
       - name: Extension packaging
         run: |
           sudo npm install -g @vscode/vsce
