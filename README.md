@@ -11,7 +11,7 @@ VIVIDUS extension for Visual Studio Code
 Quick Start
 ============
 
-1. Download and install JDK 17.
+1. Download and install JDK 21.
 2. Install the [VIVIDUS Studio Extension](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio).
 3. The extension is activated when you open a project containing story or steps files.
 
