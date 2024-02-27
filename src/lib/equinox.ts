@@ -20,7 +20,8 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
     serverArgs.push(`${application.applicationDir}/${jar}`);
 
     let platform;
-    switch (process.platform) {
+    const processPlatform = process.platform;
+    switch (processPlatform) {
         case 'darwin':
             platform = 'macos';
             break;
@@ -28,7 +29,7 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
             platform = 'windows';
             break;
         default:
-            throw new Error(`Unsupported platform ${platform}`);
+            throw new Error(`Unsupported platform ${processPlatform}`);
     }
     const bundle: string = search(`**/repository/configuration-${platform}`, application.applicationDir);
 
@@ -46,10 +47,10 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
 
     const serverProcess = spawn(exec, serverArgs, { detached: true });
     serverProcess.stdout.on('data', function(data) {
-        console.log(data.toString()); 
+        console.log(data.toString());
     });
     serverProcess.stderr.on('data', function(data) {
-        console.log(data.toString()); 
+        console.log(data.toString());
     });
 }
 
