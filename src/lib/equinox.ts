@@ -28,6 +28,9 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
         case 'win32':
             platform = 'windows';
             break;
+        case 'linux':
+            platform = 'linux';
+            break;
         default:
             throw new Error(`Unsupported platform ${processPlatform}`);
     }

@@ -87,6 +87,21 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-linux-configuration</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/repository/configuration-linux</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/target/products/vividus-studio-server.product/linux/gtk/x86_64/configuration</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
