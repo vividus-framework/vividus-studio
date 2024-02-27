@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Fix message of unsupported platform error
 * Add Linux support
 * Bump VS Code engine from 1.85.0 to 1.86.0
+* Bump version of Gradle used to build projects to 8.6
 
 ## [0.1.11] - 2024-02-22
 
