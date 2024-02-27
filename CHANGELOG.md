@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+* Fix message of unsupported platform error
+* Add Linux support
+* Bump VS Code engine from 1.85.0 to 1.86.0
+
 ## [0.1.11] - 2024-02-22
 
 * Fix highlighting of GivenStories filtered by scenario meta parameters
