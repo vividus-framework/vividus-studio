@@ -130,13 +130,6 @@
                         }
                     },
                     {
-                        "scope": "vividus.comment",
-                        "settings": {
-                            "foreground": "#1eff008e",
-                            "fontStyle": "italic"
-                        }
-                    },
-                    {
                         "scope": "vividus.meta",
                         "settings": {
                             "foreground": "#ffe600",

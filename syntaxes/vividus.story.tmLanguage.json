@@ -44,7 +44,7 @@
             "match": "^\\s*(!--.*)",
             "captures": {
                 "1": {
-                    "name": "vividus.comment"
+                    "name": "comment.line"
                 }
             }
         },
@@ -209,7 +209,7 @@
                     "name": "vividus.keyword"
                 },
                 "2": {
-                    "name": "vividus.comment"
+                    "name": "comment.line"
                 }
             },
             "end": "$"

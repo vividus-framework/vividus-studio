@@ -32,7 +32,7 @@
             "match": "^\\s*(!--.*)",
             "captures": {
                 "1": {
-                    "name": "vividus.comment"
+                    "name": "comment.line"
                 }
             }
         },
