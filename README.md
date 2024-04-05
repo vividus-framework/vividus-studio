@@ -4,9 +4,9 @@ VIVIDUS extension for Visual Studio Code
 [![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/vividus.vividus-studio?label=VS%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/vividus.vividus-studio?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/vividus.vividus-studio?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/vividus-framework/vividus-studio/build.yml?branch=master&logo=github)](https://github.com/vividus-framework/vividus-studio/actions?query=workflow:build)
-[![Codecov](https://codecov.io/gh/vividus-framework/vividus-studio/branch/master/graph/badge.svg)](https://codecov.io/gh/vividus-framework/vividus-studio)
-[![License](https://img.shields.io/github/license/vividus-framework/vividus-studio?logo=eclipse)](https://github.com/vividus-framework/vividus-studio/blob/master/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/vividus-framework/vividus-studio/build.yml?branch=main&logo=github)](https://github.com/vividus-framework/vividus-studio/actions?query=workflow:build)
+[![Codecov](https://codecov.io/gh/vividus-framework/vividus-studio/branch/main/graph/badge.svg)](https://codecov.io/gh/vividus-framework/vividus-studio)
+[![License](https://img.shields.io/github/license/vividus-framework/vividus-studio?logo=eclipse)](https://github.com/vividus-framework/vividus-studio/blob/main/LICENSE)
 
 Quick Start
 ============
