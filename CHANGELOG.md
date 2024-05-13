@@ -5,10 +5,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 * Bump version of Gradle used to build projects from 8.6 to 8.7
+* Bump VS Code engine from 1.87.0 to 1.88.0
 
 ## [0.1.13] - 2024-03-18
 
 * Use predefined `comment` token for VIVIDUS comments
+* Bump VS Code engine from 1.86.0 to 1.87.0
 
 ## [0.1.12] - 2024-02-27
 
