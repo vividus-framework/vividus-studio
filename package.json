@@ -2,7 +2,7 @@
     "name": "vividus-studio",
     "displayName": "VIVIDUS Studio",
     "description": "VIVIDUS extension for Visual Studio Code",
-    "version": "0.1.13",
+    "version": "0.1.14",
     "publisher": "vividus",
     "icon": "images/icon.png",
     "repository": {
