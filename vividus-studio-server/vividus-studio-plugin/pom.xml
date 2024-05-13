@@ -41,12 +41,6 @@
             <artifactId>junit-platform-commons</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
-            <version>1.14.15</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.objenesis</groupId>
             <artifactId>objenesis</artifactId>
             <version>3.4</version>
