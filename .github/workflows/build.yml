@@ -30,14 +30,14 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         if: ${{ ! github.event.pull_request.head.repo.fork || github.ref == 'refs/heads/master' }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage reports to Codecov
         if: ${{ github.event.pull_request.head.repo.fork }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
 
       - name: Install node_modules
         run: npm install
