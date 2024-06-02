@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 - 2021 the original author or authors.
+ * Copyright (C) 2020 - 2024 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,20 +40,23 @@ import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.factory.LaunchConfigurationFactory;
 import org.vividus.studio.plugin.service.ClientNotificationService;
+import org.vividus.studio.plugin.service.ConfigurationService;
 
 @Singleton
 public class RunStoriesCommand implements ICommand
 {
     private final ClientNotificationService clientNotificationService;
+    private final ConfigurationService configurationService;
     private final LaunchConfigurationFactory launchConfigurationFactory;
     private final VividusStudioEnvronment vividusStudioEnvironment;
 
     @Inject
     public RunStoriesCommand(ClientNotificationService clientNotificationService,
-            LaunchConfigurationFactory launchConfigurationFactory,
+            ConfigurationService configurationService, LaunchConfigurationFactory launchConfigurationFactory,
             VividusStudioEnvronment vividusStudioEnvironment)
     {
         this.clientNotificationService = clientNotificationService;
+        this.configurationService = configurationService;
         this.launchConfigurationFactory = launchConfigurationFactory;
         this.vividusStudioEnvironment = vividusStudioEnvironment;
     }
@@ -69,7 +72,7 @@ public class RunStoriesCommand implements ICommand
             project.refreshLocal(IResource.DEPTH_INFINITE, null);
 
             LaunchConfiguration runner = launchConfigurationFactory.create(project.getName(),
-                    "org.vividus.runner.StoriesRunner");
+                    configurationService.getConfigurationItem("stories-runner"));
 
             ILaunch launch = runner.launch(ILaunchManager.RUN_MODE, null, true);
             IProcess launchProcess = launch.getProcesses()[0];
