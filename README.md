@@ -19,6 +19,7 @@ VS Code Settings
 ==========================
 
 * `vividus-studio.java-home`: The directory path containing JDK to run the extension, if not specified the JDK is located automatically.
+* `vividus-studio.stories-runner`: Stories runner class (the fully qualified name).
 
 Source Code Actions
 ==========================

@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 the original author or authors.
+ * Copyright (C) 2020 - 2024 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ import org.vividus.studio.plugin.exception.VividusStudioException;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
+import org.vividus.studio.plugin.service.ConfigurationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
 
 @SuppressWarnings("paramNum")
@@ -82,6 +83,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private final IWorkspace workspace;
     private final JVMConfigurator jvmConfigurator;
     private final ClientNotificationService clientNotificationService;
+    private final ConfigurationService configurationService;
     private final VividusStudioEnvronment vividusStudioConfiguration;
     private final Set<ICommand> commands;
 
@@ -96,6 +98,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
             IWorkspace workspace,
             JVMConfigurator jvmConfigurator,
             ClientNotificationService clientNotificationService,
+            ConfigurationService configurationService,
             VividusStudioEnvronment vividusStudioConfiguration,
             Set<ICommand> commands)
     {
@@ -106,6 +109,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         this.workspace = workspace;
         this.jvmConfigurator = jvmConfigurator;
         this.clientNotificationService = clientNotificationService;
+        this.configurationService = configurationService;
         this.vividusStudioConfiguration = vividusStudioConfiguration;
         this.commands = commands;
     }
@@ -198,7 +202,11 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
         {
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, socket.getInputStream(),
                     socket.getOutputStream());
-            clientNotificationService.setLanguageClient(launcher.getRemoteProxy());
+
+            LanguageClient languageClient = launcher.getRemoteProxy();
+            clientNotificationService.setLanguageClient(languageClient);
+            configurationService.setLanguageClient(languageClient);
+
             VividusStudioLogAppender.getInstance().setClientNotificationService(clientNotificationService);
             launcher.startListening();
             LOGGER.info("Socket is listening on {}:{}", socket.getInetAddress(), socket.getPort());

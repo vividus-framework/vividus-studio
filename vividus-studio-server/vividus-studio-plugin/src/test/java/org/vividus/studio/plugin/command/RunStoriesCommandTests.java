@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 - 2021 the original author or authors.
+ * Copyright (C) 2020 - 2024 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,11 +48,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.factory.LaunchConfigurationFactory;
 import org.vividus.studio.plugin.service.ClientNotificationService;
+import org.vividus.studio.plugin.service.ConfigurationService;
 
 @ExtendWith(MockitoExtension.class)
 class RunStoriesCommandTests
 {
     @Mock private ClientNotificationService clientNotificationService;
+    @Mock private ConfigurationService configurationService;
     @Mock private LaunchConfigurationFactory launchConfigurationFactory;
     @Mock private IProject project;
     @Mock private IJavaProject javaProject;
@@ -67,9 +69,11 @@ class RunStoriesCommandTests
         when(javaProject.getProject()).thenReturn(project);
         when(project.getName()).thenReturn(projectName);
 
+        String mainClass = "org.vividus.runner.StoriesRunner";
+        when(configurationService.getConfigurationItem("stories-runner")).thenReturn(mainClass);
+
         LaunchConfiguration launchConfiguration = mock(LaunchConfiguration.class);
-        when(launchConfigurationFactory.create(projectName, "org.vividus.runner.StoriesRunner"))
-                .thenReturn(launchConfiguration);
+        when(launchConfigurationFactory.create(projectName, mainClass)).thenReturn(launchConfiguration);
 
         ILaunch launch = mock(ILaunch.class);
         when(launchConfiguration.launch(ILaunchManager.RUN_MODE, null, true)).thenReturn(launch);
@@ -93,7 +97,8 @@ class RunStoriesCommandTests
 
         when(launch.isTerminated()).thenReturn(false).thenReturn(true);
 
-        command = new RunStoriesCommand(clientNotificationService, launchConfigurationFactory, configuration);
+        command = new RunStoriesCommand(clientNotificationService, configurationService, launchConfigurationFactory,
+                configuration);
         assertEquals(0, command.execute().get());
 
         verify(project).refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -105,7 +110,8 @@ class RunStoriesCommandTests
     @Test
     void shouldReturnName()
     {
-        command = new RunStoriesCommand(clientNotificationService, launchConfigurationFactory, null);
+        command = new RunStoriesCommand(clientNotificationService, configurationService, launchConfigurationFactory,
+                null);
         assertEquals("vividus.runStories", command.getName());
     }
 }

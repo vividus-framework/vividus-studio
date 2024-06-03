@@ -1,7 +1,7 @@
 /*-
  * *
  * *
- * Copyright (C) 2020 the original author or authors.
+ * Copyright (C) 2020 - 2024 the original author or authors.
  * *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import org.vividus.studio.plugin.configuration.VividusStudioEnvronment;
 import org.vividus.studio.plugin.loader.IJavaProjectLoader;
 import org.vividus.studio.plugin.log.VividusStudioLogAppender;
 import org.vividus.studio.plugin.service.ClientNotificationService;
+import org.vividus.studio.plugin.service.ConfigurationService;
 import org.vividus.studio.plugin.service.StepDefinitionResolver;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,6 +80,7 @@ class VividusStudioLanguageServerTests
     @Mock private IJavaProjectLoader projectLoader;
     @Mock private JVMConfigurator jvmConfigurator;
     @Mock private ClientNotificationService clientNotificationService;
+    @Mock private ConfigurationService configurationService;
     @Mock private WorkspaceService workspaceService;
     @Mock private VividusStudioEnvronment vividusStudioConfiguration;
 
@@ -91,7 +93,8 @@ class VividusStudioLanguageServerTests
         lenient().when(command.getName()).thenReturn(COMMAND);
 
         languageServer = new VividusStudioLanguageServer(null, stepDefinitionResolver, workspaceService, projectLoader,
-                null, jvmConfigurator, clientNotificationService, vividusStudioConfiguration, Set.of(command));
+                null, jvmConfigurator, clientNotificationService, configurationService, vividusStudioConfiguration,
+                Set.of(command));
     }
 
     @Test
@@ -171,6 +174,7 @@ class VividusStudioLanguageServerTests
             languageServer.listen(null, 0);
 
             verify(clientNotificationService).setLanguageClient(client);
+            verify(configurationService).setLanguageClient(client);
             verify(launcher).startListening();
             verify(clientNotificationService).showInfo("Welcome to the VIVIDUS Studio");
             verify(appender).setClientNotificationService(clientNotificationService);
