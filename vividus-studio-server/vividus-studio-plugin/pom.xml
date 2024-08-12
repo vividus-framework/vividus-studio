@@ -20,7 +20,7 @@
         <checkstyle.plugin.version>3.4.0</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <slf4j.api.version>2.0.13</slf4j.api.version>
+        <slf4j.api.version>2.0.16</slf4j.api.version>
         <log4j.version>2.23.1</log4j.version>
         <jakarta.inject.version>2.0.1</jakarta.inject.version>
     </properties>
