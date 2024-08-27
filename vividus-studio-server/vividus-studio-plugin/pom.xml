@@ -17,7 +17,7 @@
         <org.mockito.version>5.12.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <checkstyle.version>10.17.0</checkstyle.version>
-        <checkstyle.plugin.version>3.4.0</checkstyle.plugin.version>
+        <checkstyle.plugin.version>3.5.0</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>3.0</hamcrest.version>
         <slf4j.api.version>2.0.16</slf4j.api.version>
