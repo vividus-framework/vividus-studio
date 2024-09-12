@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.19] - 2024-09-12
 * Bump version of Gradle used to build projects from 8.8 to 8.9
 * Bump VS Code engine from 1.91.0 to 1.92.0
 
