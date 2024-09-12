@@ -266,7 +266,7 @@
         "@types/node": "^22.5.4",
         "@types/sinon": "^17.0.2",
         "@types/vscode": "^1.92.0",
-        "sinon": "^18.0.0",
+        "sinon": "^18.0.1",
         "mocha": "^10.7.3",
         "tslint": "^6.1.3",
         "typescript": "^5.5.4",
