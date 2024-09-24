@@ -3,6 +3,9 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+* Bump minimum required Java for server from 17 to 21
+
 ## [0.2.0] - 2024-09-24
 * Bump minimum required Java from 17 to 21
 * Bump version of Gradle used to build projects from 8.9 to 8.10.2
