@@ -99,7 +99,7 @@
                             "null"
                         ],
                         "default": null,
-                        "description": "The directory path containing JDK to run the extension"
+                        "description": "The directory path containing Java to run the extension"
                     },
                     "vividus-studio.stories-runner": {
                         "type": "string",

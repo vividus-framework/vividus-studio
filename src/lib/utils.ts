@@ -9,12 +9,12 @@ export async function findJavaExecutable(): Promise<IJavaRuntime> {
         const runtime: IJavaRuntime = await getRuntime(userJavaHome, { withVersion: true }) as IJavaRuntime;
 
         if (!runtime) {
-            throw new Error(`Unable to find JDK at location specified by ${javaHomeProperty} user property: ${userJavaHome}`);
+            throw new Error(`Unable to find Java at location specified by ${javaHomeProperty} user property: ${userJavaHome}`);
         }
 
         if (runtime.version?.major as number < 17) {
-            throw new Error(`The ${javaHomeProperty} user property points to JDK ${runtime.version?.java_version} installation,`
-                + ` but JDK 17 or higher is required`)
+            throw new Error(`The ${javaHomeProperty} user property points to Java ${runtime.version?.java_version} installation,`
+                + ` but Java 17 or higher is required`)
         }
 
         return runtime;
@@ -26,7 +26,7 @@ export async function findJavaExecutable(): Promise<IJavaRuntime> {
     }) as IJavaRuntime;
 
     if (!runtime) {
-        throw new Error('Unable to find JDK 17 or higher installation');
+        throw new Error('Unable to find Java 17 or higher installation');
     }
 
     return runtime;

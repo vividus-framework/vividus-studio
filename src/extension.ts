@@ -59,7 +59,7 @@ export function activate(context: ExtensionContext) {
 async function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
 
     const javaRuntime: IJavaRuntime = await findJavaExecutable();
-    window.showInformationMessage(`Using JDK ${javaRuntime.version?.java_version}`);
+    window.showInformationMessage(`Using Java ${javaRuntime.version?.java_version}`);
 
     return new Promise(async (res, rej) => {
         const server = createServer(connection => res({ writer: connection, reader: connection }));
