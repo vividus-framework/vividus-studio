@@ -12,14 +12,6 @@ suite('Utils', () => {
         sinon.restore()
     })
 
-    const java13: IJavaRuntime = {
-        homedir: 'home_dir',
-        version: {
-            java_version: '13.0.2',
-            major: 13
-        }
-    }
-
     const java17: IJavaRuntime = {
         homedir: 'home_dir',
         version: {
@@ -28,27 +20,35 @@ suite('Utils', () => {
         }
     }
 
+    const java21: IJavaRuntime = {
+        homedir: 'home_dir',
+        version: {
+            java_version: '21.0.4',
+            major: 21
+        }
+    }
+
     const jdkUtilsModule = require('jdk-utils')
 
-    test('Should return Java 17 installation pointed by vividus-studio.java-home property', async () => {
-        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'getRuntime').returns(java17)
+    test('Should return Java 21 installation pointed by vividus-studio.java-home property', async () => {
+        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'getRuntime').returns(java21)
 
         sinon.stub(workspace, 'getConfiguration').returns(<WorkspaceConfiguration>{
             get: (section: string) => { return 'home_dir' }
         });
 
-        assert.equal(java17, await findJavaExecutable())
+        assert.equal(java21, await findJavaExecutable())
         assert.equal(true, getRuntimeStub.calledWith('home_dir', { withVersion: true }))
     })
 
-    test('Should return Java 17 system installation', async () => {
-        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'findRuntimes').returns([java17])
+    test('Should return Java 21 system installation', async () => {
+        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'findRuntimes').returns([java21])
 
         sinon.stub(workspace, 'getConfiguration').returns(<WorkspaceConfiguration>{
             get: (section: string) => { return null }
         });
 
-        assert.equal(java17, await findJavaExecutable())
+        assert.equal(java21, await findJavaExecutable())
         assert.equal(true, getRuntimeStub.calledWith({ withVersion: true }))
     })
 
@@ -66,27 +66,27 @@ suite('Utils', () => {
     })
 
     test('Should fail if vividus-studio.java-home property points to old Java versions', async () => {
-        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'getRuntime').returns(java13)
+        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'getRuntime').returns(java17)
 
         sinon.stub(workspace, 'getConfiguration').returns(<WorkspaceConfiguration>{
             get: (section: string) => { return 'home_dir' }
         });
 
         await assert.rejects(findJavaExecutable(),
-            { message: 'The vividus-studio.java-home user property points to Java 13.0.2 installation, but Java 17 or higher is required' })
+            { message: 'The vividus-studio.java-home user property points to Java 17.0.2 installation, but Java 21 or higher is required' })
         assert.equal(true, getRuntimeStub.calledOnce)
         assert.equal(true, getRuntimeStub.calledWith('home_dir', { withVersion: true }))
     })
 
-    test('Should fail if there is no Java 17 installed in the system', async () => {
-        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'findRuntimes').returns([java13])
+    test('Should fail if there is no Java 21 installed in the system', async () => {
+        const getRuntimeStub: SinonStub = sinon.stub(jdkUtilsModule, 'findRuntimes').returns([java17])
 
         sinon.stub(workspace, 'getConfiguration').returns(<WorkspaceConfiguration>{
             get: (section: string) => { return null }
         });
 
         await assert.rejects(findJavaExecutable(),
-            { message: 'Unable to find Java 17 or higher installation' })
+            { message: 'Unable to find Java 21 or higher installation' })
         assert.equal(true, getRuntimeStub.calledOnce)
         assert.equal(true, getRuntimeStub.calledWith({ withVersion: true }))
     })
