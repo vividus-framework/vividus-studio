@@ -11,7 +11,7 @@
     <properties>
         <base.name>VIVIDUS Studio</base.name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tycho-version>4.0.11</tycho-version>
+        <tycho-version>4.0.12</tycho-version>
         <tycho-extras-version>${tycho-version}</tycho-extras-version>
     </properties>
 
