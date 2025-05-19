@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 * Bump VS Code engine from 1.97.0 to 1.98.0
+* Bump version of Gradle used to build projects from 8.13 to 8.14
 
 ## [0.2.5] - 2025-03-11
 * Bump VS Code engine from 1.96.0 to 1.97.0
