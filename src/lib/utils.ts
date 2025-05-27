@@ -6,7 +6,7 @@ export async function findJavaExecutable(): Promise<IJavaRuntime> {
     const userJavaHome: string = workspace.getConfiguration().get(javaHomeProperty) as string;
     const minJavaVersion: number = 21;
 
-    if (userJavaHome != null) {
+    if (userJavaHome !== null) {
         const runtime: IJavaRuntime = await getRuntime(userJavaHome, { withVersion: true }) as IJavaRuntime;
 
         if (!runtime) {
@@ -15,7 +15,7 @@ export async function findJavaExecutable(): Promise<IJavaRuntime> {
 
         if (runtime.version?.major as number < minJavaVersion) {
             throw new Error(`The ${javaHomeProperty} user property points to Java ${runtime.version?.java_version} installation,`
-                + ` but Java ${minJavaVersion} or higher is required`)
+                + ` but Java ${minJavaVersion} or higher is required`);
         }
 
         return runtime;
@@ -23,7 +23,7 @@ export async function findJavaExecutable(): Promise<IJavaRuntime> {
 
     const runtime: IJavaRuntime = (await findRuntimes({ withVersion: true })).find(runtime => {
         const version: IJavaVersion = runtime.version as IJavaVersion;
-        return version.major >= minJavaVersion
+        return version.major >= minJavaVersion;
     }) as IJavaRuntime;
 
     if (!runtime) {

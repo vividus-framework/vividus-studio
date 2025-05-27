@@ -46,7 +46,7 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
         });
     }
     serverArgs.push('-data');
-    serverArgs.push(workspace)
+    serverArgs.push(workspace);
 
     const serverProcess = spawn(exec, serverArgs, { detached: true });
     serverProcess.stdout.on('data', function(data) {
@@ -61,7 +61,7 @@ export class Application {
     readonly application: string;
     readonly product: string;
     readonly applicationDir: string;
-    readonly storageDir: Uri
+    readonly storageDir: Uri;
 
     constructor(application: string, product: string, applicationDir: string, storageDir: Uri) {
         this.application = application;
