@@ -53,7 +53,7 @@ export function activate(context: ExtensionContext) {
     disposables.push(registerInsertStepCommand(client));
     disposables.push(...registerRefreshProjectCommand(client) as Disposable[]);
 
-    client.start()
+    client.start();
 }
 
 async function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
@@ -61,7 +61,7 @@ async function createServerOptions(context: ExtensionContext): Promise<StreamInf
     const javaRuntime: IJavaRuntime = await findJavaExecutable();
     window.showInformationMessage(`Using Java ${javaRuntime.version?.java_version}`);
 
-    return new Promise(async (res, rej) => {
+    return new Promise((res, rej) => {
         const server = createServer(connection => res({ writer: connection, reader: connection }));
         server.on('error', rej);
 
@@ -81,7 +81,7 @@ async function createServerOptions(context: ExtensionContext): Promise<StreamInf
 
 export function deactivate(): Thenable<void> | undefined {
     if (client) {
-        return client.dispose()
+        return client.dispose();
     }
     return undefined;
 }
