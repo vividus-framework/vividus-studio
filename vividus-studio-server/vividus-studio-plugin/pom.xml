@@ -16,7 +16,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <org.mockito.version>5.18.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <checkstyle.version>10.26.1</checkstyle.version>
+        <checkstyle.version>11.0.0</checkstyle.version>
         <checkstyle.plugin.version>3.6.0</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>3.0</hamcrest.version>
