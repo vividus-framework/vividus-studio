@@ -111,7 +111,7 @@ public class LocalJavaProjectLoader implements IJavaProjectLoader
     {
         BuildConfiguration config = BuildConfiguration.forRootProjectDirectory(projectFolder)
                                                       .overrideWorkspaceConfiguration(true)
-                                                      .gradleDistribution(GradleDistribution.forVersion("8.14.1"))
+                                                      .gradleDistribution(GradleDistribution.forVersion("8.14.3"))
                                                       .build();
 
         GradleBuild build = GradleCore.getWorkspace().createBuild(config);
