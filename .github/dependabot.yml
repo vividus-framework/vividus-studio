@@ -4,11 +4,14 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 99
   - package-ecosystem: maven
     directory: "/vividus-studio-server/"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 99
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 99
