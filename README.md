@@ -31,4 +31,14 @@ Source Code Actions
 Configure Shortcuts
 ==========================
 
-The keyboard shortcut for `Source Action...` can be configured by the following path `Code -> Preferences -> Keyboard Shortcuts -> Source Action...`
+The keyboard shortcut for `Source Action...` can be configured using the following menu paths:
+
+*macOS*
+```
+Code -> Settings... -> Keyboard Shortcuts -> Source Action...
+```
+*Windows*
+```
+File -> Preferences -> Keyboard Shortcuts -> Source Action...
+```
+
