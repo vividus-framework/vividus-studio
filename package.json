@@ -268,7 +268,7 @@
         "@types/vscode": "^1.100.0",
         "@vscode/test-electron": "^2.3.8",
         "eslint": "^8.56.0",
-        "mocha": "^11.7.2",
+        "mocha": "^11.7.5",
         "sinon": "^21.0.0",
         "typescript": "^5.5.4",
         "typescript-eslint": "^7.18.0"
