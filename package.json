@@ -261,16 +261,17 @@
         "test": "node ./out/test/runTest.js"
     },
     "devDependencies": {
+        "@stylistic/eslint-plugin": "^2.13.0",
         "@types/mocha": "^10.0.10",
         "@types/node": "^24.10.1",
         "@types/sinon": "^21.0.0",
         "@types/vscode": "^1.100.0",
         "@vscode/test-electron": "^2.3.8",
-        "eslint": "^8.56.0",
+        "eslint": "^8.57.0",
         "mocha": "^11.7.5",
         "sinon": "^21.0.0",
         "typescript": "^5.5.4",
-        "typescript-eslint": "^7.18.0"
+        "typescript-eslint": "^8.48.0"
     },
     "dependencies": {
         "glob": "^13.0.0",
