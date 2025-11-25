@@ -1,5 +1,5 @@
 import { AddressInfo } from 'net';
-import { sync } from 'glob';
+import { globSync } from 'glob';
 import { spawn } from 'child_process';
 import { Uri } from 'vscode';
 import { resolve } from 'path';
@@ -40,7 +40,7 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
     serverArgs.push(`${application.applicationDir}/${bundle}`);
 
     const workspace = resolve(application.storageDir.fsPath, 'workspace');
-    if(!existsSync(workspace)) {
+    if (!existsSync(workspace)) {
         mkdirSync(workspace, {
             recursive: true
         });
@@ -49,10 +49,10 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
     serverArgs.push(workspace);
 
     const serverProcess = spawn(exec, serverArgs, { detached: true });
-    serverProcess.stdout.on('data', function(data) {
+    serverProcess.stdout.on('data', function (data) {
         console.log(data.toString());
     });
-    serverProcess.stderr.on('data', function(data) {
+    serverProcess.stderr.on('data', function (data) {
         console.log(data.toString());
     });
 }
@@ -72,6 +72,6 @@ export class Application {
 }
 
 function search(pattern: string, workingDirectory: string): string {
-    const launchers: Array<string> = sync(pattern, { cwd: workingDirectory });
+    const launchers: Array<string> = globSync(pattern, { cwd: workingDirectory });
     return launchers[0];
 }
