@@ -274,7 +274,7 @@
         "typescript-eslint": "^7.18.0"
     },
     "dependencies": {
-        "glob": "^11.0.3",
+        "glob": "^11.1.0",
         "jdk-utils": "^0.6.0",
         "vscode-languageclient": "^9.0.1"
     }
