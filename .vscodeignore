@@ -12,4 +12,6 @@ vividus-studio-server/vividus-studio-plugin/**
 vividus-studio-server/vividus-studio-target-definition/**
 **/workspace/**
 
+.github/**
+
 **/codecov**
