@@ -56,6 +56,9 @@ jobs:
           registryUrl: https://marketplace.visualstudio.com
           extensionFile: vividus-studio-${{ inputs.release-version }}.vsix
 
+      - name: Publish to Open VSX
+        run: npx ovsx publish ./vividus-studio-${{ inputs.release-version }}.vsix -p ${{ secrets.OVSX_PAT }}
+
       - name: Publish to GitHub
         run: git push
 
