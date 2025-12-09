@@ -50,11 +50,7 @@ jobs:
           vsce package
 
       - name: Publish to Visual Studio Marketplace
-        uses: HaaLeo/publish-vscode-extension@v2
-        with:
-          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-          registryUrl: https://marketplace.visualstudio.com
-          extensionFile: vividus-studio-${{ inputs.release-version }}.vsix
+        run: npx vsce publish --packagePath ./vividus-studio-${{ inputs.release-version }}.vsix -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Publish to Open VSX
         run: npx ovsx publish ./vividus-studio-${{ inputs.release-version }}.vsix -p ${{ secrets.OVSX_PAT }}
