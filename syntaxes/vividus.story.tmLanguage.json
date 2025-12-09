@@ -149,7 +149,7 @@
             }
         },
         "outcome": {
-            "match": "(Outcome:)\\s*(?i)(any|success|failed)?\\s*",
+            "match": "(Outcome:)\\s*(?i)(any|success|failure)?\\s*",
             "captures": {
                 "1": {
                     "name": "vividus.keyword"
