@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 * Fix invalid syntax naming for failure outcome
+* Bump VS Code engine from 1.101.0 to 1.102.0
 
 ## [0.2.9] - 2025-11-26
 * Bump VS Code engine from 1.100.0 to 1.101.0
