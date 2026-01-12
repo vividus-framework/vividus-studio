@@ -271,7 +271,7 @@
         "mocha": "^11.7.5",
         "sinon": "^21.0.0",
         "typescript": "^5.5.4",
-        "typescript-eslint": "^8.49.0"
+        "typescript-eslint": "^8.53.0"
     },
     "dependencies": {
         "glob": "^13.0.0",
