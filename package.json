@@ -261,7 +261,7 @@
         "test": "node ./out/test/runTest.js"
     },
     "devDependencies": {
-        "@stylistic/eslint-plugin": "^5.6.1",
+        "@stylistic/eslint-plugin": "^5.7.0",
         "@types/mocha": "^10.0.10",
         "@types/node": "^24.10.2",
         "@types/sinon": "^21.0.0",
