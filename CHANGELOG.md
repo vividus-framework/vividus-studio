@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.11] - 2026-02-19
 * Add `VIVIDUS Studio Debug` channel for improved client side logging
 * Bump VS Code engine from 1.102.0 to 1.103.0
 
