@@ -33,6 +33,9 @@ public class ResolvedStepDefinition extends StepDefinition
     {
         super(stepDefinition.getModule(), stepDefinition.getStepAsString(), stepDefinition.getDocumentation(),
                 stepDefinition.getParameters(), stepDefinition.getMatchTokens());
+        setDeprecated(stepDefinition.isDeprecated());
+        setComposite(stepDefinition.isComposite());
+        setDynamic(stepDefinition.isDynamic());
         this.step = step;
         this.tokenIndex = tokenIndex;
         this.subToken = subToken;
