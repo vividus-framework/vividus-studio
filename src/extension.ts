@@ -18,7 +18,8 @@ export function activate(context: ExtensionContext) {
         },
         completionItemKind: {
             valueSet: [
-                CompletionItemKind.Method
+                CompletionItemKind.Method,
+                CompletionItemKind.Function
             ]
         },
         contextSupport: true

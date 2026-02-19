@@ -63,7 +63,7 @@ public class CompletionItemService implements ICompletionItemService
     private static CompletionItem asCompletionItem(StepDefinition stepDefinition)
     {
         CompletionItem item = new CompletionItem(stepDefinition.getStepAsString());
-        item.setKind(CompletionItemKind.Method);
+        item.setKind(stepDefinition.isComposite() ? CompletionItemKind.Function : CompletionItemKind.Method);
 
         setSnippet(item, stepDefinition);
         setInfo(item, stepDefinition);
