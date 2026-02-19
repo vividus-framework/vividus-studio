@@ -14,14 +14,14 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <org.mockito.version>5.20.0</org.mockito.version>
+        <org.mockito.version>5.21.0</org.mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <checkstyle.version>12.2.0</checkstyle.version>
+        <checkstyle.version>13.2.0</checkstyle.version>
         <checkstyle.plugin.version>3.6.0</checkstyle.plugin.version>
         <sevntu.checkstyle.plugin.version>1.44.1</sevntu.checkstyle.plugin.version>
         <hamcrest.version>3.0</hamcrest.version>
         <slf4j.api.version>2.0.17</slf4j.api.version>
-        <log4j.version>2.25.2</log4j.version>
+        <log4j.version>2.25.3</log4j.version>
         <jakarta.inject.version>2.0.1</jakarta.inject.version>
     </properties>
 
@@ -95,7 +95,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.7.0</version>
+                <version>2.7.1</version>
 
                 <executions>
                     <execution>
@@ -127,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
+                <version>3.15.0</version>
                 <executions>
                     <execution>
                         <id>compiletests</id>
@@ -242,7 +242,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.9.0</version>
+                <version>3.10.0</version>
                 <executions>
                     <execution>
                         <?m2e execute onConfiguration?>
