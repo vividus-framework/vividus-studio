@@ -28,6 +28,8 @@ export function activate(context: ExtensionContext) {
     const channel: OutputChannel = window.createOutputChannel(name);
     channel.show();
 
+    const debugChannel: OutputChannel = window.createOutputChannel("VIVIDUS Studio Debug");
+
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             {
@@ -46,7 +48,7 @@ export function activate(context: ExtensionContext) {
         outputChannel: channel,
     };
 
-    client = new LanguageClient("Client", () => createServerOptions(context), clientOptions);
+    client = new LanguageClient("Client", () => launchServer(context, debugChannel), clientOptions);
 
     const disposables: Disposable[] = context.subscriptions;
 
@@ -56,14 +58,16 @@ export function activate(context: ExtensionContext) {
     client.start();
 }
 
-async function createServerOptions(context: ExtensionContext): Promise<StreamInfo> {
-
+async function launchServer(context: ExtensionContext, debugChannel: OutputChannel): Promise<StreamInfo> {
     const javaRuntime: IJavaRuntime = await findJavaExecutable();
     window.showInformationMessage(`Using Java ${javaRuntime.version?.java_version}`);
 
     return new Promise((res, rej) => {
         const server = createServer(connection => res({ writer: connection, reader: connection }));
-        server.on('error', rej);
+        server.on('error', (err) => {
+            debugChannel.appendLine(`Server error: ${err.message}`);
+            rej(err);
+        });
 
         server.listen(() => {
             const address: AddressInfo = server.address() as AddressInfo;
@@ -73,7 +77,7 @@ async function createServerOptions(context: ExtensionContext): Promise<StreamInf
                 applicationDir: context.extensionPath,
                 storageDir: context.storageUri as Uri
             };
-            launch(resolve(javaRuntime.homedir, 'bin', 'java'), address, application);
+            launch(resolve(javaRuntime.homedir, 'bin', 'java'), address, application, debugChannel);
         });
         return server;
     });
