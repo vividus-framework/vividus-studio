@@ -1,11 +1,11 @@
 import { AddressInfo } from 'net';
 import { globSync } from 'glob';
 import { spawn } from 'child_process';
-import { Uri } from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 import { resolve } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 
-export function launch(exec: string, address: AddressInfo, application: Application) {
+export function launch(exec: string, address: AddressInfo, application: Application, logChannel: OutputChannel) {
 
     const serverArgs: string[] = [];
 
@@ -48,12 +48,14 @@ export function launch(exec: string, address: AddressInfo, application: Applicat
     serverArgs.push('-data');
     serverArgs.push(workspace);
 
+    logChannel.appendLine(`Spawning process: ${exec} ${serverArgs.join(' ')}`);
+
     const serverProcess = spawn(exec, serverArgs, { detached: true });
     serverProcess.stdout.on('data', function (data) {
-        console.log(data.toString());
+        logChannel.appendLine(data.toString());
     });
     serverProcess.stderr.on('data', function (data) {
-        console.log(data.toString());
+        logChannel.appendLine(data.toString());
     });
 }
 
