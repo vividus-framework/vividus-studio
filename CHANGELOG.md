@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 * Add `VIVIDUS Studio Debug` channel for improved client side logging
+* Bump VS Code engine from 1.102.0 to 1.103.0
 
 ## [0.2.10] - 2025-12-09
 * Fix invalid syntax naming for failure outcome
