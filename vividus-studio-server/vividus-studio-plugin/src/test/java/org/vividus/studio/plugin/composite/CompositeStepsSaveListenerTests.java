@@ -64,10 +64,10 @@ class CompositeStepsSaveListenerTests
     @Test
     void shouldRefreshStepDefinitionsOnCompositeStepsFileSaveEvent() throws IOException
     {
-        var uri = getClass().getResource("/project/src/main/resources/composite/composite.steps").getFile();
+        String uri = getClass().getResource("/project/src/main/resources/composite/composite.steps").getFile();
 
         var params = new DidSaveTextDocumentParams(new TextDocumentIdentifier(uri));
-        var lines = Files.readAllLines(Path.of(uri), StandardCharsets.UTF_8);
+        List<String> lines = Files.readAllLines(Path.of(uri), StandardCharsets.UTF_8);
         when(textDocumentProvider.getTextDocument(uri)).thenReturn(lines);
         IProject project = mock();
         IPath location = mock();
