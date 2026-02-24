@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionParams;
@@ -63,6 +64,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -100,7 +102,7 @@ class VividusStudioTextDocumentServiceTests
     {
         CompletionParams params = mock();
         CompletionContext context = mock();
-        var item = mockCompletionItem("text");
+        CompletionItem item = mockCompletionItem("text");
         TextDocumentIdentifier identifier = mock();
         Position position = mock();
 
@@ -111,7 +113,7 @@ class VividusStudioTextDocumentServiceTests
         when(params.getPosition()).thenReturn(position);
         when(completionItemService.findAllAtPosition(TEXT_DOCUMENT_IDENTIFIER, position)).thenReturn(List.of(item));
 
-        var items = textDocumentService.completion(params).get().getLeft();
+        List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
 
         assertEquals(List.of(item), items);
         verifyNoMoreInteractions(completionItemService, context, params, item);
@@ -121,7 +123,7 @@ class VividusStudioTextDocumentServiceTests
     void testResolveCompletionItem() throws InterruptedException, ExecutionException
     {
         CompletionItem item = mock();
-        var outputItem = textDocumentService.resolveCompletionItem(item).get();
+        CompletionItem outputItem = textDocumentService.resolveCompletionItem(item).get();
         assertEquals(item, outputItem);
         verifyNoInteractions(completionItemService, item);
     }
@@ -139,7 +141,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidChange()
     {
-        var docParams = mockDidChange(StringUtils.EMPTY, 0);
+        DidChangeTextDocumentParams docParams = mockDidChange(StringUtils.EMPTY, 0);
         textDocumentService.didChange(docParams);
         verify(textDocumentEventListener).onChange(docParams);
         verify(docParams).getContentChanges();
@@ -175,7 +177,7 @@ class VividusStudioTextDocumentServiceTests
     {
         CompletionParams params = mock();
         CompletionContext context = mock();
-        var item = mockCompletionItem(newText);
+        CompletionItem item = mockCompletionItem(newText);
         TextDocumentIdentifier identifier = mock();
         Position position = spy();
         when(position.getCharacter()).thenReturn(11);
@@ -187,10 +189,10 @@ class VividusStudioTextDocumentServiceTests
         when(params.getPosition()).thenReturn(position);
         when(completionItemService.findAllAtPosition(TEXT_DOCUMENT_IDENTIFIER, position)).thenReturn(List.of(item));
 
-        var docParams = mockDidChange("O", 10);
+        DidChangeTextDocumentParams docParams = mockDidChange("O", 10);
         textDocumentService.didChange(docParams);
 
-        var items = textDocumentService.completion(params).get().getLeft();
+        List<CompletionItem> items = textDocumentService.completion(params).get().getLeft();
 
         assertThat(items, hasSize(expectedSize));
     }
@@ -202,10 +204,10 @@ class VividusStudioTextDocumentServiceTests
         CodeAction action = mock();
         when(codeActionFactory.createCodeActions(params)).thenReturn(List.of(Either.forRight(action)));
 
-        var codeActions = textDocumentService.codeAction(params).get();
+        List<Either<Command, CodeAction>> codeActions = textDocumentService.codeAction(params).get();
 
         assertThat(codeActions, hasSize(1));
-        var actualAction = codeActions.get(0).getRight();
+        CodeAction actualAction = codeActions.get(0).getRight();
         assertEquals(action, actualAction);
     }
 
@@ -214,7 +216,7 @@ class VividusStudioTextDocumentServiceTests
     {
         CodeAction unresolved = mock();
 
-        var output = textDocumentService.resolveCodeAction(unresolved).get();
+        CodeAction output = textDocumentService.resolveCodeAction(unresolved).get();
 
         assertEquals(unresolved, output);
     }
@@ -227,7 +229,7 @@ class VividusStudioTextDocumentServiceTests
         when(stepDefinitionsProvider.getStepDefinitions()).thenReturn(Stream.of(stepDefinition));
         when(stepDefinition.getStepAsString()).thenReturn(stepAsString);
 
-        var steps = textDocumentService.getSteps().get();
+        List<String> steps = textDocumentService.getSteps().get();
 
         assertEquals(List.of(stepAsString), steps);
     }
@@ -246,7 +248,7 @@ class VividusStudioTextDocumentServiceTests
             messageConsumer.accept(message);
             return null;
         }).when(projectLoader).reload(eq(project), any(), any());
-        var order = inOrder(clientNotificationService, projectLoader, stepDefinitionsProvider);
+        InOrder order = inOrder(clientNotificationService, projectLoader, stepDefinitionsProvider);
 
         textDocumentService.refreshProject().get();
 

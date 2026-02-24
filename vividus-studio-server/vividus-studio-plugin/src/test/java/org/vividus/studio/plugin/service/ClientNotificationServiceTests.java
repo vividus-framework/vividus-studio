@@ -36,6 +36,7 @@ import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.ProgressParams;
 import org.eclipse.lsp4j.WorkDoneProgressBegin;
 import org.eclipse.lsp4j.WorkDoneProgressEnd;
+import org.eclipse.lsp4j.WorkDoneProgressNotification;
 import org.eclipse.lsp4j.WorkDoneProgressReport;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -65,9 +66,9 @@ public class ClientNotificationServiceTests
         service.startProgress(TOKEN, title, MESSAGE);
 
         verify(languageClient).notifyProgress(progressParamsCaptor.capture());
-        var progressParams = progressParamsCaptor.getValue();
+        ProgressParams progressParams = progressParamsCaptor.getValue();
         assertEquals(TOKEN, progressParams.getToken());
-        var notification = progressParams.getValue().getLeft();
+        WorkDoneProgressNotification notification = progressParams.getValue().getLeft();
         assertThat(notification, instanceOf(WorkDoneProgressBegin.class));
         var begin = (WorkDoneProgressBegin) notification;
         assertEquals(title, begin.getTitle());
@@ -81,9 +82,9 @@ public class ClientNotificationServiceTests
         service.progress(TOKEN, MESSAGE);
 
         verify(languageClient).notifyProgress(progressParamsCaptor.capture());
-        var progressParams = progressParamsCaptor.getValue();
+        ProgressParams progressParams = progressParamsCaptor.getValue();
         assertEquals(TOKEN, progressParams.getToken());
-        var notification = progressParams.getValue().getLeft();
+        WorkDoneProgressNotification notification = progressParams.getValue().getLeft();
         assertThat(notification, instanceOf(WorkDoneProgressReport.class));
         var report = (WorkDoneProgressReport) notification;
         assertEquals(MESSAGE, report.getMessage());
@@ -96,9 +97,9 @@ public class ClientNotificationServiceTests
         service.endProgress(TOKEN, MESSAGE);
 
         verify(languageClient).notifyProgress(progressParamsCaptor.capture());
-        var progressParams = progressParamsCaptor.getValue();
+        ProgressParams progressParams = progressParamsCaptor.getValue();
         assertEquals(TOKEN, progressParams.getToken());
-        var notification = progressParams.getValue().getLeft();
+        WorkDoneProgressNotification notification = progressParams.getValue().getLeft();
         assertThat(notification, instanceOf(WorkDoneProgressEnd.class));
         var end = (WorkDoneProgressEnd) notification;
         assertEquals(MESSAGE, end.getMessage());
@@ -110,7 +111,7 @@ public class ClientNotificationServiceTests
         service.showInfo(MESSAGE);
 
         verify(languageClient).showMessage(messageParamsCaptor.capture());
-        var params = messageParamsCaptor.getValue();
+        MessageParams params = messageParamsCaptor.getValue();
         assertEquals(MessageType.Info, params.getType());
         assertEquals(MESSAGE, params.getMessage());
     }
@@ -121,7 +122,7 @@ public class ClientNotificationServiceTests
         service.showError(MESSAGE);
 
         verify(languageClient).showMessage(messageParamsCaptor.capture());
-        var params = messageParamsCaptor.getValue();
+        MessageParams params = messageParamsCaptor.getValue();
         assertEquals(MessageType.Error, params.getType());
         assertEquals(MESSAGE, params.getMessage());
     }
@@ -132,7 +133,7 @@ public class ClientNotificationServiceTests
         service.logMessage(MESSAGE);
 
         verify(languageClient).logMessage(messageParamsCaptor.capture());
-        var params = messageParamsCaptor.getValue();
+        MessageParams params = messageParamsCaptor.getValue();
         assertEquals(MessageType.Log, params.getType());
         assertEquals(MESSAGE, params.getMessage());
     }

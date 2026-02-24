@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,9 +112,9 @@ class CompletionItemServiceTests
 
         when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(lines);
 
-        var items = completionItemService.findAllAtPosition(DOCUMENT_ID, position);
+        List<CompletionItem> items = completionItemService.findAllAtPosition(DOCUMENT_ID, position);
         assertThat(items, hasSize(1));
-        var item = items.get(0);
+        CompletionItem item = items.get(0);
 
         assertEquals(textEdit, item.getTextEdit().getLeft().getNewText());
     }

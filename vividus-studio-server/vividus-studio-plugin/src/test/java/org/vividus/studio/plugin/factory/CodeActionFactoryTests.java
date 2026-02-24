@@ -24,13 +24,18 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
+import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.CodeActionParams;
 import org.eclipse.lsp4j.CodeActionTriggerKind;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,22 +50,22 @@ class CodeActionFactoryTests
     @Test
     void shouldCreateCodeActions()
     {
-        var params = createBaseParams(CodeActionTriggerKind.Invoked);
+        CodeActionParams params = createBaseParams(CodeActionTriggerKind.Invoked);
         var position = new Position(7, 0);
         params.setRange(new Range(position, position));
         var identifier = "identifier";
         params.setTextDocument(new TextDocumentIdentifier(identifier));
 
-        var codeActions = codeActionFactory.createCodeActions(params);
+        List<Either<Command, CodeAction>> codeActions = codeActionFactory.createCodeActions(params);
 
         assertThat(codeActions, hasSize(1));
 
-        var insertStepAction = codeActions.get(0).getRight();
+        CodeAction insertStepAction = codeActions.get(0).getRight();
         assertEquals(CodeActionKind.Source, insertStepAction.getKind());
         assertEquals("Insert Step...", insertStepAction.getTitle());
-        var command = insertStepAction.getCommand();
+        Command command = insertStepAction.getCommand();
         assertEquals("vividus.action.insertStep", command.getCommand());
-        var args = command.getArguments();
+        List<Object> args = command.getArguments();
         assertThat(args, hasSize(1));
         var insertParams = (InsertStepParameters) args.get(0);
         assertEquals(identifier, insertParams.getUri());
@@ -76,7 +81,7 @@ class CodeActionFactoryTests
     @Test
     void shouldReturnEmptyCodeActionsOnUnsupportedPositions()
     {
-        var params = createBaseParams(CodeActionTriggerKind.Invoked);
+        CodeActionParams params = createBaseParams(CodeActionTriggerKind.Invoked);
         params.setRange(new Range(new Position(1, 2), new Position(3, 4)));
 
         assertThat(codeActionFactory.createCodeActions(params), empty());

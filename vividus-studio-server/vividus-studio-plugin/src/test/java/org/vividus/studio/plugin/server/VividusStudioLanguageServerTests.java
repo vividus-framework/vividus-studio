@@ -45,7 +45,10 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -54,6 +57,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.command.ICommand;
@@ -118,12 +122,12 @@ class VividusStudioLanguageServerTests
             return true;
         }))).thenReturn(Optional.of(javaProject));
 
-        var notificationServiceOrder = inOrder(clientNotificationService);
+        InOrder notificationServiceOrder = inOrder(clientNotificationService);
 
-        var result = languageServer.initialize(params).get();
+        InitializeResult result = languageServer.initialize(params).get();
 
-        var serverCapabilities = result.getCapabilities();
-        var triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
+        ServerCapabilities serverCapabilities = result.getCapabilities();
+        List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of(), triggers);
         verify(jvmConfigurator).configureDefaultJvm();
         verify(vividusStudioConfiguration).setJavaProject(javaProject);
@@ -137,7 +141,7 @@ class VividusStudioLanguageServerTests
         notificationServiceOrder.verify(clientNotificationService).showError(error);
         notificationServiceOrder.verify(clientNotificationService).endProgress(token, "Completed");
 
-        var codeActionOptions = serverCapabilities.getCodeActionProvider().getRight();
+        CodeActionOptions codeActionOptions = serverCapabilities.getCodeActionProvider().getRight();
         assertTrue(codeActionOptions.getResolveProvider());
         assertEquals(List.of(CodeActionKind.Source), codeActionOptions.getCodeActionKinds());
     }

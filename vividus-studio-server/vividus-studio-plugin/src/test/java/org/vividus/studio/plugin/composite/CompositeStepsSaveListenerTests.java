@@ -79,9 +79,9 @@ class CompositeStepsSaveListenerTests
 
         verify(stepDefinitionsAware).refresh(definitionsCaptor.capture());
 
-        var stepDefinitions = definitionsCaptor.getValue();
+        List<StepDefinition> stepDefinitions = definitionsCaptor.getValue();
         assertThat(stepDefinitions, hasSize(1));
-        var definition = stepDefinitions.get(0);
+        StepDefinition definition = stepDefinitions.get(0);
         assertTrue(definition.isDynamic());
         assertTrue(definition.isComposite());
         assertEquals("Then I param $param1 and $param2 and $param3", definition.getStepAsString());

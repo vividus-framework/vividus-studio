@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -79,7 +80,7 @@ class LocalJavaProjectLoaderTests
     void testLoadProject() throws Exception
     {
         IProjectDescription projectDescription = mock();
-        var project = mockProject(projectDescription);
+        IProject project = mockProject(projectDescription);
         IJavaProject javaProject = mock();
 
         when(project.exists()).thenReturn(false);
@@ -92,9 +93,9 @@ class LocalJavaProjectLoaderTests
 
         mockGradlelBuild(() ->
         {
-            var loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
+            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
             assertTrue(loaded.isPresent());
-            var output = loaded.get();
+            IJavaProject output = loaded.get();
             assertEquals(javaProject, output);
         }, StringUtils.EMPTY);
 
@@ -109,7 +110,7 @@ class LocalJavaProjectLoaderTests
     void testLoadProjectCorrupted() throws Exception
     {
         IProjectDescription projectDescription = mock();
-        var project = mockProject(projectDescription);
+        IProject project = mockProject(projectDescription);
 
         when(project.exists()).thenReturn(true);
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(false);
@@ -120,7 +121,7 @@ class LocalJavaProjectLoaderTests
 
         mockGradlelBuild(() ->
         {
-            var loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
+            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
             assertTrue(loaded.isEmpty());
         }, StringUtils.EMPTY);
 

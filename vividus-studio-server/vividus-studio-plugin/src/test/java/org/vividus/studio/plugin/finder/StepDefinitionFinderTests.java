@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -95,21 +96,21 @@ class StepDefinitionFinderTests
     @Test
     void testFind() throws IOException, CoreException
     {
-        var module = createStepsModule();
+        JarPackageFragmentRoot module = createStepsModule();
         IPackageFragment packageFragment = mock();
 
         // Mock java steps
-        var stepsClass = createStepsClass();
+        ClassFileMock stepsClass = createStepsClass();
         IMember classMember = mock();
-        var given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true, m ->
+        IJavaElement given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true, m ->
         {
             when(m.getParameterTypes()).thenReturn(new String[] {"I"});
         });
-        var when = createStep("When", "I param $param1 and $param2", stepsClass.getClassFileBuffer(), 2, 3,
+        IJavaElement when = createStep("When", "I param $param1 and $param2", stepsClass.getClassFileBuffer(), 2, 3,
                 false, m ->
                 {
                     var paramType = "my.test.type.Color";
-                    var rawType = rawType(paramType);
+                    String rawType = rawType(paramType);
 
                     when(m.getParameterTypes())
                             .thenReturn(new String[] { rawType, "Ljava.util.Set<%s>;".formatted(rawType) });
@@ -135,7 +136,7 @@ class StepDefinitionFinderTests
 
                     when(type.getFields()).thenReturn(new IField[] { white, black, values, internal });
                 });
-        var then = createStep("Then", "I param $param1 and $param2 and $param3",
+        IJavaElement then = createStep("Then", "I param $param1 and $param2 and $param3",
                 stepsClass.getClassFileBuffer(), 3, 4, false, m ->
                 {
                     var paramType = "my.test.type.JustClass";
@@ -165,10 +166,10 @@ class StepDefinitionFinderTests
         when(resource.getParent()).thenReturn(resourceFragment);
         mockModuleName(resourceFragment);
 
-        var inputStream = getClass().getResource("composite.steps").openStream();
+        InputStream inputStream = getClass().getResource("composite.steps").openStream();
         when(resource.getContents()).thenReturn(inputStream);
 
-        var definitions = new ArrayList<>(finder.find(root));
+        List<StepDefinition> definitions = new ArrayList<>(finder.find(root));
         assertThat(definitions, hasSize(7));
 
         // assert java steps
@@ -232,12 +233,12 @@ class StepDefinitionFinderTests
                 () -> assertEquals(fullName, definition.getStepAsString()),
                 () -> assertEquals(module, definition.getModule()),
                 () -> assertEquals(javadoc, definition.getDocumentation()));
-        var actualParameters = definition.getParameters();
+        List<Parameter> actualParameters = definition.getParameters();
         assertThat(actualParameters, hasSize(parameters.size()));
         IntStream.range(0, parameters.size()).forEach(index ->
         {
-            var actual = actualParameters.get(index);
-            var expected = parameters.get(index);
+            Parameter actual = actualParameters.get(index);
+            Parameter expected = parameters.get(index);
             assertAll(() -> assertEquals(expected.getIndex(), actual.getIndex()),
                     () -> assertEquals(expected.getStartAt(), actual.getStartAt()),
                     () -> assertEquals(expected.getName(), actual.getName()),
@@ -288,8 +289,8 @@ class StepDefinitionFinderTests
             throws JavaModelException
     {
         IJavaElement javaElement = mock(IJavaElement.class, withSettings().extraInterfaces(IMethod.class));
-        var method = (IMethod) javaElement;
-        var annotation = createAnnotation("org.jbehave.core.annotations." + type);
+        IMethod method = (IMethod) javaElement;
+        IAnnotation annotation = createAnnotation("org.jbehave.core.annotations." + type);
         IAnnotation[] annotations = deprecated
                 ? new IAnnotation[] { annotation, createAnnotation(Deprecated.class.getCanonicalName()) }
                 : new IAnnotation[] { annotation };
