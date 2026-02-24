@@ -45,7 +45,7 @@ class JVMConfiguratorTests
     @Test
     void shouldConfigureDefaultJvm() throws CoreException
     {
-        var type = mock(IVMInstallType.class);
+        IVMInstallType type = mock();
         try (var javaRuntime = mockStatic(JavaRuntime.class);
              var vmConstruction = mockConstruction(VMStandin.class,
                 (mock, ctx) -> when(mock.convertToRealVM()).thenReturn(defaultVm)))

@@ -96,11 +96,11 @@ class StepDefinitionFinderTests
     void testFind() throws IOException, CoreException
     {
         var module = createStepsModule();
-        var packageFragment = mock(IPackageFragment.class);
+        IPackageFragment packageFragment = mock();
 
         // Mock java steps
         var stepsClass = createStepsClass();
-        var classMember = mock(IMember.class);
+        IMember classMember = mock();
         var given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true, m ->
         {
             when(m.getParameterTypes()).thenReturn(new String[] {"I"});
@@ -115,22 +115,22 @@ class StepDefinitionFinderTests
                             .thenReturn(new String[] { rawType, "Ljava.util.Set<%s>;".formatted(rawType) });
                     when(m.getJavaProject()).thenReturn(root);
 
-                    var type = mock(IType.class);
+                    IType type = mock();
                     when(root.findType(paramType)).thenReturn(type);
                     when(type.isEnum()).thenReturn(true);
 
-                    var white = mock(IField.class);
+                    IField white = mock();
                     when(white.getFlags()).thenReturn(16409);
                     when(white.getElementName()).thenReturn("WHITE");
 
-                    var black = mock(IField.class);
+                    IField black = mock();
                     when(black.getFlags()).thenReturn(16409);
                     when(black.getElementName()).thenReturn("BLACK");
 
-                    var values = mock(IField.class);
+                    IField values = mock();
                     when(values.getFlags()).thenReturn(4122);
 
-                    var internal = mock(IField.class);
+                    IField internal = mock();
                     when(internal.getFlags()).thenReturn(18);
 
                     when(type.getFields()).thenReturn(new IField[] { white, black, values, internal });
@@ -145,7 +145,7 @@ class StepDefinitionFinderTests
 
                     when(root.findType(unresolvableType)).thenReturn(null);
 
-                    var type = mock(IType.class);
+                    IType type = mock();
                     when(root.findType(paramType)).thenReturn(type);
                     when(type.isEnum()).thenReturn(false);
                 });
@@ -157,8 +157,8 @@ class StepDefinitionFinderTests
         when(classMember.getChildren()).thenReturn(new IJavaElement[] { given, when, then });
 
         // Mock composite steps
-        var resource = mock(IJarEntryResource.class);
-        var resourceFragment = mock(IPackageFragment.class);
+        IJarEntryResource resource = mock();
+        IPackageFragment resourceFragment = mock();
 
         when(resource.getName()).thenReturn("composite.steps");
         when(packageFragment.getNonJavaResources()).thenReturn(new Object[] { resource });
@@ -247,9 +247,9 @@ class StepDefinitionFinderTests
 
     private JarPackageFragmentRoot createStepsModule()
     {
-        var module = mock(JarPackageFragmentRoot.class);
-        var manifest = mock(Manifest.class);
-        var attributes = mock(Attributes.class);
+        JarPackageFragmentRoot module = mock();
+        Manifest manifest = mock();
+        Attributes attributes = mock();
 
         when(module.getManifest()).thenReturn(manifest);
         when(manifest.getMainAttributes()).thenReturn(attributes);
@@ -260,11 +260,11 @@ class StepDefinitionFinderTests
 
     private ClassFileMock createStepsClass() throws JavaModelException
     {
-        var stepsClass = mock(IPackageFragment.class, withSettings().extraInterfaces(IClassFile.class));
+        IPackageFragment stepsClass = mock(IPackageFragment.class, withSettings().extraInterfaces(IClassFile.class));
         var classFile = (IClassFile) stepsClass;
-        var packageElement = mock(IJavaElement.class);
-        var openable = mock(IOpenable.class);
-        var buffer = mock(IBuffer.class);
+        IJavaElement packageElement = mock();
+        IOpenable openable = mock();
+        IBuffer buffer = mock();
 
         when(stepsClass.getElementType()).thenReturn(IJavaElement.CLASS_FILE);
         when(stepsClass.getElementName()).thenReturn("ClassWithSteps");
@@ -278,7 +278,7 @@ class StepDefinitionFinderTests
 
     private void mockModuleName(IJavaElement packageElementMock)
     {
-        var moduleElement = mock(IJavaElement.class);
+        IJavaElement moduleElement = mock();
         when(packageElementMock.getParent()).thenReturn(moduleElement);
         when(moduleElement.getElementName()).thenReturn("module-name");
     }
@@ -287,14 +287,14 @@ class StepDefinitionFinderTests
             boolean deprecated, FailableConsumer<IMethod, JavaModelException> parametersMocker)
             throws JavaModelException
     {
-        var javaElement = mock(IJavaElement.class, withSettings().extraInterfaces(IMethod.class));
+        IJavaElement javaElement = mock(IJavaElement.class, withSettings().extraInterfaces(IMethod.class));
         var method = (IMethod) javaElement;
         var annotation = createAnnotation("org.jbehave.core.annotations." + type);
         IAnnotation[] annotations = deprecated
                 ? new IAnnotation[] { annotation, createAnnotation(Deprecated.class.getCanonicalName()) }
                 : new IAnnotation[] { annotation };
-        var pair = mock(IMemberValuePair.class);
-        var sourceRange = mock(ISourceRange.class);
+        IMemberValuePair pair = mock();
+        ISourceRange sourceRange = mock();
 
         when(javaElement.getElementType()).thenReturn(IJavaElement.METHOD);
         when(method.getAnnotations()).thenReturn(annotations);
@@ -313,7 +313,7 @@ class StepDefinitionFinderTests
 
     private IAnnotation createAnnotation(String name)
     {
-        var annotation = mock(IAnnotation.class);
+        IAnnotation annotation = mock();
         when(annotation.getElementName()).thenReturn(name);
         return annotation;
     }

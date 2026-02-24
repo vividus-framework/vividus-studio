@@ -83,7 +83,7 @@ class VividusStudioLanguageServerTests
     @BeforeEach
     void beforeEach() throws IllegalArgumentException, IllegalAccessException
     {
-        var command = mock(ICommand.class);
+        ICommand command = mock();
         lenient().when(command.getName()).thenReturn(COMMAND);
 
         languageServer = new VividusStudioLanguageServer(null, stepDefinitionResolver, workspaceService, projectLoader,
@@ -94,9 +94,9 @@ class VividusStudioLanguageServerTests
     @Test
     void testInitialize() throws InterruptedException, ExecutionException, CoreException, IOException
     {
-        var params = mock(InitializeParams.class);
+        InitializeParams params = mock();
         var rootUri = "root uri";
-        var javaProject = mock(IJavaProject.class);
+        IJavaProject javaProject = mock();
         Either<String, Integer> token = Either.forLeft("token");
 
         when(params.getWorkDoneToken()).thenReturn(token);
@@ -145,8 +145,8 @@ class VividusStudioLanguageServerTests
     @Test
     void shouldListen() throws Exception
     {
-        var is = mock(InputStream.class);
-        var os = mock(OutputStream.class);
+        InputStream is = mock();
+        OutputStream os = mock();
 
         try(var socketConstruction = mockConstruction(Socket.class, (mock, ctx) -> {
             when(mock.getInputStream()).thenReturn(is);
@@ -155,12 +155,12 @@ class VividusStudioLanguageServerTests
             var lspLauncher = mockStatic(LSPLauncher.class);
             var logAppender = mockStatic(VividusStudioLogAppender.class))
         {
-            var launcher = mock(Launcher.class);
+            Launcher<LanguageClient> launcher = mock();
             lspLauncher.when(() -> LSPLauncher.createServerLauncher(languageServer, is,
                     os)).thenReturn(launcher);
-            var appender = mock(VividusStudioLogAppender.class);
+            VividusStudioLogAppender appender = mock();
             logAppender.when(() -> VividusStudioLogAppender.getInstance()).thenReturn(appender);
-            var client = mock(LanguageClient.class);
+            LanguageClient client = mock();
             when(launcher.getRemoteProxy()).thenReturn(client);
 
             CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> languageServer.exit());

@@ -98,11 +98,11 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testCompletionInvoked() throws InterruptedException, ExecutionException
     {
-        var params = mock(CompletionParams.class);
-        var context = mock(CompletionContext.class);
+        CompletionParams params = mock();
+        CompletionContext context = mock();
         var item = mockCompletionItem("text");
-        var identifier = mock(TextDocumentIdentifier.class);
-        var position = mock(Position.class);
+        TextDocumentIdentifier identifier = mock();
+        Position position = mock();
 
         when(params.getContext()).thenReturn(context);
         when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.Invoked);
@@ -120,7 +120,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testResolveCompletionItem() throws InterruptedException, ExecutionException
     {
-        var item = mock(CompletionItem.class);
+        CompletionItem item = mock();
         var outputItem = textDocumentService.resolveCompletionItem(item).get();
         assertEquals(item, outputItem);
         verifyNoInteractions(completionItemService, item);
@@ -129,7 +129,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidOpen()
     {
-        var docParams = mock(DidOpenTextDocumentParams.class);
+        DidOpenTextDocumentParams docParams = mock();
         textDocumentService.didOpen(docParams);
         verify(textDocumentEventListener).onOpen(docParams);
         verifyNoMoreInteractions(textDocumentEventListener);
@@ -150,7 +150,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidClose()
     {
-        var docParams = mock(DidCloseTextDocumentParams.class);
+        DidCloseTextDocumentParams docParams = mock();
         textDocumentService.didClose(docParams);
         verify(textDocumentEventListener).onClose(docParams);
         verifyNoMoreInteractions(textDocumentEventListener);
@@ -160,7 +160,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidSave()
     {
-        var docParams = mock(DidSaveTextDocumentParams.class);
+        DidSaveTextDocumentParams docParams = mock();
         textDocumentService.didSave(docParams);
         verifyNoInteractions(docParams, completionItemService);
     }
@@ -173,11 +173,11 @@ class VividusStudioTextDocumentServiceTests
     void shouldFilterCompletionItemsBasedOnInvocationType(String newText, int expectedSize)
             throws InterruptedException, ExecutionException
     {
-        var params = mock(CompletionParams.class);
-        var context = mock(CompletionContext.class);
+        CompletionParams params = mock();
+        CompletionContext context = mock();
         var item = mockCompletionItem(newText);
-        var identifier = mock(TextDocumentIdentifier.class);
-        var position = spy(Position.class);
+        TextDocumentIdentifier identifier = mock();
+        Position position = spy();
         when(position.getCharacter()).thenReturn(11);
 
         when(params.getContext()).thenReturn(context);
@@ -259,13 +259,13 @@ class VividusStudioTextDocumentServiceTests
 
     private static DidChangeTextDocumentParams mockDidChange(String text, int character)
     {
-        var docParams = mock(DidChangeTextDocumentParams.class);
-        var changeEvent = mock(TextDocumentContentChangeEvent.class);
+        DidChangeTextDocumentParams docParams = mock();
+        TextDocumentContentChangeEvent changeEvent = mock();
         when(docParams.getContentChanges()).thenReturn(List.of(changeEvent));
         when(changeEvent.getText()).thenReturn(text);
-        var range = mock(Range.class);
+        Range range = mock();
         when(changeEvent.getRange()).thenReturn(range);
-        var position = mock(Position.class);
+        Position position = mock();
         when(range.getStart()).thenReturn(position);
         when(position.getCharacter()).thenReturn(character);
         return docParams;
@@ -273,8 +273,8 @@ class VividusStudioTextDocumentServiceTests
 
     private static CompletionItem mockCompletionItem(String text)
     {
-        var item = mock(CompletionItem.class);
-        var textEdit = mock(TextEdit.class);
+        CompletionItem item = mock();
+        TextEdit textEdit = mock();
         when(item.getTextEdit()).thenReturn(Either.forLeft(textEdit));
         when(textEdit.getNewText()).thenReturn(text);
         return item;

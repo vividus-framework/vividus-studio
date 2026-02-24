@@ -35,7 +35,7 @@ class VividusStudioWorkspaceServiceTests
     @Test
     void shouldExecuteCommand()
     {
-        var command = mock(ICommand.class);
+        ICommand command = mock();
         var commandKey = "command-key";
         when(command.getName()).thenReturn(commandKey);
 

@@ -78,9 +78,9 @@ class LocalJavaProjectLoaderTests
     @Test
     void testLoadProject() throws Exception
     {
-        var projectDescription = mock(IProjectDescription.class);
+        IProjectDescription projectDescription = mock();
         var project = mockProject(projectDescription);
-        var javaProject = mock(IJavaProject.class);
+        IJavaProject javaProject = mock();
 
         when(project.exists()).thenReturn(false);
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(true);
@@ -108,7 +108,7 @@ class LocalJavaProjectLoaderTests
     @Test
     void testLoadProjectCorrupted() throws Exception
     {
-        var projectDescription = mock(IProjectDescription.class);
+        IProjectDescription projectDescription = mock();
         var project = mockProject(projectDescription);
 
         when(project.exists()).thenReturn(true);
@@ -165,10 +165,10 @@ class LocalJavaProjectLoaderTests
     {
         try (var gradleCore = mockStatic(GradleCore.class))
         {
-            var gradleWorkspace = mock(GradleWorkspace.class);
-            var gradleBuild = mock(GradleBuild.class);
-            var projectConnection = mock(ProjectConnection.class);
-            var buildLauncher = mock(BuildLauncher.class);
+            GradleWorkspace gradleWorkspace = mock();
+            GradleBuild gradleBuild = mock();
+            ProjectConnection projectConnection = mock();
+            BuildLauncher buildLauncher = mock();
 
             gradleCore.when(GradleCore::getWorkspace).thenReturn(gradleWorkspace);
             when(gradleWorkspace.createBuild(any())).thenReturn(gradleBuild);
@@ -200,8 +200,8 @@ class LocalJavaProjectLoaderTests
 
     private IProject mockProject(IProjectDescription projectDescription) throws CoreException
     {
-        var project = mock(IProject.class);
-        var workspaceRoot = mock(IWorkspaceRoot.class);
+        IProject project = mock();
+        IWorkspaceRoot workspaceRoot = mock();
 
         when(workspace.loadProjectDescription(new Path(getProjectFile()))).thenReturn(projectDescription);
         when(workspace.getRoot()).thenReturn(workspaceRoot);

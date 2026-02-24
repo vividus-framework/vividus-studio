@@ -72,21 +72,21 @@ class RunStoriesCommandTests
         var mainClass = "org.vividus.runner.StoriesRunner";
         when(configurationService.getConfigurationItem("stories-runner")).thenReturn(mainClass);
 
-        var launchConfiguration = mock(LaunchConfiguration.class);
+        LaunchConfiguration launchConfiguration = mock();
         when(launchConfigurationFactory.create(projectName, mainClass)).thenReturn(launchConfiguration);
 
-        var launch = mock(ILaunch.class);
+        ILaunch launch = mock();
         when(launchConfiguration.launch(ILaunchManager.RUN_MODE, null, true)).thenReturn(launch);
 
         Either<String, Integer> token = Either.forLeft("token");
         when(clientNotificationService.createProgress()).thenReturn(CompletableFuture.completedFuture(token));
 
-        var launchProcess = mock(IProcess.class);
+        IProcess launchProcess = mock();
         when(launch.getProcesses()).thenReturn(new IProcess[] { launchProcess });
 
-        var streamsProxy = mock(IStreamsProxy.class);
+        IStreamsProxy streamsProxy = mock();
         when(launchProcess.getStreamsProxy()).thenReturn(streamsProxy);
-        var streamMonitor = mock(IStreamMonitor.class);
+        IStreamMonitor streamMonitor = mock();
         when(streamsProxy.getOutputStreamMonitor()).thenReturn(streamMonitor);
         var message = "message";
         doAnswer(a -> {
