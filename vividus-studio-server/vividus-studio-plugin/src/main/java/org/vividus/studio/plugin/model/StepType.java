@@ -28,7 +28,8 @@ public enum StepType
 {
     GIVEN("Given"),
     WHEN("When"),
-    THEN("Then");
+    THEN("Then"),
+    AND("And");
 
     private final String type;
     private final String id;
