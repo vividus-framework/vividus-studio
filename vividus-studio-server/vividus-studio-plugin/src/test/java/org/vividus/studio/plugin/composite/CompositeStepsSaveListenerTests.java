@@ -66,7 +66,7 @@ class CompositeStepsSaveListenerTests
     {
         String uri = getClass().getResource("/project/src/main/resources/composite/composite.steps").getFile();
 
-        DidSaveTextDocumentParams params = new DidSaveTextDocumentParams(new TextDocumentIdentifier(uri));
+        var params = new DidSaveTextDocumentParams(new TextDocumentIdentifier(uri));
         List<String> lines = Files.readAllLines(Path.of(uri), StandardCharsets.UTF_8);
         when(textDocumentProvider.getTextDocument(uri)).thenReturn(lines);
         IProject project = mock();

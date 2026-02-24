@@ -97,11 +97,11 @@ class StepDefinitionFinderTests
     void testFind() throws IOException, CoreException
     {
         JarPackageFragmentRoot module = createStepsModule();
-        IPackageFragment packageFragment = mock(IPackageFragment.class);
+        IPackageFragment packageFragment = mock();
 
         // Mock java steps
         ClassFileMock stepsClass = createStepsClass();
-        IMember classMember = mock(IMember.class);
+        IMember classMember = mock();
         IJavaElement given = createStep("Given", "I param $param1", stepsClass.getClassFileBuffer(), 1, 2, true, m ->
         {
             when(m.getParameterTypes()).thenReturn(new String[] {"I"});
@@ -109,29 +109,29 @@ class StepDefinitionFinderTests
         IJavaElement when = createStep("When", "I param $param1 and $param2", stepsClass.getClassFileBuffer(), 2, 3,
                 false, m ->
                 {
-                    String paramType = "my.test.type.Color";
+                    var paramType = "my.test.type.Color";
                     String rawType = rawType(paramType);
 
                     when(m.getParameterTypes())
                             .thenReturn(new String[] { rawType, "Ljava.util.Set<%s>;".formatted(rawType) });
                     when(m.getJavaProject()).thenReturn(root);
 
-                    IType type = mock(IType.class);
+                    IType type = mock();
                     when(root.findType(paramType)).thenReturn(type);
                     when(type.isEnum()).thenReturn(true);
 
-                    IField white = mock(IField.class);
+                    IField white = mock();
                     when(white.getFlags()).thenReturn(16409);
                     when(white.getElementName()).thenReturn("WHITE");
 
-                    IField black = mock(IField.class);
+                    IField black = mock();
                     when(black.getFlags()).thenReturn(16409);
                     when(black.getElementName()).thenReturn("BLACK");
 
-                    IField values = mock(IField.class);
+                    IField values = mock();
                     when(values.getFlags()).thenReturn(4122);
 
-                    IField internal = mock(IField.class);
+                    IField internal = mock();
                     when(internal.getFlags()).thenReturn(18);
 
                     when(type.getFields()).thenReturn(new IField[] { white, black, values, internal });
@@ -139,14 +139,14 @@ class StepDefinitionFinderTests
         IJavaElement then = createStep("Then", "I param $param1 and $param2 and $param3",
                 stepsClass.getClassFileBuffer(), 3, 4, false, m ->
                 {
-                    String paramType = "my.test.type.JustClass";
-                    String unresolvableType = "java.util.Map<Ljava.lang.String;Ljava.lang.String;>";
+                    var paramType = "my.test.type.JustClass";
+                    var unresolvableType = "java.util.Map<Ljava.lang.String;Ljava.lang.String;>";
                     when(m.getParameterTypes()).thenReturn(new String[] {rawType(paramType), rawType(unresolvableType), "I"});
                     when(m.getJavaProject()).thenReturn(root);
 
                     when(root.findType(unresolvableType)).thenReturn(null);
 
-                    IType type = mock(IType.class);
+                    IType type = mock();
                     when(root.findType(paramType)).thenReturn(type);
                     when(type.isEnum()).thenReturn(false);
                 });
@@ -158,8 +158,8 @@ class StepDefinitionFinderTests
         when(classMember.getChildren()).thenReturn(new IJavaElement[] { given, when, then });
 
         // Mock composite steps
-        IJarEntryResource resource = mock(IJarEntryResource.class);
-        IPackageFragment resourceFragment = mock(IPackageFragment.class);
+        IJarEntryResource resource = mock();
+        IPackageFragment resourceFragment = mock();
 
         when(resource.getName()).thenReturn("composite.steps");
         when(packageFragment.getNonJavaResources()).thenReturn(new Object[] { resource });
@@ -248,9 +248,9 @@ class StepDefinitionFinderTests
 
     private JarPackageFragmentRoot createStepsModule()
     {
-        JarPackageFragmentRoot module = mock(JarPackageFragmentRoot.class);
-        Manifest manifest = mock(Manifest.class);
-        Attributes attributes = mock(Attributes.class);
+        JarPackageFragmentRoot module = mock();
+        Manifest manifest = mock();
+        Attributes attributes = mock();
 
         when(module.getManifest()).thenReturn(manifest);
         when(manifest.getMainAttributes()).thenReturn(attributes);
@@ -262,10 +262,10 @@ class StepDefinitionFinderTests
     private ClassFileMock createStepsClass() throws JavaModelException
     {
         IPackageFragment stepsClass = mock(IPackageFragment.class, withSettings().extraInterfaces(IClassFile.class));
-        IClassFile classFile = (IClassFile) stepsClass;
-        IJavaElement packageElement = mock(IJavaElement.class);
-        IOpenable openable = mock(IOpenable.class);
-        IBuffer buffer = mock(IBuffer.class);
+        var classFile = (IClassFile) stepsClass;
+        IJavaElement packageElement = mock();
+        IOpenable openable = mock();
+        IBuffer buffer = mock();
 
         when(stepsClass.getElementType()).thenReturn(IJavaElement.CLASS_FILE);
         when(stepsClass.getElementName()).thenReturn("ClassWithSteps");
@@ -279,7 +279,7 @@ class StepDefinitionFinderTests
 
     private void mockModuleName(IJavaElement packageElementMock)
     {
-        IJavaElement moduleElement = mock(IJavaElement.class);
+        IJavaElement moduleElement = mock();
         when(packageElementMock.getParent()).thenReturn(moduleElement);
         when(moduleElement.getElementName()).thenReturn("module-name");
     }
@@ -294,8 +294,8 @@ class StepDefinitionFinderTests
         IAnnotation[] annotations = deprecated
                 ? new IAnnotation[] { annotation, createAnnotation(Deprecated.class.getCanonicalName()) }
                 : new IAnnotation[] { annotation };
-        IMemberValuePair pair = mock(IMemberValuePair.class);
-        ISourceRange sourceRange = mock(ISourceRange.class);
+        IMemberValuePair pair = mock();
+        ISourceRange sourceRange = mock();
 
         when(javaElement.getElementType()).thenReturn(IJavaElement.METHOD);
         when(method.getAnnotations()).thenReturn(annotations);
@@ -314,7 +314,7 @@ class StepDefinitionFinderTests
 
     private IAnnotation createAnnotation(String name)
     {
-        IAnnotation annotation = mock(IAnnotation.class);
+        IAnnotation annotation = mock();
         when(annotation.getElementName()).thenReturn(name);
         return annotation;
     }

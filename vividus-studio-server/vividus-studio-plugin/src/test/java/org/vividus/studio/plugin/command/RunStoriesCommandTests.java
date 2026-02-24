@@ -63,34 +63,34 @@ class RunStoriesCommandTests
     @Test
     void shouldRunStories() throws InterruptedException, ExecutionException, CoreException
     {
-        String projectName = "project-name";
-        VividusStudioEnvronment configuration = new VividusStudioEnvronment();
+        var projectName = "project-name";
+        var configuration = new VividusStudioEnvronment();
         configuration.setJavaProject(javaProject);
         when(javaProject.getProject()).thenReturn(project);
         when(project.getName()).thenReturn(projectName);
 
-        String mainClass = "org.vividus.runner.StoriesRunner";
+        var mainClass = "org.vividus.runner.StoriesRunner";
         when(configurationService.getConfigurationItem("stories-runner")).thenReturn(mainClass);
 
-        LaunchConfiguration launchConfiguration = mock(LaunchConfiguration.class);
+        LaunchConfiguration launchConfiguration = mock();
         when(launchConfigurationFactory.create(projectName, mainClass)).thenReturn(launchConfiguration);
 
-        ILaunch launch = mock(ILaunch.class);
+        ILaunch launch = mock();
         when(launchConfiguration.launch(ILaunchManager.RUN_MODE, null, true)).thenReturn(launch);
 
         Either<String, Integer> token = Either.forLeft("token");
         when(clientNotificationService.createProgress()).thenReturn(CompletableFuture.completedFuture(token));
 
-        IProcess launchProcess = mock(IProcess.class);
+        IProcess launchProcess = mock();
         when(launch.getProcesses()).thenReturn(new IProcess[] { launchProcess });
 
-        IStreamsProxy streamsProxy = mock(IStreamsProxy.class);
+        IStreamsProxy streamsProxy = mock();
         when(launchProcess.getStreamsProxy()).thenReturn(streamsProxy);
-        IStreamMonitor streamMonitor = mock(IStreamMonitor.class);
+        IStreamMonitor streamMonitor = mock();
         when(streamsProxy.getOutputStreamMonitor()).thenReturn(streamMonitor);
-        String message = "message";
+        var message = "message";
         doAnswer(a -> {
-            IStreamListener listener = a.getArgument(0, IStreamListener.class);
+            var listener = a.getArgument(0, IStreamListener.class);
             listener.streamAppended("\033[31m" + message + "\033[m", null);
             return null;
         }).when(streamMonitor).addListener(any());

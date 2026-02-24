@@ -52,14 +52,14 @@ class TokenMatcherTests
     @Test
     void shouldMatchIfParameterIsNotSurroundedWithSeparators()
     {
-        List<String> tokens = List.of(
+        var tokens = List.of(
             "When I pay `",
             "` euros in `",
             "` restaurant by ",
             StringUtils.EMPTY
         );
 
-        String sample = "When I pay `17.70` euros in `The Urban Garden` restaurant by cash";
+        var sample = "When I pay `17.70` euros in `The Urban Garden` restaurant by cash";
 
         MatchOutcome outcome = TokenMatcher.match(sample, tokens);
         assertTrue(outcome.isMatch());

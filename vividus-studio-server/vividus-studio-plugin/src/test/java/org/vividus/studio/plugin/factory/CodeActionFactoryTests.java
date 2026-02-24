@@ -51,9 +51,9 @@ class CodeActionFactoryTests
     void shouldCreateCodeActions()
     {
         CodeActionParams params = createBaseParams(CodeActionTriggerKind.Invoked);
-        Position position = new Position(7, 0);
+        var position = new Position(7, 0);
         params.setRange(new Range(position, position));
-        String identifier = "identifier";
+        var identifier = "identifier";
         params.setTextDocument(new TextDocumentIdentifier(identifier));
 
         List<Either<Command, CodeAction>> codeActions = codeActionFactory.createCodeActions(params);
@@ -67,7 +67,7 @@ class CodeActionFactoryTests
         assertEquals("vividus.action.insertStep", command.getCommand());
         List<Object> args = command.getArguments();
         assertThat(args, hasSize(1));
-        InsertStepParameters insertParams = (InsertStepParameters) args.get(0);
+        var insertParams = (InsertStepParameters) args.get(0);
         assertEquals(identifier, insertParams.getUri());
         assertEquals(position, insertParams.getPosition());
     }
@@ -89,8 +89,8 @@ class CodeActionFactoryTests
 
     private CodeActionParams createBaseParams(CodeActionTriggerKind kind)
     {
-        CodeActionParams params = new CodeActionParams();
-        CodeActionContext context = new CodeActionContext();
+        var params = new CodeActionParams();
+        var context = new CodeActionContext();
         context.setTriggerKind(kind);
         params.setContext(context);
         return params;

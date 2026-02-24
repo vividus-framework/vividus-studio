@@ -100,11 +100,11 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testCompletionInvoked() throws InterruptedException, ExecutionException
     {
-        CompletionParams params = mock(CompletionParams.class);
-        CompletionContext context = mock(CompletionContext.class);
+        CompletionParams params = mock();
+        CompletionContext context = mock();
         CompletionItem item = mockCompletionItem("text");
-        TextDocumentIdentifier identifier = mock(TextDocumentIdentifier.class);
-        Position position = mock(Position.class);
+        TextDocumentIdentifier identifier = mock();
+        Position position = mock();
 
         when(params.getContext()).thenReturn(context);
         when(context.getTriggerKind()).thenReturn(CompletionTriggerKind.Invoked);
@@ -122,7 +122,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testResolveCompletionItem() throws InterruptedException, ExecutionException
     {
-        CompletionItem item = mock(CompletionItem.class);
+        CompletionItem item = mock();
         CompletionItem outputItem = textDocumentService.resolveCompletionItem(item).get();
         assertEquals(item, outputItem);
         verifyNoInteractions(completionItemService, item);
@@ -131,7 +131,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidOpen()
     {
-        DidOpenTextDocumentParams docParams = mock(DidOpenTextDocumentParams.class);
+        DidOpenTextDocumentParams docParams = mock();
         textDocumentService.didOpen(docParams);
         verify(textDocumentEventListener).onOpen(docParams);
         verifyNoMoreInteractions(textDocumentEventListener);
@@ -152,7 +152,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidClose()
     {
-        DidCloseTextDocumentParams docParams = mock(DidCloseTextDocumentParams.class);
+        DidCloseTextDocumentParams docParams = mock();
         textDocumentService.didClose(docParams);
         verify(textDocumentEventListener).onClose(docParams);
         verifyNoMoreInteractions(textDocumentEventListener);
@@ -162,7 +162,7 @@ class VividusStudioTextDocumentServiceTests
     @Test
     void testDidSave()
     {
-        DidSaveTextDocumentParams docParams = mock(DidSaveTextDocumentParams.class);
+        DidSaveTextDocumentParams docParams = mock();
         textDocumentService.didSave(docParams);
         verifyNoInteractions(docParams, completionItemService);
     }
@@ -175,11 +175,11 @@ class VividusStudioTextDocumentServiceTests
     void shouldFilterCompletionItemsBasedOnInvocationType(String newText, int expectedSize)
             throws InterruptedException, ExecutionException
     {
-        CompletionParams params = mock(CompletionParams.class);
-        CompletionContext context = mock(CompletionContext.class);
+        CompletionParams params = mock();
+        CompletionContext context = mock();
         CompletionItem item = mockCompletionItem(newText);
-        TextDocumentIdentifier identifier = mock(TextDocumentIdentifier.class);
-        Position position = spy(Position.class);
+        TextDocumentIdentifier identifier = mock();
+        Position position = spy();
         when(position.getCharacter()).thenReturn(11);
 
         when(params.getContext()).thenReturn(context);
@@ -225,7 +225,7 @@ class VividusStudioTextDocumentServiceTests
     void shouldGetSteps() throws InterruptedException, ExecutionException
     {
         StepDefinition stepDefinition = mock();
-        String stepAsString = "step-as-string";
+        var stepAsString = "step-as-string";
         when(stepDefinitionsProvider.getStepDefinitions()).thenReturn(Stream.of(stepDefinition));
         when(stepDefinition.getStepAsString()).thenReturn(stepAsString);
 
@@ -241,7 +241,7 @@ class VividusStudioTextDocumentServiceTests
         when(clientNotificationService.createProgress()).thenReturn(CompletableFuture.completedFuture(token));
         IProject project = mock();
         when(vividusStudioConfiguration.getProject()).thenReturn(project);
-        String message = "message";
+        var message = "message";
         doAnswer(a ->
         {
             Consumer<String> messageConsumer = a.getArgument(1);
@@ -261,13 +261,13 @@ class VividusStudioTextDocumentServiceTests
 
     private static DidChangeTextDocumentParams mockDidChange(String text, int character)
     {
-        DidChangeTextDocumentParams docParams = mock(DidChangeTextDocumentParams.class);
-        TextDocumentContentChangeEvent changeEvent = mock(TextDocumentContentChangeEvent.class);
+        DidChangeTextDocumentParams docParams = mock();
+        TextDocumentContentChangeEvent changeEvent = mock();
         when(docParams.getContentChanges()).thenReturn(List.of(changeEvent));
         when(changeEvent.getText()).thenReturn(text);
-        Range range = mock(Range.class);
+        Range range = mock();
         when(changeEvent.getRange()).thenReturn(range);
-        Position position = mock(Position.class);
+        Position position = mock();
         when(range.getStart()).thenReturn(position);
         when(position.getCharacter()).thenReturn(character);
         return docParams;
@@ -275,8 +275,8 @@ class VividusStudioTextDocumentServiceTests
 
     private static CompletionItem mockCompletionItem(String text)
     {
-        CompletionItem item = mock(CompletionItem.class);
-        TextEdit textEdit = mock(TextEdit.class);
+        CompletionItem item = mock();
+        TextEdit textEdit = mock();
         when(item.getTextEdit()).thenReturn(Either.forLeft(textEdit));
         when(textEdit.getNewText()).thenReturn(text);
         return item;

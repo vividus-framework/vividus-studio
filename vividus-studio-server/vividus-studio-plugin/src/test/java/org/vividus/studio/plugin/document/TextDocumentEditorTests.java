@@ -88,7 +88,7 @@ class TextDocumentEditorTests
     @ParameterizedTest
     void testUpdateTextDocument(TextDocumentContentChangeEvent event, String document) throws IOException
     {
-        TextDocumentEditor textDocumentEditor = new TextDocumentEditor();
+        var textDocumentEditor = new TextDocumentEditor();
         textDocumentEditor.onOpen(OPEN_EVENT);
 
         textDocumentEditor
@@ -97,7 +97,7 @@ class TextDocumentEditorTests
         assertEquals(loadDocument(document) + lineSeparator(),
                 textDocumentEditor.getTextDocument(ID).stream().collect(Collectors.joining(lineSeparator())));
 
-        DidCloseTextDocumentParams closeEvent = new DidCloseTextDocumentParams(new TextDocumentIdentifier(ID));
+        var closeEvent = new DidCloseTextDocumentParams(new TextDocumentIdentifier(ID));
         textDocumentEditor.onClose(closeEvent);
         assertThat(textDocumentEditor.getTextDocument(ID), is(empty()));
     }

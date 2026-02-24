@@ -48,15 +48,15 @@ class SemanticTokensServiceTests
     @BeforeEach
     void init()
     {
-        StepDefinition givenStepDefinition = new StepDefinition(MODULE, "Given random value", DOCS, List.of(),
+        var givenStepDefinition = new StepDefinition(MODULE, "Given random value", DOCS, List.of(),
                 List.of("Given random value"));
-        StepDefinition whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
+        var whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
                 List.of(new Parameter(1, "$value", 15, List.of())), List.of("When I convert ", " into custom type"));
-        StepDefinition thenStepDefinition = new StepDefinition(MODULE,
+        var thenStepDefinition = new StepDefinition(MODULE,
                 "Then $value is equal to $expected after conversion", DOCS,
                 List.of(new Parameter(1, "$value", 5, List.of()), new Parameter(2, "$expected", 24, List.of())),
                 List.of("Then ", " is equal to ", " after conversion"));
-        StepDefinition unboundArgStepDefinition = new StepDefinition(MODULE, "When I initialize variable to $data",
+        var unboundArgStepDefinition = new StepDefinition(MODULE, "When I initialize variable to $data",
                 DOCS, List.of(new Parameter(1, "$data", 59, List.of())), List.of("When I initialize variable to ", ""));
         resolver = new StepDefinitionResolver(textDocumentProvider, null, null);
         resolver.refresh(
@@ -95,7 +95,7 @@ class SemanticTokensServiceTests
             "|Balmora|West Gash     |Hlaalu   |"
         ));
 
-        List<Integer> expectedTokens = List.of(
+        var expectedTokens = List.of(
             2, 15, 2, 0, 0,
             1, 5, 1, 0, 0,
             1, 0, 1, 0, 0,
@@ -142,7 +142,7 @@ class SemanticTokensServiceTests
             "When I initialize variable to after end"
         ));
 
-        List<Integer> expectedTokens = List.of(
+        var expectedTokens = List.of(
             2, 15, 2, 0, 0,
             1, 5, 2, 0, 0,
             0, 15, 13, 0, 0,

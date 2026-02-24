@@ -62,7 +62,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.util.ResourceUtils;
 
@@ -80,9 +79,9 @@ class LocalJavaProjectLoaderTests
     @Test
     void testLoadProject() throws Exception
     {
-        IProjectDescription projectDescription = mock(IProjectDescription.class);
+        IProjectDescription projectDescription = mock();
         IProject project = mockProject(projectDescription);
-        IJavaProject javaProject = mock(IJavaProject.class);
+        IJavaProject javaProject = mock();
 
         when(project.exists()).thenReturn(false);
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(true);
@@ -110,7 +109,7 @@ class LocalJavaProjectLoaderTests
     @Test
     void testLoadProjectCorrupted() throws Exception
     {
-        IProjectDescription projectDescription = mock(IProjectDescription.class);
+        IProjectDescription projectDescription = mock();
         IProject project = mockProject(projectDescription);
 
         when(project.exists()).thenReturn(true);
@@ -142,7 +141,7 @@ class LocalJavaProjectLoaderTests
         when(path.toFile()).thenReturn(ResourceUtils.asFile(getProjectFolder()));
         JavaModelManager javaModelManager = mock();
 
-        try (MockedStatic<JavaModelManager> javaModelManagerMocked = mockStatic(JavaModelManager.class))
+        try (var javaModelManagerMocked = mockStatic(JavaModelManager.class))
         {
             javaModelManagerMocked.when(() -> JavaModelManager.getJavaModelManager()).thenReturn(javaModelManager);
             PerProjectInfo info = mock();
@@ -151,7 +150,7 @@ class LocalJavaProjectLoaderTests
             Consumer<String> onInfo = mock();
             Consumer<String> onError = mock();
 
-            String unresolvedDependency = "Could not resolve: org.vividus:vividus-plugin-web-app:7.7.7";
+            var unresolvedDependency = "Could not resolve: org.vividus:vividus-plugin-web-app:7.7.7";
             mockGradlelBuild(() -> projectLoader.reload(project, onInfo, onError), unresolvedDependency);
 
             verify(onInfo).accept(INFO);
@@ -165,12 +164,12 @@ class LocalJavaProjectLoaderTests
 
     private void mockGradlelBuild(FailableRunnable<Exception> run, String outputs) throws Exception
     {
-        try (MockedStatic<GradleCore> gradleCore = mockStatic(GradleCore.class))
+        try (var gradleCore = mockStatic(GradleCore.class))
         {
-            GradleWorkspace gradleWorkspace = mock(GradleWorkspace.class);
-            GradleBuild gradleBuild = mock(GradleBuild.class);
-            ProjectConnection projectConnection = mock(ProjectConnection.class);
-            BuildLauncher buildLauncher = mock(BuildLauncher.class);
+            GradleWorkspace gradleWorkspace = mock();
+            GradleBuild gradleBuild = mock();
+            ProjectConnection projectConnection = mock();
+            BuildLauncher buildLauncher = mock();
 
             gradleCore.when(GradleCore::getWorkspace).thenReturn(gradleWorkspace);
             when(gradleWorkspace.createBuild(any())).thenReturn(gradleBuild);
@@ -183,7 +182,7 @@ class LocalJavaProjectLoaderTests
             when(buildLauncher.forTasks("eclipse")).thenReturn(buildLauncher);
             when(buildLauncher.setStandardOutput(argThat(os ->
             {
-                ByteArrayOutputStream baos = (ByteArrayOutputStream) os;
+                var baos = (ByteArrayOutputStream) os;
                 baos.writeBytes(outputs.getBytes(StandardCharsets.UTF_8));
                 return true;
             }))).thenReturn(buildLauncher);
@@ -202,8 +201,8 @@ class LocalJavaProjectLoaderTests
 
     private IProject mockProject(IProjectDescription projectDescription) throws CoreException
     {
-        IProject project = mock(IProject.class);
-        IWorkspaceRoot workspaceRoot = mock(IWorkspaceRoot.class);
+        IProject project = mock();
+        IWorkspaceRoot workspaceRoot = mock();
 
         when(workspace.loadProjectDescription(new Path(getProjectFile()))).thenReturn(projectDescription);
         when(workspace.getRoot()).thenReturn(workspaceRoot);

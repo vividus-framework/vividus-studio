@@ -62,7 +62,7 @@ public class ClientNotificationServiceTests
     @Test
     void shouldStartProgress()
     {
-        String title = "title";
+        var title = "title";
         service.startProgress(TOKEN, title, MESSAGE);
 
         verify(languageClient).notifyProgress(progressParamsCaptor.capture());
@@ -70,7 +70,7 @@ public class ClientNotificationServiceTests
         assertEquals(TOKEN, progressParams.getToken());
         WorkDoneProgressNotification notification = progressParams.getValue().getLeft();
         assertThat(notification, instanceOf(WorkDoneProgressBegin.class));
-        WorkDoneProgressBegin begin = (WorkDoneProgressBegin) notification;
+        var begin = (WorkDoneProgressBegin) notification;
         assertEquals(title, begin.getTitle());
         assertEquals(MESSAGE, begin.getMessage());
         assertFalse(begin.getCancellable());
@@ -86,7 +86,7 @@ public class ClientNotificationServiceTests
         assertEquals(TOKEN, progressParams.getToken());
         WorkDoneProgressNotification notification = progressParams.getValue().getLeft();
         assertThat(notification, instanceOf(WorkDoneProgressReport.class));
-        WorkDoneProgressReport report = (WorkDoneProgressReport) notification;
+        var report = (WorkDoneProgressReport) notification;
         assertEquals(MESSAGE, report.getMessage());
         assertFalse(report.getCancellable());
     }
@@ -101,7 +101,7 @@ public class ClientNotificationServiceTests
         assertEquals(TOKEN, progressParams.getToken());
         WorkDoneProgressNotification notification = progressParams.getValue().getLeft();
         assertThat(notification, instanceOf(WorkDoneProgressEnd.class));
-        WorkDoneProgressEnd end = (WorkDoneProgressEnd) notification;
+        var end = (WorkDoneProgressEnd) notification;
         assertEquals(MESSAGE, end.getMessage());
     }
 

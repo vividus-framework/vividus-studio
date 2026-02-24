@@ -67,18 +67,18 @@ class StepDefinitionResolverTests
     @BeforeEach
     void init()
     {
-        StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(),
+        var givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(),
                 List.of(GIVEN_STEP));
-        StepDefinition whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
+        var whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
                 List.of(new Parameter(1, "$value", 15, List.of())), List.of("When I convert ",
                         " into custom type"));
-        StepDefinition thenStepDefinition = new StepDefinition(MODULE,
+        var thenStepDefinition = new StepDefinition(MODULE,
                 "Then $value is equal to $expected after conversion", DOCS,
                 List.of(new Parameter(1, "$value", 5, List.of()),
                         new Parameter(2, "$expected", 24, List.of())),
                 List.of("Then ", " is equal to ", " after conversion"));
 
-        StepDefinition dynamicStepDefinitionOne = new StepDefinition("composite/users.steps",
+        var dynamicStepDefinitionOne = new StepDefinition("composite/users.steps",
                 "Given dynamic step definition one", DOCS, List.of(), List.of("Given dynamic step definition one"));
         dynamicStepDefinitionOne.setDynamic(true);
 
@@ -148,7 +148,7 @@ class StepDefinitionResolverTests
         assertThat(resolvedDefinitions, hasSize(1));
         assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
 
-        StepDefinition dynamicStepDefinitionTwo = new StepDefinition("composite/orders.steps",
+        var dynamicStepDefinitionTwo = new StepDefinition("composite/orders.steps",
                 "Given dynamic step definition two", DOCS, List.of(), List.of("Given dynamic step definition two"));
         dynamicStepDefinitionTwo.setDynamic(true);
         resolver.refresh(List.of(dynamicStepDefinitionTwo));
@@ -158,7 +158,7 @@ class StepDefinitionResolverTests
         assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
         assertEquals("Given dynamic step definition two", resolvedDefinitions.get(1).getStepAsString());
 
-        StepDefinition dynamicStepDefinitionThree = new StepDefinition("composite/orders.steps",
+        var dynamicStepDefinitionThree = new StepDefinition("composite/orders.steps",
                 "Given dynamic step definition three", DOCS, List.of(), List.of("Given dynamic step definition three"));
         dynamicStepDefinitionThree.setDynamic(true);
         resolver.refresh(List.of(dynamicStepDefinitionThree));
@@ -178,7 +178,7 @@ class StepDefinitionResolverTests
             "Given static step definition 2"
         ));
 
-        StepDefinition staticStepDefOne = new StepDefinition(MODULE, "Given static step definition 1", DOCS,
+        var staticStepDefOne = new StepDefinition(MODULE, "Given static step definition 1", DOCS,
                 List.of(), List.of("Given static step definition 1"));
         resolver.refresh(List.of(staticStepDefOne));
 
@@ -188,7 +188,7 @@ class StepDefinitionResolverTests
 
         IJavaProject javaProject = mock();
         when(vividusStudioConfiguration.getJavaProject()).thenReturn(javaProject);
-        StepDefinition staticStepDefTwo = new StepDefinition(MODULE, "Given static step definition 2", DOCS,
+        var staticStepDefTwo = new StepDefinition(MODULE, "Given static step definition 2", DOCS,
                 List.of(), List.of("Given static step definition 2"));
         when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of(staticStepDefTwo));
         resolver.refresh();
@@ -237,7 +237,7 @@ class StepDefinitionResolverTests
     @Test
     void shouldResolveForCompositeSteps()
     {
-        String compositeDocumentId = "document-id.steps";
+        var compositeDocumentId = "document-id.steps";
         when(textDocumentProvider.getTextDocument(compositeDocumentId)).thenReturn(List.of(
             "Composite: When I convert PI number",
             "Then PI is equal to 3.14159265359 after conversion",
@@ -264,12 +264,12 @@ class StepDefinitionResolverTests
     @Test
     void shouldReturnMoreSpecificResolvedDefinition()
     {
-        StepDefinition whenStepDefinition1 = new StepDefinition(MODULE,
+        var whenStepDefinition1 = new StepDefinition(MODULE,
                 "When I add '$product' into a bucket with the id '$id'", DOCS,
                 List.of(new Parameter(1, "$product", 12, List.of()),
                         new Parameter(1, "$id", 49, List.of())),
                 List.of("When I add '", "' into a bucket with the id '", "'"));
-        StepDefinition whenStepDefinition2 = new StepDefinition(MODULE,
+        var whenStepDefinition2 = new StepDefinition(MODULE,
                 "When I add '$product' into a bucket with the name '$name'", DOCS,
                 List.of(new Parameter(1, "$product", 12, List.of()),
                         new Parameter(1, "$name", 51, List.of())),

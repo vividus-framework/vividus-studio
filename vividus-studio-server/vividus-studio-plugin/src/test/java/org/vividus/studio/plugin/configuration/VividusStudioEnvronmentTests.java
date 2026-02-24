@@ -36,7 +36,7 @@ class VividusStudioEnvronmentTests
         IProject project = mock();
         when(javaProject.getProject()).thenReturn(project);
 
-        VividusStudioEnvronment envronment = new VividusStudioEnvronment();
+        var envronment = new VividusStudioEnvronment();
         envronment.setJavaProject(javaProject);
 
         assertEquals(javaProject, envronment.getJavaProject());
