@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,7 +63,7 @@ class TextDocumentEditorTests
     @BeforeAll
     static void loadBaseDocument() throws IOException
     {
-        String document = loadDocument("base.txt");
+        var document = loadDocument("base.txt");
         OPEN_EVENT = new DidOpenTextDocumentParams(new TextDocumentItem(ID, StringUtils.EMPTY, 0, document));
     }
 
@@ -88,7 +87,7 @@ class TextDocumentEditorTests
     @ParameterizedTest
     void testUpdateTextDocument(TextDocumentContentChangeEvent event, String document) throws IOException
     {
-        TextDocumentEditor textDocumentEditor = new TextDocumentEditor();
+        var textDocumentEditor = new TextDocumentEditor();
         textDocumentEditor.onOpen(OPEN_EVENT);
 
         textDocumentEditor
@@ -97,7 +96,7 @@ class TextDocumentEditorTests
         assertEquals(loadDocument(document) + lineSeparator(),
                 textDocumentEditor.getTextDocument(ID).stream().collect(Collectors.joining(lineSeparator())));
 
-        DidCloseTextDocumentParams closeEvent = new DidCloseTextDocumentParams(new TextDocumentIdentifier(ID));
+        var closeEvent = new DidCloseTextDocumentParams(new TextDocumentIdentifier(ID));
         textDocumentEditor.onClose(closeEvent);
         assertThat(textDocumentEditor.getTextDocument(ID), is(empty()));
     }
@@ -119,7 +118,7 @@ class TextDocumentEditorTests
 
     private static String loadDocument(String document) throws IOException
     {
-        URL documentUrl = TextDocumentEditorTests.class.getClassLoader()
+        var documentUrl = TextDocumentEditorTests.class.getClassLoader()
                 .getResource("org/vividus/studio/plugin/document/" + document);
         return IOUtils.toString(documentUrl, StandardCharsets.UTF_8);
     }

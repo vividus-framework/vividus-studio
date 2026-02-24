@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -62,7 +61,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.util.ResourceUtils;
 
@@ -80,9 +78,9 @@ class LocalJavaProjectLoaderTests
     @Test
     void testLoadProject() throws Exception
     {
-        IProjectDescription projectDescription = mock(IProjectDescription.class);
-        IProject project = mockProject(projectDescription);
-        IJavaProject javaProject = mock(IJavaProject.class);
+        var projectDescription = mock(IProjectDescription.class);
+        var project = mockProject(projectDescription);
+        var javaProject = mock(IJavaProject.class);
 
         when(project.exists()).thenReturn(false);
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(true);
@@ -94,9 +92,9 @@ class LocalJavaProjectLoaderTests
 
         mockGradlelBuild(() ->
         {
-            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
+            var loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
             assertTrue(loaded.isPresent());
-            IJavaProject output = loaded.get();
+            var output = loaded.get();
             assertEquals(javaProject, output);
         }, StringUtils.EMPTY);
 
@@ -110,8 +108,8 @@ class LocalJavaProjectLoaderTests
     @Test
     void testLoadProjectCorrupted() throws Exception
     {
-        IProjectDescription projectDescription = mock(IProjectDescription.class);
-        IProject project = mockProject(projectDescription);
+        var projectDescription = mock(IProjectDescription.class);
+        var project = mockProject(projectDescription);
 
         when(project.exists()).thenReturn(true);
         when(project.hasNature(JavaCore.NATURE_ID)).thenReturn(false);
@@ -122,7 +120,7 @@ class LocalJavaProjectLoaderTests
 
         mockGradlelBuild(() ->
         {
-            Optional<IJavaProject> loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
+            var loaded = projectLoader.load(getProjectFolder(), onInfo, onLoad, onError);
             assertTrue(loaded.isEmpty());
         }, StringUtils.EMPTY);
 
@@ -142,7 +140,7 @@ class LocalJavaProjectLoaderTests
         when(path.toFile()).thenReturn(ResourceUtils.asFile(getProjectFolder()));
         JavaModelManager javaModelManager = mock();
 
-        try (MockedStatic<JavaModelManager> javaModelManagerMocked = mockStatic(JavaModelManager.class))
+        try (var javaModelManagerMocked = mockStatic(JavaModelManager.class))
         {
             javaModelManagerMocked.when(() -> JavaModelManager.getJavaModelManager()).thenReturn(javaModelManager);
             PerProjectInfo info = mock();
@@ -151,7 +149,7 @@ class LocalJavaProjectLoaderTests
             Consumer<String> onInfo = mock();
             Consumer<String> onError = mock();
 
-            String unresolvedDependency = "Could not resolve: org.vividus:vividus-plugin-web-app:7.7.7";
+            var unresolvedDependency = "Could not resolve: org.vividus:vividus-plugin-web-app:7.7.7";
             mockGradlelBuild(() -> projectLoader.reload(project, onInfo, onError), unresolvedDependency);
 
             verify(onInfo).accept(INFO);
@@ -165,12 +163,12 @@ class LocalJavaProjectLoaderTests
 
     private void mockGradlelBuild(FailableRunnable<Exception> run, String outputs) throws Exception
     {
-        try (MockedStatic<GradleCore> gradleCore = mockStatic(GradleCore.class))
+        try (var gradleCore = mockStatic(GradleCore.class))
         {
-            GradleWorkspace gradleWorkspace = mock(GradleWorkspace.class);
-            GradleBuild gradleBuild = mock(GradleBuild.class);
-            ProjectConnection projectConnection = mock(ProjectConnection.class);
-            BuildLauncher buildLauncher = mock(BuildLauncher.class);
+            var gradleWorkspace = mock(GradleWorkspace.class);
+            var gradleBuild = mock(GradleBuild.class);
+            var projectConnection = mock(ProjectConnection.class);
+            var buildLauncher = mock(BuildLauncher.class);
 
             gradleCore.when(GradleCore::getWorkspace).thenReturn(gradleWorkspace);
             when(gradleWorkspace.createBuild(any())).thenReturn(gradleBuild);
@@ -183,7 +181,7 @@ class LocalJavaProjectLoaderTests
             when(buildLauncher.forTasks("eclipse")).thenReturn(buildLauncher);
             when(buildLauncher.setStandardOutput(argThat(os ->
             {
-                ByteArrayOutputStream baos = (ByteArrayOutputStream) os;
+                var baos = (ByteArrayOutputStream) os;
                 baos.writeBytes(outputs.getBytes(StandardCharsets.UTF_8));
                 return true;
             }))).thenReturn(buildLauncher);
@@ -202,8 +200,8 @@ class LocalJavaProjectLoaderTests
 
     private IProject mockProject(IProjectDescription projectDescription) throws CoreException
     {
-        IProject project = mock(IProject.class);
-        IWorkspaceRoot workspaceRoot = mock(IWorkspaceRoot.class);
+        var project = mock(IProject.class);
+        var workspaceRoot = mock(IWorkspaceRoot.class);
 
         when(workspace.loadProjectDescription(new Path(getProjectFile()))).thenReturn(projectDescription);
         when(workspace.getRoot()).thenReturn(workspaceRoot);

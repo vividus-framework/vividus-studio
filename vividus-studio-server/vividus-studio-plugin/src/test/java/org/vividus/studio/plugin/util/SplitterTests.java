@@ -30,8 +30,8 @@ class SplitterTests
     @Test
     void shouldSplitStringIntoLines()
     {
-        String value = "Home is where\n\n you trust the \r\n\r\ntoilet seat.\n";
-        List<String> actual = Splitter.split(value);
+        var value = "Home is where\n\n you trust the \r\n\r\ntoilet seat.\n";
+        var actual = Splitter.split(value);
         assertEquals(List.of(
             "Home is where",
             "",

@@ -67,18 +67,18 @@ class StepDefinitionResolverTests
     @BeforeEach
     void init()
     {
-        StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(),
+        var givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(),
                 List.of(GIVEN_STEP));
-        StepDefinition whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
+        var whenStepDefinition = new StepDefinition(MODULE, "When I convert $value into custom type", DOCS,
                 List.of(new Parameter(1, "$value", 15, List.of())), List.of("When I convert ",
                         " into custom type"));
-        StepDefinition thenStepDefinition = new StepDefinition(MODULE,
+        var thenStepDefinition = new StepDefinition(MODULE,
                 "Then $value is equal to $expected after conversion", DOCS,
                 List.of(new Parameter(1, "$value", 5, List.of()),
                         new Parameter(2, "$expected", 24, List.of())),
                 List.of("Then ", " is equal to ", " after conversion"));
 
-        StepDefinition dynamicStepDefinitionOne = new StepDefinition("composite/users.steps",
+        var dynamicStepDefinitionOne = new StepDefinition("composite/users.steps",
                 "Given dynamic step definition one", DOCS, List.of(), List.of("Given dynamic step definition one"));
         dynamicStepDefinitionOne.setDynamic(true);
 
@@ -126,10 +126,10 @@ class StepDefinitionResolverTests
     {
         when(textDocumentProvider.getTextDocument(STORY_DOCUMENT_ID)).thenReturn(lines);
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolveAtPosition(STORY_DOCUMENT_ID, position)
+        var resolvedDefinitions = resolver.resolveAtPosition(STORY_DOCUMENT_ID, position)
                 .collect(Collectors.toList());
         assertThat(resolvedDefinitions, hasSize(1));
-        ResolvedStepDefinition resolved = resolvedDefinitions.get(0);
+        var resolved = resolvedDefinitions.get(0);
         assertEquals(subToken, resolved.getSubToken());
         assertStepDefinition(resolved, lineIndex, tokenIndex, argIndices);
     }
@@ -144,11 +144,11 @@ class StepDefinitionResolverTests
             "Given dynamic step definition three"
         ));
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        var resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
         assertThat(resolvedDefinitions, hasSize(1));
         assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
 
-        StepDefinition dynamicStepDefinitionTwo = new StepDefinition("composite/orders.steps",
+        var dynamicStepDefinitionTwo = new StepDefinition("composite/orders.steps",
                 "Given dynamic step definition two", DOCS, List.of(), List.of("Given dynamic step definition two"));
         dynamicStepDefinitionTwo.setDynamic(true);
         resolver.refresh(List.of(dynamicStepDefinitionTwo));
@@ -158,7 +158,7 @@ class StepDefinitionResolverTests
         assertEquals("Given dynamic step definition one", resolvedDefinitions.get(0).getStepAsString());
         assertEquals("Given dynamic step definition two", resolvedDefinitions.get(1).getStepAsString());
 
-        StepDefinition dynamicStepDefinitionThree = new StepDefinition("composite/orders.steps",
+        var dynamicStepDefinitionThree = new StepDefinition("composite/orders.steps",
                 "Given dynamic step definition three", DOCS, List.of(), List.of("Given dynamic step definition three"));
         dynamicStepDefinitionThree.setDynamic(true);
         resolver.refresh(List.of(dynamicStepDefinitionThree));
@@ -178,17 +178,17 @@ class StepDefinitionResolverTests
             "Given static step definition 2"
         ));
 
-        StepDefinition staticStepDefOne = new StepDefinition(MODULE, "Given static step definition 1", DOCS,
+        var staticStepDefOne = new StepDefinition(MODULE, "Given static step definition 1", DOCS,
                 List.of(), List.of("Given static step definition 1"));
         resolver.refresh(List.of(staticStepDefOne));
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        var resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
         assertThat(resolvedDefinitions, hasSize(1));
         assertEquals("Given static step definition 1", resolvedDefinitions.get(0).getStepAsString());
 
         IJavaProject javaProject = mock();
         when(vividusStudioConfiguration.getJavaProject()).thenReturn(javaProject);
-        StepDefinition staticStepDefTwo = new StepDefinition(MODULE, "Given static step definition 2", DOCS,
+        var staticStepDefTwo = new StepDefinition(MODULE, "Given static step definition 2", DOCS,
                 List.of(), List.of("Given static step definition 2"));
         when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of(staticStepDefTwo));
         resolver.refresh();
@@ -223,7 +223,7 @@ class StepDefinitionResolverTests
             "Then the end is reached"
         ));
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        var resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
         assertThat(resolvedDefinitions, hasSize(7));
         assertStepDefinition(resolvedDefinitions.get(0), 2, 1, List.of(15, 17));
         assertStepDefinition(resolvedDefinitions.get(1), 3, 2, List.of(5, 7, 20, 33));
@@ -237,7 +237,7 @@ class StepDefinitionResolverTests
     @Test
     void shouldResolveForCompositeSteps()
     {
-        String compositeDocumentId = "document-id.steps";
+        var compositeDocumentId = "document-id.steps";
         when(textDocumentProvider.getTextDocument(compositeDocumentId)).thenReturn(List.of(
             "Composite: When I convert PI number",
             "Then PI is equal to 3.14159265359 after conversion",
@@ -245,7 +245,7 @@ class StepDefinitionResolverTests
             "Then PI is equal to 3.14159265359 after conversion"
         ));
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(compositeDocumentId)
+        var resolvedDefinitions = resolver.resolve(compositeDocumentId)
                 .collect(Collectors.toList());
         assertThat(resolvedDefinitions, hasSize(2));
         assertStepDefinition(resolvedDefinitions.get(0), 1, 2, List.of(5, 7, 20, 33));
@@ -257,19 +257,19 @@ class StepDefinitionResolverTests
     {
         when(textDocumentProvider.getTextDocument(STORY_DOCUMENT_ID)).thenReturn(List.of());
 
-        List<ResolvedStepDefinition> definitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        var definitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
         assertThat(definitions, is(empty()));
     }
 
     @Test
     void shouldReturnMoreSpecificResolvedDefinition()
     {
-        StepDefinition whenStepDefinition1 = new StepDefinition(MODULE,
+        var whenStepDefinition1 = new StepDefinition(MODULE,
                 "When I add '$product' into a bucket with the id '$id'", DOCS,
                 List.of(new Parameter(1, "$product", 12, List.of()),
                         new Parameter(1, "$id", 49, List.of())),
                 List.of("When I add '", "' into a bucket with the id '", "'"));
-        StepDefinition whenStepDefinition2 = new StepDefinition(MODULE,
+        var whenStepDefinition2 = new StepDefinition(MODULE,
                 "When I add '$product' into a bucket with the name '$name'", DOCS,
                 List.of(new Parameter(1, "$product", 12, List.of()),
                         new Parameter(1, "$name", 51, List.of())),
@@ -279,7 +279,7 @@ class StepDefinitionResolverTests
         when(textDocumentProvider.getTextDocument(STORY_DOCUMENT_ID))
                 .thenReturn(List.of("When I add 'Milk' into a bucket with the name 'Grocery'"));
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        var resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
         assertThat(resolvedDefinitions, hasSize(1));
         assertEquals(whenStepDefinition2.getStepAsString(), resolvedDefinitions.get(0).getStepAsString());
     }
@@ -287,7 +287,7 @@ class StepDefinitionResolverTests
     @Test
     void shouldReturnStepDefinitions()
     {
-        List<StepDefinition> stepDefinitions = resolver.getStepDefinitions().collect(Collectors.toList());
+        var stepDefinitions = resolver.getStepDefinitions().collect(Collectors.toList());
         assertThat(stepDefinitions, hasSize(4));
     }
 
@@ -304,7 +304,7 @@ class StepDefinitionResolverTests
         when(stepDefinitionFinder.find(javaProject)).thenReturn(List.of());
         resolver.refresh();
 
-        List<ResolvedStepDefinition> resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
+        var resolvedDefinitions = resolver.resolve(STORY_DOCUMENT_ID).collect(Collectors.toList());
         assertThat(resolvedDefinitions, is(empty()));
     }
 

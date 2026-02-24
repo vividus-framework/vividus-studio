@@ -64,10 +64,10 @@ class CompositeStepsSaveListenerTests
     @Test
     void shouldRefreshStepDefinitionsOnCompositeStepsFileSaveEvent() throws IOException
     {
-        String uri = getClass().getResource("/project/src/main/resources/composite/composite.steps").getFile();
+        var uri = getClass().getResource("/project/src/main/resources/composite/composite.steps").getFile();
 
-        DidSaveTextDocumentParams params = new DidSaveTextDocumentParams(new TextDocumentIdentifier(uri));
-        List<String> lines = Files.readAllLines(Path.of(uri), StandardCharsets.UTF_8);
+        var params = new DidSaveTextDocumentParams(new TextDocumentIdentifier(uri));
+        var lines = Files.readAllLines(Path.of(uri), StandardCharsets.UTF_8);
         when(textDocumentProvider.getTextDocument(uri)).thenReturn(lines);
         IProject project = mock();
         IPath location = mock();
@@ -79,9 +79,9 @@ class CompositeStepsSaveListenerTests
 
         verify(stepDefinitionsAware).refresh(definitionsCaptor.capture());
 
-        List<StepDefinition> stepDefinitions = definitionsCaptor.getValue();
+        var stepDefinitions = definitionsCaptor.getValue();
         assertThat(stepDefinitions, hasSize(1));
-        StepDefinition definition = stepDefinitions.get(0);
+        var definition = stepDefinitions.get(0);
         assertTrue(definition.isDynamic());
         assertTrue(definition.isComposite());
         assertEquals("Then I param $param1 and $param2 and $param3", definition.getStepAsString());

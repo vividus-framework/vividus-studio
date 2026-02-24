@@ -34,8 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,9 +45,9 @@ class JVMConfiguratorTests
     @Test
     void shouldConfigureDefaultJvm() throws CoreException
     {
-        IVMInstallType type = mock(IVMInstallType.class);
-        try (MockedStatic<JavaRuntime> javaRuntime = mockStatic(JavaRuntime.class);
-             MockedConstruction<VMStandin> vmConstruction = mockConstruction(VMStandin.class,
+        var type = mock(IVMInstallType.class);
+        try (var javaRuntime = mockStatic(JavaRuntime.class);
+             var vmConstruction = mockConstruction(VMStandin.class,
                 (mock, ctx) -> when(mock.convertToRealVM()).thenReturn(defaultVm)))
         {
             javaRuntime.when(JavaRuntime::getDefaultVMInstall).thenReturn(null);
@@ -67,7 +65,7 @@ class JVMConfiguratorTests
     @Test
     void shouldUseExistingDefaultJvm() throws CoreException
     {
-        try (MockedStatic<JavaRuntime> javaRuntime = mockStatic(JavaRuntime.class))
+        try (var javaRuntime = mockStatic(JavaRuntime.class))
         {
             javaRuntime.when(JavaRuntime::getDefaultVMInstall).thenReturn(defaultVm);
 

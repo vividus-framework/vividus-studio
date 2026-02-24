@@ -45,10 +45,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -57,10 +54,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.studio.plugin.command.ICommand;
 import org.vividus.studio.plugin.configuration.JVMConfigurator;
@@ -89,7 +83,7 @@ class VividusStudioLanguageServerTests
     @BeforeEach
     void beforeEach() throws IllegalArgumentException, IllegalAccessException
     {
-        ICommand command = mock(ICommand.class);
+        var command = mock(ICommand.class);
         lenient().when(command.getName()).thenReturn(COMMAND);
 
         languageServer = new VividusStudioLanguageServer(null, stepDefinitionResolver, workspaceService, projectLoader,
@@ -100,16 +94,16 @@ class VividusStudioLanguageServerTests
     @Test
     void testInitialize() throws InterruptedException, ExecutionException, CoreException, IOException
     {
-        InitializeParams params = mock(InitializeParams.class);
-        String rootUri = "root uri";
-        IJavaProject javaProject = mock(IJavaProject.class);
+        var params = mock(InitializeParams.class);
+        var rootUri = "root uri";
+        var javaProject = mock(IJavaProject.class);
         Either<String, Integer> token = Either.forLeft("token");
 
         when(params.getWorkDoneToken()).thenReturn(token);
         when(params.getRootUri()).thenReturn(rootUri);
-        String info = "info";
-        String load = "load";
-        String error = "error";
+        var info = "info";
+        var load = "load";
+        var error = "error";
         when(projectLoader.load(eq(rootUri), argThat(onInfo ->
         {
             onInfo.accept(info);
@@ -124,12 +118,12 @@ class VividusStudioLanguageServerTests
             return true;
         }))).thenReturn(Optional.of(javaProject));
 
-        InOrder notificationServiceOrder = inOrder(clientNotificationService);
+        var notificationServiceOrder = inOrder(clientNotificationService);
 
-        InitializeResult result = languageServer.initialize(params).get();
+        var result = languageServer.initialize(params).get();
 
-        ServerCapabilities serverCapabilities = result.getCapabilities();
-        List<String> triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
+        var serverCapabilities = result.getCapabilities();
+        var triggers = serverCapabilities.getCompletionProvider().getTriggerCharacters();
         assertEquals(List.of(), triggers);
         verify(jvmConfigurator).configureDefaultJvm();
         verify(vividusStudioConfiguration).setJavaProject(javaProject);
@@ -143,7 +137,7 @@ class VividusStudioLanguageServerTests
         notificationServiceOrder.verify(clientNotificationService).showError(error);
         notificationServiceOrder.verify(clientNotificationService).endProgress(token, "Completed");
 
-        CodeActionOptions codeActionOptions = serverCapabilities.getCodeActionProvider().getRight();
+        var codeActionOptions = serverCapabilities.getCodeActionProvider().getRight();
         assertTrue(codeActionOptions.getResolveProvider());
         assertEquals(List.of(CodeActionKind.Source), codeActionOptions.getCodeActionKinds());
     }
@@ -151,22 +145,22 @@ class VividusStudioLanguageServerTests
     @Test
     void shouldListen() throws Exception
     {
-        InputStream is = mock(InputStream.class);
-        OutputStream os = mock(OutputStream.class);
+        var is = mock(InputStream.class);
+        var os = mock(OutputStream.class);
 
-        try(MockedConstruction<Socket> socketConstruction = mockConstruction(Socket.class, (mock, ctx) -> {
+        try(var socketConstruction = mockConstruction(Socket.class, (mock, ctx) -> {
             when(mock.getInputStream()).thenReturn(is);
             when(mock.getOutputStream()).thenReturn(os);
         });
-            MockedStatic<LSPLauncher> lspLauncher = mockStatic(LSPLauncher.class);
-            MockedStatic<VividusStudioLogAppender> logAppender = mockStatic(VividusStudioLogAppender.class))
+            var lspLauncher = mockStatic(LSPLauncher.class);
+            var logAppender = mockStatic(VividusStudioLogAppender.class))
         {
-            Launcher<LanguageClient> launcher = mock(Launcher.class);
+            var launcher = mock(Launcher.class);
             lspLauncher.when(() -> LSPLauncher.createServerLauncher(languageServer, is,
                     os)).thenReturn(launcher);
-            VividusStudioLogAppender appender = mock(VividusStudioLogAppender.class);
+            var appender = mock(VividusStudioLogAppender.class);
             logAppender.when(() -> VividusStudioLogAppender.getInstance()).thenReturn(appender);
-            LanguageClient client = mock(LanguageClient.class);
+            var client = mock(LanguageClient.class);
             when(launcher.getRemoteProxy()).thenReturn(client);
 
             CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> languageServer.exit());

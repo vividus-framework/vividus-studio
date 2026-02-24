@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.vividus.studio.plugin.match.TokenMatcher.MatchOutcome;
 
 class TokenMatcherTests
 {
@@ -43,7 +42,7 @@ class TokenMatcherTests
     @MethodSource("samples")
     void shouldMatch(String sample, boolean expected, int index, String token)
     {
-        MatchOutcome outcome = TokenMatcher.match(sample, TOKENS);
+        var outcome = TokenMatcher.match(sample, TOKENS);
         assertEquals(expected, outcome.isMatch());
         assertEquals(index, outcome.getTokenIndex());
         assertEquals(token, outcome.getSubToken());
@@ -52,16 +51,16 @@ class TokenMatcherTests
     @Test
     void shouldMatchIfParameterIsNotSurroundedWithSeparators()
     {
-        List<String> tokens = List.of(
+        var tokens = List.of(
             "When I pay `",
             "` euros in `",
             "` restaurant by ",
             StringUtils.EMPTY
         );
 
-        String sample = "When I pay `17.70` euros in `The Urban Garden` restaurant by cash";
+        var sample = "When I pay `17.70` euros in `The Urban Garden` restaurant by cash";
 
-        MatchOutcome outcome = TokenMatcher.match(sample, tokens);
+        var outcome = TokenMatcher.match(sample, tokens);
         assertTrue(outcome.isMatch());
         assertEquals(List.of(12, 17, 29, 45, 61, 65), outcome.getArgIndices());
         assertEquals(StringUtils.EMPTY, outcome.getSubToken());

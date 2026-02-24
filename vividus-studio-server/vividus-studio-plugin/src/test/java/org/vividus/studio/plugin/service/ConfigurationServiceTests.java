@@ -50,13 +50,13 @@ public class ConfigurationServiceTests
     @Test
     void shouldGetConfigurationItem() throws InterruptedException, ExecutionException
     {
-        String runnerClass = "org.vividus.runner.StoriesRunner";
+        var runnerClass = "org.vividus.runner.StoriesRunner";
         CompletableFuture future = CompletableFuture.completedFuture(List.of(new JsonPrimitive(runnerClass)));
         when(languageClient.configuration(configurationParamsCaptor.capture())).thenReturn(future);
 
         assertEquals(runnerClass, service.getConfigurationItem("stories-runner"));
 
-        ConfigurationItem item = new ConfigurationItem();
+        var item = new ConfigurationItem();
         item.setSection("vividus-studio.stories-runner");
         assertEquals(List.of(item), configurationParamsCaptor.getValue().getItems());
     }

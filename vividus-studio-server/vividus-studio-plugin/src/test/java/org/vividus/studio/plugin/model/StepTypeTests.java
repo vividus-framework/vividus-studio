@@ -42,7 +42,7 @@ class StepTypeTests
     @Test
     void testDetectUnsupportedType()
     {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> StepType.detect("New step"));
+        var exception = assertThrows(IllegalArgumentException.class, () -> StepType.detect("New step"));
         assertEquals("Unable to detect type for step 'New step'", exception.getMessage());
     }
 }

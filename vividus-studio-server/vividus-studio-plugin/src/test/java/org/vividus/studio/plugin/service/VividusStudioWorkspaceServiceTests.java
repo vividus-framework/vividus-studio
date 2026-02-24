@@ -35,13 +35,13 @@ class VividusStudioWorkspaceServiceTests
     @Test
     void shouldExecuteCommand()
     {
-        ICommand command = mock(ICommand.class);
-        String commandKey = "command-key";
+        var command = mock(ICommand.class);
+        var commandKey = "command-key";
         when(command.getName()).thenReturn(commandKey);
 
-        ExecuteCommandParams params = new ExecuteCommandParams(commandKey, List.of());
+        var params = new ExecuteCommandParams(commandKey, List.of());
 
-        VividusStudioWorkspaceService service = new VividusStudioWorkspaceService(Set.of(command));
+        var service = new VividusStudioWorkspaceService(Set.of(command));
         service.executeCommand(params);
 
         verify(command).execute();

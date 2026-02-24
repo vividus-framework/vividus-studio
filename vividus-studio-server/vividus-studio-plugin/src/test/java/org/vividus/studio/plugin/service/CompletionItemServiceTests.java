@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,16 +70,16 @@ class CompletionItemServiceTests
     @BeforeEach
     void init()
     {
-        StepDefinition givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(), List.of(GIVEN_STEP));
-        StepDefinition whenStepDefinition = new StepDefinition(MODULE, WHEN_STEP, DOCS, List.of(
+        var givenStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS, List.of(), List.of(GIVEN_STEP));
+        var whenStepDefinition = new StepDefinition(MODULE, WHEN_STEP, DOCS, List.of(
                 new Parameter(1, "$value", 15, List.of())
         ), List.of("When I convert ", " into custom type"));
-        StepDefinition thenStepDefinition = new StepDefinition(MODULE, THEN_STEP, DOCS, List.of(
+        var thenStepDefinition = new StepDefinition(MODULE, THEN_STEP, DOCS, List.of(
                 new Parameter(1, "$value", 5, List.of()),
                 new Parameter(2, "$expected", 24, List.of("v1", "v2", "v3"))
         ), List.of("Then ", " is equal to ", " after conversion"));
         thenStepDefinition.setDeprecated(true);
-        StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider, null, null);
+        var resolver = new StepDefinitionResolver(textDocumentProvider, null, null);
         resolver.refresh(List.of(givenStepDefinition, whenStepDefinition, thenStepDefinition));
         completionItemService = new CompletionItemService(resolver);
     }
@@ -108,13 +107,13 @@ class CompletionItemServiceTests
     @ParameterizedTest
     void testFindAllAtPosition(List<String> lines, String textEdit, int line, int charPos)
     {
-        Position position = new Position(line, charPos);
+        var position = new Position(line, charPos);
 
         when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(lines);
 
-        List<CompletionItem> items = completionItemService.findAllAtPosition(DOCUMENT_ID, position);
+        var items = completionItemService.findAllAtPosition(DOCUMENT_ID, position);
         assertThat(items, hasSize(1));
-        CompletionItem item = items.get(0);
+        var item = items.get(0);
 
         assertEquals(textEdit, item.getTextEdit().getLeft().getNewText());
     }
@@ -141,7 +140,7 @@ class CompletionItemServiceTests
     @MethodSource("noMatchDataSet")
     void testFindAllAtPositionNoMatch(List<String> lines, int line, int charPos)
     {
-        Position position = new Position(line, charPos);
+        var position = new Position(line, charPos);
 
         when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(lines);
 
