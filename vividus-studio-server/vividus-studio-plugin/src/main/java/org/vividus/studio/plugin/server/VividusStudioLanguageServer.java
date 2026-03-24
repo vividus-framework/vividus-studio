@@ -25,6 +25,7 @@ import static org.vividus.studio.plugin.util.RuntimeWrapper.wrap;
 import static org.vividus.studio.plugin.util.RuntimeWrapper.wrapMono;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,7 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     private static final Logger LOGGER = LoggerFactory.getLogger(VividusStudioActivator.class);
 
     private static final int TIME_TO_WAIT_EXIT = 3;
+    private static final int CONNECT_TIMEOUT_MS = 30_000;
 
     private final TextDocumentService textDocumentService;
     private final StepDefinitionResolver stepDefinitionResolver;
@@ -198,8 +200,9 @@ public class VividusStudioLanguageServer implements LanguageServer, SocketListen
     @Override
     public void listen(InetAddress address, int port) throws Exception
     {
-        try (Socket socket = new Socket(address, port))
+        try (Socket socket = new Socket())
         {
+            socket.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT_MS);
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, socket.getInputStream(),
                     socket.getOutputStream());
 
