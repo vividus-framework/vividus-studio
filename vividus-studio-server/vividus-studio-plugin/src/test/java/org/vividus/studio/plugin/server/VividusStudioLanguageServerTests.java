@@ -34,6 +34,8 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.Optional;
@@ -171,6 +173,8 @@ class VividusStudioLanguageServerTests
 
             languageServer.listen(null, 0);
 
+            Socket socket = socketConstruction.constructed().get(0);
+            verify(socket).connect(new InetSocketAddress((InetAddress) null, 0), 30_000);
             verify(clientNotificationService).setLanguageClient(client);
             verify(configurationService).setLanguageClient(client);
             verify(launcher).startListening();
