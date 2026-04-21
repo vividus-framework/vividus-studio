@@ -31,7 +31,8 @@ class StepTypeTests
     @CsvSource({
         "Given step, GIVEN",
         "When step, WHEN",
-        "Then step, THEN"
+        "Then step, THEN",
+        "And step, AND"
     })
     @ParameterizedTest
     void testDetect(String stepNaming, StepType expectedType)
