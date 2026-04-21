@@ -29,9 +29,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemTag;
 import org.eclipse.lsp4j.Position;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -117,6 +119,33 @@ class CompletionItemServiceTests
         CompletionItem item = items.get(0);
 
         assertEquals(textEdit, item.getTextEdit().getLeft().getNewText());
+    }
+
+    @Test
+    void testBuiltInStepCompletionItemKind()
+    {
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of("Given rand"));
+
+        List<CompletionItem> items = completionItemService.findAllAtPosition(DOCUMENT_ID, new Position(0, 10));
+        assertThat(items, hasSize(1));
+        assertEquals(CompletionItemKind.Method, items.get(0).getKind());
+    }
+
+    @Test
+    void testCompositeStepCompletionItemKind()
+    {
+        StepDefinition compositeStepDefinition = new StepDefinition(MODULE, GIVEN_STEP, DOCS,
+                List.of(), List.of(GIVEN_STEP));
+        compositeStepDefinition.setComposite(true);
+        StepDefinitionResolver resolver = new StepDefinitionResolver(textDocumentProvider, null, null);
+        resolver.refresh(List.of(compositeStepDefinition));
+        CompletionItemService compositeService = new CompletionItemService(resolver);
+
+        when(textDocumentProvider.getTextDocument(DOCUMENT_ID)).thenReturn(List.of("Given rand"));
+
+        List<CompletionItem> items = compositeService.findAllAtPosition(DOCUMENT_ID, new Position(0, 10));
+        assertThat(items, hasSize(1));
+        assertEquals(CompletionItemKind.Function, items.get(0).getKind());
     }
 
     static Stream<Arguments> noMatchDataSet()
