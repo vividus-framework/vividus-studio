@@ -1,0 +1,21 @@
+!-- SYNTAX TEST "source.vividus.composite-step"
+Composite: Step with parameter <value>
+!-- <---------- vividus.scenario.keyword
+!--           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.scenario.title
+!-- A plain comment line
+!-- <------------------------ comment.line
+Priority: 1
+!-- <--------- vividus.meta.key
+!--      ^^ vividus.meta.value
+Given the precondition is met
+!-- <----- vividus.step.type
+!--       ^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+When the action is performed
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+Then the result is expected
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+And additional assertion holds
+!-- <--- vividus.step.type
+!--     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
