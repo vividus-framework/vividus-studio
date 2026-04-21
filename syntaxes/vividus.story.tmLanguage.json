@@ -109,7 +109,7 @@
                     "name": "vividus.keyword"
                 }
             },
-            "while": "^(Before:|After:)|(Scope:.*)|(Outcome:.*)|((?:Given|When|Then) .+)$",
+            "while": "^(Before:|After:)|(Scope:.*)|(Outcome:.*)|((?:Given(?!Stories)|When|Then|And) .+)$",
             "whileCaptures": {
                 "1": {
                     "name": "vividus.keyword"
@@ -131,7 +131,15 @@
                 "4": {
                     "patterns": [
                         {
-                            "include": "#step"
+                            "match": "^(Given(?!Stories)|When|Then|And)(.+)",
+                            "captures": {
+                                "1": {
+                                    "name": "vividus.step.type"
+                                },
+                                "2": {
+                                    "name": "vividus.step.wording"
+                                }
+                            }
                         }
                     ]
                 }
