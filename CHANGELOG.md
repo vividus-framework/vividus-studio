@@ -3,12 +3,9 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.12] - 2026-04-21
-* Bump VS Code engine from 1.103.0 to 1.104.0
-
 ## [0.2.11] - 2026-02-19
 * Add `VIVIDUS Studio Debug` channel for improved client side logging
-* Bump VS Code engine from 1.102.0 to 1.103.0
+* Bump VS Code engine from 1.103.0 to 1.104.0
 
 ## [0.2.10] - 2025-12-09
 * Fix invalid syntax naming for failure outcome
