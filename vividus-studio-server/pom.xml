@@ -100,8 +100,8 @@
     </pluginRepositories>
     <repositories>
         <repository>
-            <id>latest</id>
-            <url>https://download.eclipse.org/releases/latest/</url>
+            <id>2025-12</id>
+            <url>https://download.eclipse.org/releases/2025-12/</url>
             <layout>p2</layout>
         </repository>
     </repositories>
