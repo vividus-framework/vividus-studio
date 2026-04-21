@@ -1,0 +1,30 @@
+!-- SYNTAX TEST "source.vividus.composite-step"
+!-- Composite step definition
+!-- <----------------------------- comment.line
+Composite: When I open side menu
+!-- <---------- vividus.scenario.keyword
+!--       ^^^^^^^^^^^^^^^^^^^^^^ vividus.scenario.title
+Priority: 10
+!-- <--------- vividus.meta.key
+!--       ^^ vividus.meta.value
+When I tap on element located by `${menuLocator}`
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+When I change context to element located `xpath(//android.widget.ScrollView)->filter.index(1)`
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+When I swipe up to element located by `accessibilityId(menu item log in)` with duration PT3S
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+When I reset context
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^ vividus.step.wording
+Composite: Then I check JSON response
+!-- <---------- vividus.scenario.keyword
+!--       ^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.scenario.title
+Then `${responseCode}` is equal to `200`
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording
+Then JSON element value from `${response}` by JSON path `$.eye_color` is equal to `blue`
+!-- <---- vividus.step.type
+!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ vividus.step.wording

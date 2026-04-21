@@ -95,7 +95,7 @@
                     "name": "vividus.step.wording"
                 }
             },
-            "while": "^((?!Scenario:|Given(?!Stories)|When|Then|And|Composite:|Before:|After:|Scope:|Outcome:|Examples:|!--).+)$",
+            "while": "^((?!Scenario:|GivenStories:|Given(?!Stories)|When|Then|And|Composite:|Before:|After:|Scope:|Outcome:|Examples:|!--).+)$",
             "whileCaptures": {
                 "1": {
                     "name": "vividus.step.wording"

@@ -1,0 +1,11 @@
+// SYNTAX TEST "source.vividus.log"
+2024-01-01 10:00:00,000 [main] INFO  com.example.Class - Log message
+// <----------------------- vividus.log.time
+//                      ^^^^^^ vividus.log.thread
+//                             ^^^^ vividus.log.level.info
+//                                   ^^^^^^^^^^^^^^^^^ vividus.log.class
+//                                                       ^^^^^^^^^^^ vividus.log.message
+2024-01-01 10:00:00,000 [main] ERROR com.example.Class - Error message
+//                             ^^^^^ vividus.log.level.error
+2024-01-01 10:00:00,000 [main] DEBUG com.example.Class - Debug message
+//                             ^^^^^ vividus.log.level.debug

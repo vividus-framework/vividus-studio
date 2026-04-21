@@ -45,6 +45,9 @@ jobs:
       - name: Extension Lint
         run: npm run lint
 
+      - name: Grammar Tests
+        run: npm run test:grammar
+
       - name: Extension Tests
         uses: GabrielBB/xvfb-action@v1.7
         with:
