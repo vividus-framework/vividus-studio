@@ -71,15 +71,15 @@ class TextDocumentEditorTests
     static Stream<Arguments> changeDocumentEvents()
     {
         return Stream.of(
-            arguments(event(range(position(4, 10), position(4, 10)), 0, "Simple example of "),
+            arguments(event(range(position(4, 10), position(4, 10)), "Simple example of "),
                     "singlelineinsert/data.txt"),
-            arguments(event(range(position(6, 83), position(6, 92)), 9, "[A-Za-z0-9]{10}"),
+            arguments(event(range(position(6, 83), position(6, 92)), "[A-Za-z0-9]{10}"),
                     "singlelinereplace/data.txt"),
-            arguments(event(range(position(1, 10), position(1, 25)), 15, ""), "singlelinedelete/data.txt"),
-            arguments(event(range(position(6, 96), position(6, 96)), 0, lineSeparator()), "addnewline/data.txt"),
-            arguments(event(range(position(7, 34), position(11, 46)), 310, ""), "multilinedelete/data.txt"),
-            arguments(event(range(position(4, 10), position(8, 53)), 209, ABOUT), "multilinereplace/data.txt"),
-            arguments(event(range(position(5, 0), position(5, 0)), 0, ABOUT + System.lineSeparator()),
+            arguments(event(range(position(1, 10), position(1, 25)), ""), "singlelinedelete/data.txt"),
+            arguments(event(range(position(6, 96), position(6, 96)), lineSeparator()), "addnewline/data.txt"),
+            arguments(event(range(position(7, 34), position(11, 46)), ""), "multilinedelete/data.txt"),
+            arguments(event(range(position(4, 10), position(8, 53)), ABOUT), "multilinereplace/data.txt"),
+            arguments(event(range(position(5, 0), position(5, 0)), ABOUT + System.lineSeparator()),
                     "multilineinsert/data.txt")
         );
     }
@@ -112,9 +112,9 @@ class TextDocumentEditorTests
         return new Range(start, end);
     }
 
-    private static TextDocumentContentChangeEvent event(Range range, Integer rangeLength, String text)
+    private static TextDocumentContentChangeEvent event(Range range, String text)
     {
-        return new TextDocumentContentChangeEvent(range, rangeLength, text);
+        return new TextDocumentContentChangeEvent(range, text);
     }
 
     private static String loadDocument(String document) throws IOException
