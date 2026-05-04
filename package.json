@@ -267,7 +267,7 @@
         "@types/sinon": "^21.0.1",
         "@types/vscode": "^1.104.0",
         "@vscode/test-electron": "^2.3.8",
-        "eslint": "^10.2.1",
+        "eslint": "^10.3.0",
         "@eslint/js": "^10.0.1",
         "mocha": "^11.7.5",
         "sinon": "^21.1.2",
